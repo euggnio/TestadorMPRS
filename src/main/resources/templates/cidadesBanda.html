@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Testador</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+<main>
+    <div class="searcher">
+        <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
+    </div>
+
+    <button id="buttonLigar" class="buttonLigarTeste" th:attr="onclick='iniciarTeste()'" >
+        <span id="statusTeste">INICIAR TESTE</span>
+    </button>
+    <br>
+    <span style="font-size: small">Desligamento e inicio demoram alguns segundos para atualizar...</span>
+    <table class="city" id="dataTable">
+        <thead>
+        <tr id="@END">
+            <th class="dadosAtual" id="cidadeAtual">Nome da cidade: ...</th>
+            <th class="dadosAtual" id="velocidadeAtual">Vel</th>
+            <th class="dadosAtual" id="statusAtual">PARADO</th>
+            <th class="dadosAtual" th:colspan="3" ><span id="loader"></span>
+            </th>
+        </tr>
+        <tr>
+            <th>Nome da cidade</th>
+            <th>Vel</th>
+            <th>Banda</th>
+            <th>Data</th>
+            <th th:colspan="2" id="filtro" onclick="
+            if(document.getElementById('search').value === 'RUIM'){
+                document.getElementById('search').value = 'OK'
+            }else{
+                document.getElementById('search').value = 'RUIM'
+            }
+             ; filterTable();"
+            >Resultado▲</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cidade : ${cidades}" th:id="${cidade.nome}">
+            <td th:text="${cidade.nome}" ></td>
+            <td th:text="${cidade.velocidade}"></td>
+            <td id="dados" th:text="${cidade.ultimoTesteBanda}">
+            <td th:text="${cidade.dataUltimoTeste}">
+            </td>
+            <td th:text="${cidade.checkTesteBanda ? 'ULTIMO OK' : 'ULTIMO RUIM'}"
+                th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}">
+
+            </td>
+            <td>
+                <button class="buttonLigarTeste"
+                        th:attr="data-cidade=${cidade.nome}"
+                        onclick="iniciarTeste(this.getAttribute('data-cidade'))">
+                    <span>Try</span>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <script>
+        function iniciarTeste(idCidade) {
+            fetch(`/testeBanda`, {
+                method: "POST",
+                body:  idCidade,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.statusText);
+                    }
+                    return response.json(); // Pega a resposta JSON
+                })
+                .then(data => {
+                    if(data.status == "true"){
+                        document.getElementById("statusTeste").innerHTML = "TESTE DESLIGADO."
+                    }
+                    else{
+                        document.getElementById("statusTeste").innerHTML = "INICIADO."
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                });
+        }
+    </script>
+    <script>
+        var eventSource = new EventSource("/stream");
+        var linha = {
+            'nome': '@END',
+            'velocidade': '',
+        };
+
+        eventSource.onmessage = function (event) {
+            event.data = event.data.replace("'", "\"");
+            let jsonData = event.data.replace("data:", "");
+            let obj = JSON.parse(jsonData);
+            if (obj.nome === "@END") {
+                console.log("acabou teste")
+                document.getElementById(linha.nome).classList.remove("text-shadows")
+                document.getElementById("statusAtual").innerHTML = "PARADO";
+                document.getElementById("buttonLigar").style.backgroundColor = "#00ADB5";
+
+                document.getElementById("loader").classList.remove("loader")
+                if(linha.nome !== "@END"){
+                    getDataAtualizada(linha.nome);
+                }
+                linha.nome = "@END";
+                document.getElementById("statusTeste").innerHTML = "INICIAR TESTE";
+
+                linha.velocidade = "";
+                return
+            }
+            if (linha.nome !== obj.nome) {
+                console.log('Received troca de cidade: ' + linha.nome + " para " + obj.nome);
+                if (linha.nome != "@END") {
+                    document.getElementById(linha.nome).classList.remove("text-shadows")
+
+                    getDataAtualizada(linha.nome);
+                }
+                linha = obj;
+            }
+            document.getElementById(linha.nome).classList.add("text-shadows")
+            document.getElementById("statusAtual").innerHTML = "RODANDO";
+            document.getElementById("statusTeste").innerHTML = "DESLIGAR";
+            document.getElementById("buttonLigar").style.backgroundColor = "red"
+            document.getElementById("loader").classList.add("loader")
+            trocarDadosAtuais();
+        };
+
+        function getDataAtualizada(id){
+            fetch(`/data?idCidade=${id}`, {
+                method: "GET",
+            })
+                .then(response => response.text())
+                .then(data => {
+                    let jsonData = data.replace("data:", "");
+                    let obj = JSON.parse(jsonData);
+                    console.log(obj);
+                    document.getElementById(id).getElementsByTagName('td')[2].innerHTML = obj.ultimoTesteBanda;
+                    document.getElementById(id).getElementsByTagName('td')[3].innerHTML = obj.dataUltimoTeste;
+                    document.getElementById(id).getElementsByTagName('td')[4].innerHTML = obj.check ? "OK" : "RUIM";
+                    document.getElementById(id).getElementsByTagName('td')[4].style.color = obj.check ? "GREEN" : "RED";
+
+                });
+        }
+
+        function trocarDadosAtuais() {
+            document.getElementById("cidadeAtual").innerHTML = linha.nome;
+            document.getElementById("velocidadeAtual").innerHTML = linha.velocidade;
+        }
+
+    </script>
+    <script>
+        function filterTable() {
+            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
+            let input = document.getElementById("search");
+            let filter = input.value.toLowerCase();
+            // pegamos a tabela as linhas
+            let table = document.getElementById("dataTable");
+            let tr = table.getElementsByTagName("tr");
+            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
+            for (let i = 2; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td");
+                let match = false;
+                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        let textValue = td[j].textContent || td[j].innerText;
+                        if (textValue.toLowerCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                //esconte ou mostra linhas da tabela com base no match.
+                tr[i].style.display = match ? "" : "none";
+            }
+        }
+    </script>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificador diario</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+<main>
+    <div class="searcher">
+        <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
+    </div>
+    <table class="city" id="dataTable">
+        <thead>
+        <tr>
+            <th>Nome da cidade</th>
+            <th>Sigla</th>
+            <th>Intra</th>
+            <th>Contatos Intra</th>
+            <th>Contatos</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cidade : ${cidades}">
+            <td th:text="${cidade.nome}"></td>
+            <td th:text="${cidade.codigo}"></td>
+            <td>
+                <a th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"
+                   th:text="${cidade.intra}"
+                   target="_blank"
+                   rel="noopener noreferrer"></a>
+            </td>
+            <td th:data-intra="${cidade.intra}" class="conteudo-container" style="display: flex; align-items: center; justify-content: space-around;font-size: 0.8em !important;line-">
+                <button  th:id="${cidade.intra}" th:attr="onclick='teste(this)'"> C
+                </button>
+                <div id="conteudo"></div>
+            </td>
+            <td id="contatos">
+                <button  id="buttonTrocarForm" th:attr="onclick='trocarFormContato(this)'" >
+                </button>
+                <div id="T">
+                    <form th:action="@{/atualizar}" method="post" class="formulario">
+                        <input type="hidden" id="idCidade" name="idCidade" th:value="${cidade.nome}">
+                        <label for="nome">nome:</label>
+                        <input type="text" id="nome" name="nome" required>
+                        <br>
+                        <label for="telefone">Telefone:</label>
+                        <input type="text" id="telefone" name="telefone" required>
+
+                        <button type="submit">Atualizar</button>
+                    </form>
+                </div>
+                <div id="F">
+                    <ul th:each="contato :${cidade.contatos}">
+                        <li>
+                            <span th:text="${contato.nome} + ' | ' + ${contato.telefone}"></span>
+                            <form th:action="@{/deletarContato}" method="post" style="display: none;">
+                                <input type="hidden" id="id" name="id" th:value="${contato.id}">
+                                <input type="hidden" id="idCid" name="idCid" th:value="${cidade.nome}">
+                                <button type="submit">Deletar</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <script>
+        function filterTable() {
+            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
+            let input = document.getElementById("search");
+            let filter = input.value.toLowerCase();
+            // pegamos a tabela as linhas
+            let table = document.getElementById("dataTable");
+            let tr = table.getElementsByTagName("tr");
+            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td");
+                let match = false;
+                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        let textValue = td[j].textContent || td[j].innerText;
+                        if (textValue.toLowerCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                //esconte ou mostra linhas da tabela com base no match.
+                tr[i].style.display = match ? "" : "none";
+            }
+        }
+    </script>
+
+</main>
+</body>
+</html>
