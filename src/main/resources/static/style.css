@@ -18,6 +18,10 @@ header {
     align-items: center;
 }
 
+.btMes{
+    margin-left: 1%;
+}
+
 table {
     margin: 20px auto;
     border-collapse: collapse;
@@ -25,8 +29,27 @@ table {
     border: solid #ccc 1px;
 }
 .city{
-    width: 75% !important;
+    width: 85% !important;
 }
+
+.city-auto{
+    width: 90% !important;
+}
+
+
+
+.listaCidades{
+    height: 150px;
+    overflow: hidden;
+    padding-left: 0px;
+    width: 10em;
+    border: 1px solid #222831;
+    list-style: none;
+    display: none;
+    position: absolute;
+    background-color: #00ADB5;
+}
+
 
 .dadosAtual{
     background-color: #222831;
@@ -36,28 +59,96 @@ th, td {
     padding: 5px;
 }
 
+.botoes{
+    display: flex;
+    justify-content: center;
+    margin: 1%;
+}
+.centro{
+    width: 75%;
+    margin-left: 25%;
+    display: flex;
+    justify-content: space-around;
+}
+
 th {
     color: white;
     background-color: #393E46;
+}
+
+.inputPequeno{
+    width: auto !important;
 }
 
 td{
     font-weight: bold;
 }
 
-tr:nth-child(even) {
+.dado{
+    gap: 15px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.background{
+    display: none;
+    width: 100%;
+    z-index: 4;
+    position: absolute;
+    top:0;
+    font-size: 0.8em !important;
+    color: rgba(0, 0, 0, 1);
+}
+.background:hover {
+    border: 2px #393E46 solid;
+}
+.resultadoColuna{
+    font-weight: bolder;
+    margin-bottom: 0.5em;
+    height: 2.3em;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    font-size: 1.1em;
+    text-align: center;
+    background-color: rgba(245, 222, 179, 0) !important;
+}
+
+a{
+    text-decoration: none !important;
+    border: none;
+}
+.resultadoOK:nth-child(even) {
+    background-color: rgba(92, 255, 92, 1);
+    td:nth-child(odd) {
+        background-color: rgba(92, 255, 92, 1);
+    }
+}
+.resultadoOK:nth-child(odd){
+    background-color: rgba(0, 255, 0, 1);
+    td:nth-child(even) {
+        background-color: rgba(92, 255, 92, 1);
+    }
+}
+
+.linha:nth-child(even) {
     background-color: rgba(238, 238, 238, 0.95);
     td:nth-child(odd) {
         background-color: rgba(238, 238, 238, 0.85);
     }
 }
-tr:nth-child(odd){
+.linha:nth-child(odd){
     background-color: rgba(0, 173, 181, 0.40);
     td:nth-child(even) {
         background-color: rgba(0, 173, 181, 0.35);
     }
 }
 
+.centralizar{
+    display: flex;
+    width: 100%;
+    background-color: white;
+}
 
 input {
     background: 0;
@@ -66,7 +157,7 @@ input {
     outline: none;
     width: 80vw;
     max-width: 400px;
-    font-size: 1.5em;
+    font-size: 1em;
     transition: padding 0.3s 0.2s ease;
 
     &:focus {
@@ -99,7 +190,9 @@ input {
 }
 
 button{
+
     appearance: none;
+    z-index: 3;
     background-color: #00ADB5;
     color: white;
     padding: 0.8em;
@@ -142,6 +235,9 @@ button:hover{
     border-radius: 5px;
     font-size: large;
     padding: 8px;
+    width: 50%;
+    height: 75%;
+    margin-left: 25%;
 }
 
 #filtro:hover{
@@ -225,6 +321,21 @@ button:hover{
     100% {
         text-shadow: none;
     }
+}
+
+.resultadoOK{
+    background-color: rgba(92, 255, 92, 1);
+    text-align: center;
+    width: -webkit-fill-available;
+    width: -moz-available;
+}
+
+.resultadoNAOOK{
+    background-color: rgba(251, 100, 100, 1);
+    width: -webkit-fill-available;
+    width: -moz-available;
+    text-align: center;
+
 }
 
 

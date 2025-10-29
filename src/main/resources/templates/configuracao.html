@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>ObservadorDoEugenio</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+    <h1>
+        Configuração
+        <span style="color: orange; font-weight: bold"
+              th:if="${status != null}"
+              th:text="'| ' + ${status}">
+        </span>
+    </h1>
+    <h5><s>Alterações de dados aqui funcionam apenas run-time</s>, para alterar em definitivo modifique no arquivo de propriedades.</h5>
+    <h6 STYLE="color:red">Alterações da configuração foram desabilitadas via run-time</h6>
+    <h3>Host de teste</h3>
+    <table>
+        <tr class="linha">
+            <td>
+                <label>IP Testador</label>
+            </td>
+            <td>
+                <input th:value="${ip}" readonly>
+            </td>
+        </tr>
+        <tr class="linha">
+            <td>
+                <label>Usuário</label>
+            </td>
+            <td>
+                <input th:value="${usuario}" readonly>
+            </td>
+        </tr>
+        <tr class="linha">
+            <td>
+                <label>Senha</label>
+            </td>
+            <td>
+                <input th:value="'Boa tentativa homoerectus'" type="password" readonly></input>
+            </td>
+        </tr>
+    </table>
+    <h3>Hosts</h3>
+    <table>
+        <tr class="linha">
+            <th>#</th>
+            <th>Host</th>
+            <th>Sigla</th>
+            <th>Velocidade</th>
+            <th>Nome Sis</th>
+            <th>Cacti</th>
+            <th>Intra</th>
+            <th>IP</th>
+        </tr>
+        <tr class="">
+            <form action="/atualizar" method="POST" >
+                <td><button type="submit">Salvar</button></td>
+                <td><input class="inputPequeno" type="text" id="nome" name="nome" placeholder="nome..."></td>
+                <td><input class="inputPequeno" type="text" id="codigo" name="codigo" placeholder="Sigla..."></td>
+                <td><input class="inputPequeno" type="text" id="velocidade" name="velocidade" placeholder="Velocidade, apenas numero!"></td>
+                <td><input class="inputPequeno" type="text" id="nomeSistema" name="nomeSistema" placeholder="nomeSistema"></td>
+                <td><input class="inputPequeno" type="text" id="cacti" name="cacti" placeholder="Id gráfico cacti"></td>
+                <td><input class="inputPequeno" type="text" id="intra" name="intra" placeholder="Codigo intranet..."></td>
+                <td><input class="inputPequeno" type="text" id="ip" name="ip" placeholder="IP"></td>
+            </form>
+        </tr>
+        <tr th:each="host : ${hosts}" class="linha">
+            <td>
+                <form action="/apagarCidade" method="POST" >
+                    <input class="inputPequeno" type="text" th:value="${host.nome}" id="nome2" name="nome" hidden="hidden">
+            <button type="submit">Apagar</button>
+            </form>
+            </td>
+            <td>
+                <label th:text="${host.nome}"></label>
+            </td>
+            <td>
+                <label th:text="${host.codigo}"></label>
+            </td>
+            <td>
+                <label th:text="${host.velocidade}"></label>
+            </td>
+            <td>
+                <label th:text="${host.nomeSistema}"></label>
+            </td>
+            <td>
+                <label th:text="${host.cacti}"></label>
+            </td>
+            <td>
+                <label th:text="${host.intra}"></label>
+            </td>
+            <td>
+                <label th:text="${host.ip}"></label>
+            </td>
+        </tr>
+
+    </table>
+
+</body>
+</html>

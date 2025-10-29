@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificador diario</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
+"></script>
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body>
+<div th:replace="~{header :: header}"></div>
+
+
+<div class="botoes">
+    <button  class="btMes" onclick="atualizarMes('todos') ">
+        Todos
+    </button>
+    <div class="btMes"  th:each="mes : ${alertas.getMesDisponibilidades()}">
+        <button th:text="${mes.getNomeMesPtBr()}" th:id="${mes.month.name()}" onclick="atualizarMes(this.id)">
+        </button>
+    </div>
+</div>
+<label id="listaAlertasPorTempoDeQueda"></label>
+<div class="btMes">
+    <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >
+</div>
+<br>
+
+<div class="centralizar">
+    <div id="chart-indisponibilidade" style="width: 50%; height: 500px"></div>
+    <div id="chart-porcentagem" style="width: 50%; height: 500px"></div>
+</div>
+<div class="centralizar">
+    <div id="chart-quedasCidades" style="width: 50%; height: 500px"></div>
+    <div id="chart-quedas" style="width: 50%; height: 500px"></div>
+</div>
+
+<script type="text/javascript" th:inline="javascript">
+    let nomeFiltro = "";
+    let mes = "todos";
+
+    function atualizarGraficoIndisponibilidade() {
+        let dadosMes;
+        if(mes == null || mes == "" || mes == "undefined"){
+            mes = "todos";
+        }
+        const chartIndisp = echarts.init(document.getElementById('chart-indisponibilidade'));
+        const dados = [[${alertas.mesDisponibilidades}]];
+
+        if (mes === "todos") {
+            // Mapa para armazenar soma e contagem por cidade
+            const mapa = new Map();
+            dados.forEach(item => {
+                item.disponibilidades.forEach(d => {
+                    if (d.nome && d.nome.trim() !== "") {
+                        if (!mapa.has(d.nome)) {
+                            mapa.set(d.nome, { soma: 0, count: 0 });
+                        }
+                        const obj = mapa.get(d.nome);
+                        obj.soma += d.disponibilidade;
+                        obj.count++;
+                    }
+                });
+            });
+            // Calcula média por cidade
+            dadosMes = Array.from(mapa.entries())
+                .map(([nome, obj]) => ({
+                    nome,
+                    disponibilidade: obj.count > 0 ? obj.soma / obj.count : 0
+                }))
+                .sort((a, b) => a.disponibilidade - b.disponibilidade);
+
+        } else {
+            // Apenas um mês específico
+            const mesEncontrado = dados.find(item => item.month === mes);
+            if (mesEncontrado) {
+                dadosMes = mesEncontrado.disponibilidades
+                    .filter(d => d.nome && d.nome.trim() !== "")
+                    .sort((a, b) => a.disponibilidade - b.disponibilidade);
+            } else {
+                dadosMes = [];
+            }
+        }
+        const filtrados = nomeFiltro && nomeFiltro.trim() !== ""
+            ? dadosMes.filter(d => d.nome.toUpperCase().includes(nomeFiltro.toUpperCase()))
+            : dadosMes;
+
+// --- Dados finais para o gráfico ---
+        const cidades = filtrados.map(d => d.nome);
+        const valores = filtrados.map(d => d.disponibilidade.toFixed(2));
+
+        var option = {
+            title: {
+                text: 'Disponibilidade por cidade (%) - ' +  mes,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: '{b} : {c}%',
+                axisPointer: { type: 'shadow' }
+            },
+            grid: {
+                left: '5%',
+                right: '5%',
+                bottom: '2%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                max: 100
+            },
+            yAxis: {
+                type: 'category',
+                data: cidades,
+                axisLabel: {
+                    fontSize: 15,
+                    formatter: function (value) {
+                        return value.length > 30 ? value.slice(0, 27) + '...' : value;
+                    }
+                },
+            },
+            dataZoom: [
+                { type: 'slider', yAxisIndex: 0, start: 10, end: 0 },
+                { type: 'inside', yAxisIndex: 0, start: 0, end: 20 }
+            ],
+            series: [{
+                name: 'Indisponibilidade',
+                type: 'bar',
+                data: valores,
+                itemStyle: {
+                    color: function (params) {
+                        return params.value < 99.4 ? '#FA7676' : '#76A7FA'; // por exemplo, >10% de indisponibilidade
+                    },
+                    shadowColor: 'rgba(0, 0, 0, 0.5)',
+                    shadowBlur: 0.5
+                },
+                label: { show: true, formatter: '{c}%' }
+            }]
+        };
+        chartIndisp.setOption(option);
+
+        // OUTRO GRÁFICO ABAIXO DE DADOS
+        // OUTRO GRÁFICO ABAIXO DE DADOS
+        // OUTRO GRÁFICO ABAIXO DE DADOS
+
+        var port = document.getElementById('chart-porcentagem');
+        var chartPorcentagem = echarts.init(port);
+
+        var porcentagem = 0.0;
+        for(let i=0; i < valores.length; i++) {
+            porcentagem += parseFloat(valores[i]);
+            console.log(valores.length);
+        }
+        porcentagem = porcentagem / valores.length;
+        var contadorIDMOK = 0;
+            contadorIDMOK = valores.filter(item => item > 99.4).length;
+
+        port2 = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                data: [
+                    'Média IDM',
+                    'NÃO OK',
+                    'IDM OK',
+                    'IDM NÃO OK',
+
+                ]
+            },
+            series: [
+                {
+                    name: 'MÉDIA IDM, DISPONIBILIDADE',
+                    type: 'pie',
+                    selectedMode: 'single',
+                    radius: [0, '30%'],
+                    label: {
+                        formatter: '{b} {c}%',
+                        position: 'inner',
+                        fontSize: 14,
+                        fontWeight: 'bold'
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: porcentagem.toFixed(2), name: 'Média IDM' },
+                        { value: (100 - porcentagem).toFixed(2), name: 'NÃO OK', itemStyle: { color: '#6d1f9a' } }
+                    ],
+                },
+                {
+                    name: 'IDM',
+                    type: 'pie',
+                    radius: ['50%', '70%'],
+                    labelLine: {
+                        length: 30
+                    },
+                    label: {
+                        formatter: '{a|{a}}{abg|}\n{hr|}\n  {b|{b}：}{c}  {per|{d}%}  ',
+                        backgroundColor: '#F6F8FC',
+                        borderColor: '#8C8D8E',
+                        fontSize: 25,
+                        rich: {
+                            a: {
+                                color: '#6E7079',
+                                lineHeight: 22,
+                                align: 'center'
+                            },
+                            hr: {
+                                borderColor: '#8C8D8E',
+                                width: '100%',
+                                borderWidth: 1,
+                                height: 0
+                            },
+                            b: {
+                                color: '#4C5058',
+                                fontSize: 14,
+                                fontWeight: 'bold',
+                                lineHeight: 33
+                            },
+                            per: {
+                                color: '#fff',
+                                backgroundColor: '#4C5058',
+                                padding: [3, 4],
+                                borderRadius: 4
+                            }
+                        }
+                    },
+                    data: [
+                        { value:  contadorIDMOK , name: 'IDM OK', itemStyle: { color: '#279e00' } },
+                        { value: cidades.length - contadorIDMOK, name: 'IDM NÃO OK' ,itemStyle: { color: '#a50000' }}
+                    ]
+                }
+            ]
+        };
+
+        chartPorcentagem.setOption(port2);
+
+        window.addEventListener('resize', chartIndisp.resize);
+        window.addEventListener('resize', chartPorcentagem.resize);
+
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        atualizarGraficoIndisponibilidade();
+    });
+
+</script>
+<script type="text/javascript" th:inline="javascript">
+    function graficoDeQuedas() {
+        const dados = [[${alertas.alertasDown}]];
+        const alertasProcessados = dados.map(a => {
+            const data = new Date(a.data);
+            const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
+            const dia = data.getDate();
+            return {mes, cidade: a.nome, dia: dia};
+        });
+
+        const filtrados = nomeFiltro && nomeFiltro.trim() !== ""
+            ? alertasProcessados.filter(a => a.cidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
+            : alertasProcessados;
+        let meses;
+        let totaisPorMes;
+        if (mes === "todos") {
+            meses = [...new Set(filtrados.map(a => a.mes))];
+            totaisPorMes = meses.map(mes =>
+                filtrados.filter(a => a.mes === mes).length);
+        }
+        else{
+            meses = [...new Set(filtrados.filter(a => a.mes === mes.slice(0,3)).map(a => a.dia))];
+            totaisPorMes = meses.map(dia =>
+                filtrados.filter(a => a.mes === mes.slice(0,3) && a.dia === dia).length
+            );
+        }
+        const cidades = [...new Set(filtrados.map(a => a.cidade))];
+
+        const series = cidades.map(cidade => {
+            return {
+                name: cidade,
+                type: 'bar',
+                stack: 'alertas',
+                emphasis: { focus: 'series' },
+                data: meses.map(m => {
+                    if (mes === "todos") {
+                        // aqui 'm' é mês
+                        return filtrados.filter(a => a.cidade === cidade && a.mes === m).length;
+                    } else {
+                        // aqui 'm' é dia
+                        return filtrados.filter(a => a.cidade === cidade && a.mes === mes.slice(0,3) && a.dia === m).length;
+                    }
+                }),
+            };
+        });
+
+        series.push({
+            name: 'Total',
+            type: 'bar',
+            stack: null, // não empilha
+            barGap: '-100%', // sobrepõe
+            itemStyle: {
+                color: 'rgba(0,0,0,0)' // cinza se < 5, invisível caso contrário
+            },
+            label: {
+                show: true,
+                position: 'top',
+                formatter: params => `${totaisPorMes[params.dataIndex]}`,
+                fontSize: 12,
+                color: '#000',
+                fontWeight: 'bold'
+            },
+            data: totaisPorMes
+        });
+
+        const option = {
+            title: {
+                text: 'Alertas por Cidade e Mês',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: function (params) {
+                    const filtered = params.filter(p => p.value > 2 && p.seriesName !== 'Total');
+                    let result = `${params[0].axisValue}<br/>`;
+                    filtered.forEach(p => {
+                        result += `${p.marker}${p.seriesName}: ${p.value}<br/>`;
+                    });
+                    result += `<b>Total: ${totaisPorMes[params[0].dataIndex]}</b>`;
+                    return result;
+                }
+            },
+            legend: {
+                type: 'scroll',
+                orient: 'horizontal',
+                bottom: 0,
+                data: cidades
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '12%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: meses,
+                name: 'Mês'
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Qtd. de quedas'
+            },
+            series: series
+        };
+
+        const chartDom = document.getElementById('chart-quedas');
+        const myChart = echarts.init(chartDom);
+        myChart.clear()
+        myChart.setOption(option);
+    }
+    function graficoCidade() {
+        let alertasProcessados = [[${alertas.alertasDown}]]; // dados do Thymeleaf
+        if (mes == null || mes === "" || mes === "undefined" || mes === "todos") {
+            console.log("Todos os alertas em gráfico de alertas por cidade");
+        } else {
+            alertasProcessados = alertasProcessados.filter(a => {
+                const mesAlerta = new Date(a.data)
+                    .toLocaleString('en-US', { month: 'long' })
+                    .toUpperCase();
+                return mesAlerta === mes;
+            });
+        }
+
+        const filtrados = (nomeFiltro && nomeFiltro.trim() !== "")
+            ? alertasProcessados.filter(a =>
+                a.nome && a.nome.toUpperCase().includes(nomeFiltro.toUpperCase()))
+            : alertasProcessados;
+
+        const cidades = [];
+        for (let i = 0; i < filtrados.length; i++) {
+            const cidade = filtrados[i].nome;
+            if (cidade && !cidades.includes(cidade)) {
+                cidades.push(cidade);
+            }
+        }
+
+        const totais = [];
+        for (let i = 0; i < cidades.length; i++) {
+            let contador = 0;
+            for (let j = 0; j < filtrados.length; j++) {
+                if (filtrados[j].nome === cidades[i]) {
+                    contador++;
+                }
+            }
+            totais.push(contador);
+        }
+
+        const cidadesTotais = cidades.map((cidade, i) => ({ cidade, total: totais[i] }));
+        cidadesTotais.sort((a, b) => b.total - a.total);
+
+        const cidadesOrdenadas = cidadesTotais.map(obj => obj.cidade);
+        const totaisOrdenados = cidadesTotais.map(obj => obj.total);
+
+        var chartDom = document.getElementById('chart-quedasCidades');
+        var myChart = echarts.init(chartDom);
+
+        var option = {
+            title: {
+                text: 'Quantidade de alertas por cidade - ' + mes,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '5%',
+                right: '5%',
+                bottom: '2%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+            },
+            yAxis: {
+                type: 'category',
+                data: cidadesOrdenadas,
+                axisLabel: {
+                    fontSize: 15,
+                    formatter: function (value) {
+                        return value.length > 30 ? value.slice(0, 27) + '...' : value;
+                    }
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    yAxisIndex: 0,
+                    start: 10,
+                    end: 0 // mostra as primeiras 20 cidades e permite scroll
+                },
+                {
+                    type: 'inside',
+                    yAxisIndex: 0,
+                    start: 0,
+                    end: 20
+                }
+
+            ],
+            series: [{
+                name: 'Alertas',
+                type: 'bar',
+                data: totaisOrdenados,
+                itemStyle: {
+                    color: '#76A7FA'
+                },
+                label: {
+                    show: true
+                }
+            }]
+        };
+        myChart.clear()
+        myChart.setOption(option);
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        graficoDeQuedas();
+        graficoCidade();
+    });
+
+
+    function atualizarNome(nome){
+        nomeFiltro = nome;
+        mes = "todos"
+        atualizarGraficoIndisponibilidade()
+        graficoCidade()
+        graficoDeQuedas()
+    }
+
+    function atualizarMes(mesNovo){
+        mes = mesNovo
+        atualizarGraficoIndisponibilidade();
+        graficoCidade();
+        graficoDeQuedas();
+    }
+</script>
+
+</body>
+</html>

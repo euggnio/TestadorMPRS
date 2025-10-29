@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/ico.png">
 
 </head>
 <body>
@@ -20,9 +21,14 @@
         <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
     </div>
 
-    <button id="buttonLigar" class="buttonLigarTeste" th:attr="onclick='iniciarTeste()'" >
+    <button id="buttonLigar" class="" th:attr="onclick='iniciarTeste()'" >
+
         <span id="statusTeste">INICIAR TESTE</span>
     </button>
+    <button  class="" th:attr="onclick='mostrarHistorico()'" >
+        <span><img th:src="@{/historia.png}" height="24" width="24"/></span>
+    </button>
+
     <br>
     <span style="font-size: small">Desligamento e inicio demoram alguns segundos para atualizar...</span>
     <table class="city" id="dataTable">
@@ -35,39 +41,85 @@
             </th>
         </tr>
         <tr>
-            <th>Nome da cidade</th>
+
+            <th>Unidade</th>
             <th>Vel</th>
             <th>Banda</th>
             <th>Data</th>
             <th th:colspan="2" id="filtro" onclick="
-            if(document.getElementById('search').value === 'RUIM'){
+            if(document.getElementById('search').value === 'NÃO'){
                 document.getElementById('search').value = 'OK'
             }else{
-                document.getElementById('search').value = 'RUIM'
+                document.getElementById('search').value = 'NÃO'
             }
              ; filterTable();"
             >Resultado▲</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="cidade : ${cidades}" th:id="${cidade.nome}">
-            <td th:text="${cidade.nome}" ></td>
-            <td th:text="${cidade.velocidade}"></td>
-            <td id="dados" th:text="${cidade.ultimoTesteBanda}">
-            <td th:text="${cidade.dataUltimoTeste}">
-            </td>
-            <td th:text="${cidade.checkTesteBanda ? 'ULTIMO OK' : 'ULTIMO RUIM'}"
-                th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}">
+        <th:block th:each="cidade : ${cidades}" >
+<!--                <tr th:id="${cidade.nome}">-->
+<!--                    <td>-->
+<!--                        <button class="buttonCidade"><a th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></button>-->
 
-            </td>
-            <td>
-                <button class="buttonLigarTeste"
-                        th:attr="data-cidade=${cidade.nome}"
-                        onclick="iniciarTeste(this.getAttribute('data-cidade'))">
-                    <span>Try</span>
-                </button>
-            </td>
-        </tr>
+<!--                    </td>-->
+<!--                    <td th:text="${cidade.velocidade}"></td>-->
+<!--                    <td id="dados" th:text="${cidade.ultimoTesteBanda}">-->
+<!--                    <td th:text="${cidade.dataUltimoTeste}">-->
+<!--                    </td>-->
+<!--                    <td th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"-->
+<!--                        th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}">-->
+
+<!--                    </td>-->
+<!--                    <td>-->
+<!--                        <button class="buttonLigarTeste"-->
+<!--                                th:attr="data-cidade=${cidade.nome}"-->
+<!--                                onclick="iniciarTeste(this.getAttribute('data-cidade'))">-->
+<!--                            <span>Testar</span>-->
+<!--                        </button>-->
+<!--                    </td>-->
+<!--                </tr>-->
+
+<!--                <tr style="background-color: rebeccapurple" class="resultadoLinha" id="0">-->
+<!--                    <td colspan="6" style="padding: 0px 0px 2px 0px">-->
+<!--                        <div class="resultadoColuna">-->
+<!--                            <div class="resultado"-->
+<!--                                 th:each="resultado : ${cidade.getResultados()}"-->
+<!--                                 th:attr="data-resultado=${resultado.getResultado()},-->
+<!--                               data-velocidade=${cidade.velocidade},-->
+<!--                               data-dia=${resultado.getDia()}"-->
+<!--                            >-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </td>-->
+<!--                </tr>-->
+            <tr th:id="${cidade.nome}" class="linha">
+                <td colspan="6" style="position: relative; padding: 0px; border-bottom: solid 2px #000; ">
+                        <div class="resultadoColuna" >
+                            <span class="dado"><a  th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></span>
+                            <span class="dado" th:text="${cidade.velocidade}"></span>
+                            <span class="dado" th:text="${cidade.ultimoTesteBanda}"></span>
+                            <span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
+                            <span class="dado" th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}" th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
+                            <button class="buttonLigarTeste dado"
+                                    th:attr="data-cidade=${cidade.nome}"
+                                    onclick="iniciarTeste(this.getAttribute('data-cidade'))">
+                                <span>Testar</span>
+                            </button>
+                        </div>
+                    <div class="background" >
+                        <div class="resultado"
+                             th:each="resultado : ${cidade.getResultados()}"
+                             th:attr="data-resultado=${resultado.getResultado()},
+                               data-velocidade=${cidade.velocidade},
+                               data-dia=${resultado.getDia()}"
+                        >
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+        </th:block>
         </tbody>
     </table>
     <script>
@@ -95,6 +147,9 @@
                 })
                 .catch(error => {
                     console.error('Erro:', error);
+                    alert("Desconectado, entre novamente");
+                    window.location.reload();
+
                 });
         }
     </script>
@@ -151,10 +206,10 @@
                     let jsonData = data.replace("data:", "");
                     let obj = JSON.parse(jsonData);
                     console.log(obj);
-                    document.getElementById(id).getElementsByTagName('td')[2].innerHTML = obj.ultimoTesteBanda;
-                    document.getElementById(id).getElementsByTagName('td')[3].innerHTML = obj.dataUltimoTeste;
-                    document.getElementById(id).getElementsByTagName('td')[4].innerHTML = obj.check ? "OK" : "RUIM";
-                    document.getElementById(id).getElementsByTagName('td')[4].style.color = obj.check ? "GREEN" : "RED";
+                    document.getElementById(id).getElementsByTagName('span')[2].innerHTML = obj.ultimoTesteBanda;
+                    document.getElementById(id).getElementsByTagName('span')[3].innerHTML = obj.dataUltimoTeste;
+                    document.getElementById(id).getElementsByTagName('span')[4].innerHTML = obj.check ? "OK" : "RUIM";
+                    document.getElementById(id).getElementsByTagName('span')[4].style.color = obj.check ? "GREEN" : "RED";
 
                 });
         }

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Testador</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+<main>
+    <div class="searcher">
+        <input type="text" id="search" placeholder="Digite nome da unidade para filtrar..." onkeyup="filterTable()">
+    </div>
+
+    <br>
+    <table class="city" id="dataTable">
+        <thead>
+        <tr>
+            <th>Unidade</th>
+            <th>Velocidade</th>
+            <th>TESTE</th>
+            <th>Data</th>
+            <th th:colspan="2" id="filtro" onclick="">Dados</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cidade : ${cidades}" th:id="${cidade.nome}">
+            <td th:text="${cidade.nome}" ></td>
+            <td th:text="${cidade.velocidade.replace('RX', '')}"></td>
+            <td id="dados" th:text="${cidade.ultimoTesteBanda}">
+            <td th:text="${cidade.dataUltimoTeste}">
+            </td>
+            <td th:text="${cidade.checkTesteBanda ? 'Velocidade OK' : 'Velocidade abaixo do contrato'}"
+                th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}">
+
+            </td>
+            <td th:data-intra="${cidade.intra}" class="conteudo-container" style="display: flex; align-items: center; justify-content: space-around;font-size: 0.8em !important;line-">
+                <button  th:id="${cidade.intra}" th:attr="onclick='teste(this)'" style="display: none"> C
+                </button>
+                <table id="conteudo"></table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function filterTable() {
+            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
+            let input = document.getElementById("search");
+            let filter = input.value.toLowerCase();
+            // pegamos a tabela as linhas
+            let table = document.getElementById("dataTable");
+            let tr = table.getElementsByTagName("tr");
+            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
+            for (let i = 2; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td");
+                let match = false;
+                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        let textValue = td[j].textContent || td[j].innerText;
+                        if (textValue.toLowerCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                //esconte ou mostra linhas da tabela com base no match.
+                tr[i].style.display = match ? "" : "none";
+            }
+        }
+    </script>
+
+</main>
+</body>
+</html>

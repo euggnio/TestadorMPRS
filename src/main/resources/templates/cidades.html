@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <script src="/javascript.js"></script>
     <script th:src="@{/javascript.js}"></script>
-
+    <link rel="icon" type="image/x-icon" href="/ico.png">
 </head>
 <body>
 
@@ -18,16 +18,16 @@
     </div>
     <table class="city" id="dataTable">
         <thead>
-        <tr>
-            <th>Nome da cidade</th>
-            <th>Sigla</th>
-            <th>Intra</th>
-            <th>Contatos Intra</th>
-            <th>Contatos</th>
-        </tr>
+            <tr class="linha">
+                <th>Unidade</th>
+                <th>Sigla</th>
+                <th>Intra</th>
+                <th>Contatos Intra</th>
+                <th>Contatos</th>
+            </tr>
         </thead>
         <tbody>
-        <tr th:each="cidade : ${cidades}">
+        <tr th:each="cidade : ${cidades}" class="linha">
             <td th:text="${cidade.nome}"></td>
             <td th:text="${cidade.codigo}"></td>
             <td>
@@ -37,13 +37,13 @@
                    rel="noopener noreferrer"></a>
             </td>
             <td th:data-intra="${cidade.intra}" class="conteudo-container" style="display: flex; align-items: center; justify-content: space-around;font-size: 0.8em !important;line-">
-                <button  th:id="${cidade.intra}" th:attr="onclick='teste(this)'"> C
+                <button  th:id="${cidade.intra}" th:attr="onclick='contatosIntra(this)'" style="display: none"> C
                 </button>
-                <div id="conteudo"></div>
+                <div id="ctc"></div>
             </td>
             <td id="contatos">
-                <button  id="buttonTrocarForm" th:attr="onclick='trocarFormContato(this)'" >
-                </button>
+<!--                <button  id="buttonTrocarForm" th:attr="onclick='trocarFormContato(this)'"  disabled>-->
+<!--                </button>-->
                 <div id="T">
                     <form th:action="@{/atualizar}" method="post" class="formulario">
                         <input type="hidden" id="idCidade" name="idCidade" th:value="${cidade.nome}">

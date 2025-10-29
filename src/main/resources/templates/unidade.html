@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Testador</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+          rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+<main>
+
+
+    <div class="centro">
+        <h3>🌐 DADOS CIDADE DE <span th:text="${cidade.nome}"></span> </h3>
+        <div >
+        <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
+        <ul id="listaCidades" class="listaCidades">
+            <!-- Itens adicionados dinamicamente -->
+        </ul>
+            </div>
+        <script th:inline="javascript">
+            let nomeCidades = [];
+            let busca = "";
+            function atualizarFiltro(input) {
+                const lista = document.getElementById("listaCidades");
+                busca = input.value.toLowerCase();
+                if (busca.length > 0) {
+                    const filtradas = nomeCidades.filter(c => c.toLowerCase().includes(busca));
+                    atualizarLista(filtradas);
+                    lista.style.display = "block"; // mostra a lista
+                } else {
+                    lista.style.display = "none"; // esconde a lista
+                }
+            }
+
+            function pegarCidadesPorGet() {
+                var url = [[@{/pegarListaCidades}]];
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(cidades => {
+                            nomeCidades = cidades;
+                            atualizarLista(nomeCidades);
+                        })
+                        .catch(err => console.error('Erro ao buscar cidades:', err));
+            }
+
+                function atualizarLista(cidades) {
+                    const lista = document.getElementById("listaCidades");
+                    lista.innerHTML = "";
+                    cidades.forEach(cidade => {
+                        const li = document.createElement("li");
+                        li.textContent = cidade + " ↗";
+                        li.style.padding = "8px";
+                        li.style.cursor = "pointer";
+                        li.style.color = "black";
+                        li.addEventListener("click", () => {
+                            window.location.href = "/unidade/" + cidade;
+                        });
+                        li.addEventListener("mouseover", () => li.style.backgroundColor = "#f0f0f0");
+                        li.addEventListener("mouseout", () => li.style.backgroundColor = "");
+                        lista.appendChild(li);
+                    });
+                }
+
+                document.addEventListener("DOMContentLoaded", pegarCidadesPorGet);
+        </script>
+    </div>
+            <table class="city-auto" id="dataTable">
+                <thead>
+                <tr>
+                    <th>CIDADE</th>
+                    <th>CACTI - BANDA</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Idade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Cidade</td>
+                                        <td th:text="${cidade.nome}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Velocidade</td>
+                                        <td th:text="${cidade.velocidade}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ultimo teste de banda</td>
+                                        <td th:text="${cidade.ultimoTesteBanda}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td> IP </td>
+                                        <td th:text="${cidade.ip}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SIGLA</td>
+                                        <td th:text="${cidade.codigo}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>INTRA</td>
+                                        <td><a th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"><span th:text="${cidade.intra}"></span></a> </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Smoke</td>
+                                        <td th:text="${smoke}"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                        <td th:utext="${cacti}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>SMOKE 30H</th>
+                        <th>SMOKE 3H</th>
+                    </tr>
+                    <tr>
+                        <td>
+                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.nomeSistema.charAt(0)}+'/'+ ${cidade.nomeSistema} +'_last_108000.png?'+${#dates.createNow().getTime()}"
+                             width="100%">
+                        <td>
+                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.nomeSistema.charAt(0)}+'/'+ ${cidade.nomeSistema} +'_last_10800.png?'+${#dates.createNow().getTime()}"
+                             width="100%"></td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+    <script>
+        function filterTable() {
+            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
+            let input = document.getElementById("search");
+            let filter = input.value.toLowerCase();
+            // pegamos a tabela as linhas
+            let table = document.getElementById("dataTable");
+            let tr = table.getElementsByTagName("tr");
+            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
+            for (let i = 2; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td");
+                let match = false;
+                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        let textValue = td[j].textContent || td[j].innerText;
+                        if (textValue.toLowerCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                //esconte ou mostra linhas da tabela com base no match.
+                tr[i].style.display = match ? "" : "none";
+            }
+        }
+    </script>
+
+</main>
+</body>
+</html>

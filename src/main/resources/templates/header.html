@@ -1,11 +1,11 @@
 <!-- templates/fragments/header.html -->
 <div th:fragment="~{header :: header}">
     <header>
-        <h1>⌛ Testador </h1>
+        <h1>⌛ Testador Mikrotik <span style="font-size: 0.5em">v.2.0 🔥</span></h1>
         <div class="menu">
-            <button onclick="location.href='../dispositivos'">Dispositivos OFF</button>
-            <button onclick="location.href='../hosts-caiu'">Caidas do mês</button>
-            <button onclick="location.href='../hosts-caiu-dia'">Caidas do dia</button>
+            <button onclick="location.href='../desativado'" disabled style="background-color: #c3c3c3 !important;"><strike>Roteadores</strike></button>
+            <button onclick="location.href='../grafico'">Dados</button>
+            <button onclick="location.href='../configuracao'">Configuração</button>
             <button onclick="location.href='../cidades'">Siglas</button>
             <button onclick="location.href='../cidadesBanda'">Verificação de tráfego</button>
         </div>

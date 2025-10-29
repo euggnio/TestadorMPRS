@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -32,6 +33,12 @@ public class Cidades {
     public String ultimoTesteBanda;
 
     public String dataUltimoTeste;
+
+    public String nomeSistema;
+    public String cacti;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
+    public List<Resultados> resultados;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Contato> contatos;
@@ -60,6 +67,10 @@ public class Cidades {
         this.checkTesteBanda = checkTesteBanda;
     }
 
+    public List<Resultados> getResultados() {
+        return resultados;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -70,12 +81,18 @@ public class Cidades {
                 ", \"velocidade\":\"" + velocidade + " \" " +
                 ", \"checkTesteBanda\":" + checkTesteBanda +
                 ", \"ultimoTesteBanda\":\"" + ultimoTesteBanda + " \" " +
+                ", \"Nome sistema\":\"" + nomeSistema + " \" " +
                 "}";
 
     }
 
-    public int getVelocidadeByCity(){
+    public int getVelocidadeInteger(){
         String inteiros = velocidade.replaceAll("\\D", "");
         return Integer.parseInt(inteiros);
+    }
+
+    public void addResultado(LocalDateTime data, String resultado){
+        this.resultados.add(new Resultados(data,resultado,this));
+
     }
 }

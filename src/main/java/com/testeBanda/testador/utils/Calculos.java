@@ -1,17 +1,16 @@
 package com.testeBanda.testador.utils;
 
 import com.testeBanda.testador.models.Cidades;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculos {
 
-    public static void CorrigirTesteResTesteBanda(Cidades cidade, List<Map<String, String>> resultado) {
+    public static void CorrigirTesteResTesteBanda(Cidades cidade, List<Map<String, String>> resultado)  {
         double rx = 0;
         double tx = 0;
         int count = 0; // Contador de valores válidos
@@ -55,14 +54,15 @@ public class Calculos {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         cidade.ultimoTesteBanda = "RX: " + String.format("%.3f", rxMean)
                 + " | TX: " + String.format("%.3f", txMean);
-        cidade.dataUltimoTeste = formatter.format(LocalDateTime.now());
-        if ( cidade.getVelocidadeByCity() == 20 ) {
+        LocalDateTime now = LocalDateTime.now();
+        cidade.dataUltimoTeste = formatter.format(now);
+        if ( cidade.getVelocidadeInteger() == 20 ) {
             cidade.checkTesteBanda = (rxMean > 17 && txMean > 17);
             return;
-        } else if ( cidade.getVelocidadeByCity() == 50 ) {
+        } else if ( cidade.getVelocidadeInteger() == 50 ) {
             cidade.checkTesteBanda = (rxMean > 43 && txMean > 43);
             return;
-        } else if ( cidade.getVelocidadeByCity() == 100 ) {
+        } else if ( cidade.getVelocidadeInteger() == 100 ) {
             cidade.checkTesteBanda = (rxMean > 94 && txMean > 94);
             return;
         } else {
@@ -96,6 +96,27 @@ public class Calculos {
         return contador > 0 ? soma / contador : 0;
     }
 
+    private static final Set<String> PREPOSICOES = new HashSet<>(Arrays.asList(
+            "de", "do", "da", "dos", "das"
+    ));
+
+    public static String formatarNomeSistema(String nome) {
+        String[] partes = nome.toLowerCase().split("_");
+        StringBuilder resultado = new StringBuilder();
+
+        for (String parte : partes) {
+            if (parte.isEmpty()) continue;
+
+            if (PREPOSICOES.contains(parte)) {
+                resultado.append(parte);
+            } else {
+                resultado.append(Character.toUpperCase(parte.charAt(0)))
+                        .append(parte.substring(1));
+            }
+        }
+
+        return resultado.toString();
+    }
 
 }
 
