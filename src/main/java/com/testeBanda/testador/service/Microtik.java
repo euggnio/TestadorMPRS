@@ -101,7 +101,7 @@ public class Microtik {
                 "direction=both " +
                 "protocol=tcp " +
                 "user=mprs " +
-                "password=Vnld0p$ " +
+                "password=" + senha + " " +
                 "local-tx-speed=" + (host.getVelocidadeInteger() +1) +"M " +
                 "remote-tx-speed="+ (host.getVelocidadeInteger() +1)+"M";
         return api.execute(cmd);
@@ -113,7 +113,7 @@ public class Microtik {
                 "direction=transmit " +
                 "protocol=tcp " +
                 "user=mprs " +
-                "password=Vnld0p$ " +
+                "password=" + senha + " " +
                 "local-tx-speed=" + (host.getVelocidadeInteger() +1) +"M " +
                 "remote-tx-speed="+ (host.getVelocidadeInteger() +1)+"M";
         return api.execute(cmd);
@@ -125,7 +125,7 @@ public class Microtik {
                 "direction=receive " +
                 "protocol=tcp " +
                 "user=mprs " +
-                "password=Vnld0p$ " +
+                "password=" + senha + " " +
                 "local-tx-speed=" + (host.getVelocidadeInteger() ) +"M " +
                 "remote-tx-speed="+ (host.getVelocidadeInteger() )+"M";
         return api.execute(cmd);
