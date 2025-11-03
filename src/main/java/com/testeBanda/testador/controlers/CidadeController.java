@@ -45,6 +45,7 @@ public class CidadeController {
     @GetMapping("/unidade/{city}")
     public String unidade(@PathVariable String city, Model model) {
         Cidades cidade = cidadeService.findById(city);
+
         if ( cidade == null) {
             cidade = new Cidades();
             cidade.nome = "Canoas";
@@ -61,7 +62,7 @@ public class CidadeController {
     //TODO Isso é utilizado?
     @PostMapping("/atualizar")
     public String atualizarCidade(Cidades cidade, RedirectAttributes redirectAttrs) {
-        if ( cidade.nomeSistema.isEmpty() || cidade.ip.isEmpty()) {
+        if ( cidade.nome.isEmpty() || cidade.ip.isEmpty()) {
             redirectAttrs.addFlashAttribute("status", "Falta de dados! (Obgt. nome e IP)");
             return "redirect:configuracao";
         }

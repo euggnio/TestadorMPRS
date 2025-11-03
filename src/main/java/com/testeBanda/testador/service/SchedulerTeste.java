@@ -10,7 +10,7 @@ public class SchedulerTeste {
     private TesterService testerService;
 
     @Scheduled(cron = "0 0 0,23 * * ?")
-    public void schedulerTest(){
+    public void schedulerTest() {
         System.out.println("Scheduler Test");
         testerService.iniciarTeste("");
     }

@@ -328,7 +328,10 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 trigger: 'axis',
                 axisPointer: { type: 'shadow' },
                 formatter: function (params) {
-                    const filtered = params.filter(p => p.value > 2 && p.seriesName !== 'Total');
+                    const filtered = params
+                        .filter(p => p.value > 0 && p.seriesName !== 'Total')
+                        .sort((a, b) => a.value - b.value); // <-- ordena do menor para o maior
+
                     let result = `${params[0].axisValue}<br/>`;
                     filtered.forEach(p => {
                         result += `${p.marker}${p.seriesName}: ${p.value}<br/>`;

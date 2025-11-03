@@ -95,4 +95,72 @@ public class Cidades {
         this.resultados.add(new Resultados(data,resultado,this));
 
     }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
+    }
+
+    public String getIntra() {
+        return intra;
+    }
+
+    public void setIntra(String intra) {
+        this.intra = intra;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setVelocidade(String velocidade) {
+        this.velocidade = velocidade;
+    }
+
+    public boolean isCheckTesteBanda() {
+        return checkTesteBanda;
+    }
+
+    public String getUltimoTesteBanda() {
+        return ultimoTesteBanda;
+    }
+
+    public String getDataUltimoTeste() {
+        return dataUltimoTeste;
+    }
+
+    public void setDataUltimoTeste(String dataUltimoTeste) {
+        this.dataUltimoTeste = dataUltimoTeste;
+    }
+
+    public String getNomeSistema() {
+        return nomeSistema;
+    }
+
+    public void setNomeSistema(String nomeSistema) {
+        this.nomeSistema = nomeSistema;
+    }
+
+    public String getCacti() {
+        return cacti;
+    }
+
+    public void setCacti(String cacti) {
+        this.cacti = cacti;
+    }
+
+    public void setResultados(List<Resultados> resultados) {
+        this.resultados = resultados;
+    }
+
+    public List<Contato> getContatos() {
+        return contatos;
+    }
+
+    public void setContatos(List<Contato> contatos) {
+        this.contatos = contatos;
+    }
 }

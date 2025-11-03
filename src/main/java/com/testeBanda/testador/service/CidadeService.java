@@ -31,6 +31,7 @@ public class CidadeService {
         LocalDateTime now = LocalDateTime.now();
         cidade.addResultado(now, host.ultimoTesteBanda);
         cidade.ultimoTesteBanda = host.ultimoTesteBanda;
+        cidade.checkTesteBanda = host.checkTesteBanda;
         cidade.dataUltimoTeste = (now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
         cidadesRepository.save(cidade);
         resultadosRepository.deleteExcedentes(cidade.getNome());
