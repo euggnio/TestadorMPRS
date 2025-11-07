@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificador diario</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script src="/javascript.js"></script>
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+</head>
+
+<body>
+<div th:replace="~{header :: header}"></div>
+
+<main>
+
+    <div style="margin: 10px 0;">
+        <label for="calendario">Start date:</label>
+        <input
+                type="date"
+                id="calendario"
+                name="calendario"
+                th:value="${datas.getFirst()}"
+                th:min="${datas.getLast()}"
+                th:max="${datas.getFirst()}" />
+        <button onclick="outraData()">GO</button>
+    </div>
+
+    <div class="botoes">
+        <div class="btMes"  th:each="mes : ${#numbers.sequence(0, datas.getFirst().getMonth())}">
+            <a th:href=" '/historicoQuedas/mes/' + ${mes+1}">
+                <button th:text="${#temporals.monthName(datas.getFirst().withMonth(mes+1))}" th:value="${mes+1}">
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div>
+        <button id="diaAntes" style="font-size: large;" onclick="setasData(-1)">&lt;</button>
+        <label th:text="${titulo}" id="titulo" style="font-size: larger; font-weight: bold;"></label>
+        <button id="diaDepois" style="font-size: large;" onclick="setasData(1)">&gt;</button>
+    </div>
+
+    <div id="count" style="margin: 15px 0;">Total de Quedas:</div>
+
+    <table class="city" id="dataTable">
+    <thead>
+    <tr class="linha">
+        <th>Cidade</th>
+        <th>Data </th>
+        <th>Tempo Fora</th>
+        <th>Foi Queda de Luz?</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="queda : ${quedas}" class="linha">
+        <td th:text="${queda.cidade}"></td>
+        <td>
+            <label th:text="${queda.data.toLocalDate()}"></label><br>
+            <label th:text="${queda.data.toLocalTime()}"></label>
+        </td>
+        <td th:if="${queda.tempoFora.toSeconds() != 0}">
+            <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
+            <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
+        </td>
+        <td th:unless="${queda.tempoFora.toSeconds() != 0}">
+            <label>DOWN</label>
+        </td>
+        <td style="display: flex; align-items: center; justify-content: space-evenly;">
+            <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>
+            <form action="/editaFaltaDeLuz" method="POST" >
+                <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">
+                <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz" name="faltaDeLuz" hidden="hidden">
+                <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual" name="paginaAtual" hidden="hidden">
+                <button type="submit" style="float: right;" >Queda de Luz</button>
+            </form>
+        </td>
+
+    </tr>
+    </tbody>
+    </table>
+
+    <script>
+
+        window.addEventListener('load', checksFaltaDeLuz);
+        window.addEventListener('load', countLines);
+        window.addEventListener('load', desabilitaFlechas);
+        window.addEventListener('load', paginaAtualChecks);
+
+        function paginaAtualChecks(){
+            let paginaInputs = document.getElementsByClassName("paginaAtual");
+
+            for(elem of paginaInputs){
+                elem.value = window.location.pathname;
+            }
+        }
+
+        function checksFaltaDeLuz(){
+            let checks = document.getElementsByClassName("checkFaltaDeLuz");
+
+            for(elem of checks){
+                elem.innerText = (elem.getAttribute("value") == "true") ? '✅' : '❌'
+            }
+        }
+
+        function outraData(){
+            let input = document.getElementById("calendario");
+
+            if(input.value.includes("-")){
+                window.location = '/historicoQuedas/dia/' + input.value;
+            }
+        }
+
+        function desabilitaFlechas(){
+            let antes = document.getElementById("diaAntes");
+            let depois = document.getElementById("diaDepois");
+
+            if (window.location.href.indexOf("mes") > -1) {
+                antes.style.display = "none";
+                depois.style.display = "none";
+            }else{
+                antes.style.display = "";
+                depois.style.display = "";
+            }
+        }
+
+        function setasData(valor){
+            let titulo = document.getElementById("titulo");
+            let date = new Date(titulo.innerText + "T00:00:00.000Z");
+            date.setDate(date.getDate() + valor);
+
+            if(date <= Date.now())
+                window.location = '/historicoQuedas/dia/' + date.toISOString().substring(0, 10);
+        }
+
+        function countLines(){
+            let table = document.getElementById("dataTable");
+            let count = document.getElementById("count");
+            let tr = table.getElementsByTagName("tr");
+
+            count.innerText = count.innerText + ' ' + (tr.length - 1);
+        }
+
+
+    </script>
+
+</main>
+
+</body>
+
+</html>

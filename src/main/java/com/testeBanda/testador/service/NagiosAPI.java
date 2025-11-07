@@ -6,6 +6,7 @@ import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.models.Alerta;
 import com.testeBanda.testador.models.Disponibilidade;
 import com.testeBanda.testador.models.Mes;
+import com.testeBanda.testador.models.Queda;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,36 @@ public class NagiosAPI {
 
     @Value("${testador.nagios}")
     private String nagios;
+
+    public List<Alerta> todosAlertasDoAno(){
+        String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&" +
+                "starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
+        JsonNode alertListNode = sendRequest(url,"alertlist");
+
+        return criaListaDeAlertas(alertListNode);
+    }
+
+    private List<Alerta> criaListaDeAlertas(JsonNode json) {
+
+        List<Alerta> alertas = new ArrayList<>();
+        if (json.isArray()) {
+            for (JsonNode alert : json) {
+                String name = alert.path("name").asText();
+                if(name.equals("1Teste")) continue;
+                String tipo = alert.path("plugin_output").asText();
+
+                long timestampMillis = alert.path("timestamp").asLong();
+                LocalDateTime data = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(timestampMillis),
+                        TimeZone.getDefault().toZoneId()
+                );
+
+                alertas.add(new Alerta(name, data, tipo));
+            }
+        }
+
+        return alertas;
+    }
 
     public  DadosAlertaDTO listaDeAlertas(DadosAlertaDTO dto){
         String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&" +
