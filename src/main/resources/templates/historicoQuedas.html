@@ -5,6 +5,7 @@
     <title>Verificador diario</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
     <script src="/javascript.js"></script>
     <script th:src="@{/javascript.js}"></script>
     <link rel="icon" type="image/x-icon" href="/ico.png">
@@ -15,8 +16,16 @@
 
 <main>
 
-    <div style="margin: 10px 0;">
-        <label for="calendario">Start date:</label>
+    <input type="checkbox" id="toggle-switch" hidden>
+    <label for="toggle-switch" class="toggle-label">
+        <span class="option-one">Dia</span>
+        <span class="option-two">Mês</span>
+        <span class="toggle-slider"></span>
+    </label>
+
+
+    <div class="controleDia">
+        <label for="calendario">Data:</label>
         <input
                 type="date"
                 id="calendario"
@@ -25,21 +34,36 @@
                 th:min="${datas.getLast()}"
                 th:max="${datas.getFirst()}" />
         <button onclick="outraData()">GO</button>
-    </div>
-
-    <div class="botoes">
-        <div class="btMes"  th:each="mes : ${#numbers.sequence(0, datas.getFirst().getMonth())}">
-            <a th:href=" '/historicoQuedas/mes/' + ${mes+1}">
-                <button th:text="${#temporals.monthName(datas.getFirst().withMonth(mes+1))}" th:value="${mes+1}">
-                </button>
-            </a>
+        <div>
+            <button onclick="diaHoje()">Hoje</button>
         </div>
     </div>
 
+    <div class="controleMes">
+
+        <select id="dropAno">
+            <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
+                    th:value="${ano}"
+                    th:text="${ano}" ></option>
+        </select>
+
+
+        <select id="dropMes">
+            <option th:each="mes : ${#numbers.sequence(0, 11)}"
+                    th:value="${mes+1}"
+                    th:text="${#temporals.monthName(datas.getFirst().withMonth(mes+1))}"></option>
+        </select>
+
+        <button onclick="outroMes()">GO</button>
+
+    </div>
+
+
+
     <div>
-        <button id="diaAntes" style="font-size: large;" onclick="setasData(-1)">&lt;</button>
+        <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
         <label th:text="${titulo}" id="titulo" style="font-size: larger; font-weight: bold;"></label>
-        <button id="diaDepois" style="font-size: large;" onclick="setasData(1)">&gt;</button>
+        <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
     </div>
 
     <div id="count" style="margin: 15px 0;">Total de Quedas:</div>
@@ -82,11 +106,48 @@
     </table>
 
     <script>
-
+        window.addEventListener('load', desabilitaFlechas);
         window.addEventListener('load', checksFaltaDeLuz);
         window.addEventListener('load', countLines);
-        window.addEventListener('load', desabilitaFlechas);
         window.addEventListener('load', paginaAtualChecks);
+        window.addEventListener('load', dadosSalvos);
+
+        let dropAno = document.getElementById("dropAno");
+        let dropMes = document.getElementById("dropMes");
+        let calendario = document.getElementById("calendario");
+        let switcher = document.getElementById("toggle-switch");
+
+        function dadosSalvos() {
+            const hoje = new Date();
+
+            if(localStorage.getItem('ano') == null){
+                localStorage.setItem('ano', hoje.getFullYear());
+                dropAno.value = hoje.getFullYear();
+            }else{
+                dropAno.value = parseInt(localStorage.getItem('ano'));
+            }
+
+            if(localStorage.getItem('mes') == null){
+                localStorage.setItem('mes', hoje.getMonth());
+                dropMes.value = hoje.getMonth();
+            }else{
+                dropMes.value = parseInt(localStorage.getItem('mes'));
+            }
+
+            if(localStorage.getItem('dia') == null){
+                localStorage.setItem('dia', calendario.value);
+            }else{
+                calendario.value = localStorage.getItem('dia');
+            }
+
+            if(localStorage.getItem('switcher') == null){
+                localStorage.setItem('switcher', false);
+                switcher.checked = false;
+            }else{
+                switcher.checked = (localStorage.getItem('switcher') == "true");
+            }
+        }
+
 
         function paginaAtualChecks(){
             let paginaInputs = document.getElementsByClassName("paginaAtual");
@@ -100,16 +161,41 @@
             let checks = document.getElementsByClassName("checkFaltaDeLuz");
 
             for(elem of checks){
-                elem.innerText = (elem.getAttribute("value") == "true") ? '✅' : '❌'
+                elem.innerText = (elem.getAttribute("value") == "true") ? '✅' : '❌';
             }
         }
 
-        function outraData(){
-            let input = document.getElementById("calendario");
+        function atualizaSwitcher() {
+            localStorage.setItem('switcher', switcher.checked);
 
-            if(input.value.includes("-")){
-                window.location = '/historicoQuedas/dia/' + input.value;
+            if(switcher.checked){
+                outroMes()
+            }else{
+                outraData()
             }
+        }
+        switcher.addEventListener('change', atualizaSwitcher);
+
+        function diaHoje(){
+            let data = new Date();
+            let hoje = data.toISOString().substring(0,10);
+
+            localStorage.setItem('dia', hoje);
+            window.location = '/historicoQuedas/dia/' + hoje;
+        }
+
+        function outraData(){
+            localStorage.setItem('dia', calendario.value);
+            window.location = '/historicoQuedas/dia/' + calendario.value;
+        }
+
+        function outroMes() {
+            let inputMes = document.getElementById("dropMes");
+            let inputAno = document.getElementById("dropAno");
+
+            localStorage.setItem('mes', inputMes.value);
+            localStorage.setItem('ano', inputAno.value);
+            window.location = '/historicoQuedas/mes/' + inputAno.value + '/' + inputMes.value;
         }
 
         function desabilitaFlechas(){

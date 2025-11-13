@@ -50,15 +50,17 @@ public class QuedaController {
         return "historicoQuedas";
     }
 
-    @GetMapping("/historicoQuedas/mes/{mesString}")
-    public String historicoQuedasMes(Model model, @PathVariable String mesString) {
+    @GetMapping("/historicoQuedas/mes/{ano}/{mesString}")
+    public String historicoQuedasMes(Model model, @PathVariable int ano, @PathVariable String mesString) {
         List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
         List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
 
         LocalDate data = LocalDate.now().withMonth(Integer.parseInt(mesString));
-        List<Queda> quedasDoMes = quedaService.filterQuedasPorMes(todasQuedas, data.getMonth());
+        List<Queda> quedasDoMes = quedaService.filterQuedasPorMes(todasQuedas, ano, data.getMonth());
 
-        model.addAttribute("titulo", data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR"))));
+        String tituloString = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR"))) + " " + ano;
+
+        model.addAttribute("titulo", tituloString);
         model.addAttribute("quedas", quedasDoMes);
         model.addAttribute("datas", listaDeDatas);
         return "historicoQuedas";

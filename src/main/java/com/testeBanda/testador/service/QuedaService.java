@@ -77,8 +77,8 @@ public class QuedaService{
         return ListaDeDatas;
     }
 
-    public List<Queda> filterQuedasPorMes(List<Queda> quedas, Month mes){
-        return quedas.stream().filter( queda -> queda.getData().getMonth().equals(mes)).toList();
+    public List<Queda> filterQuedasPorMes(List<Queda> quedas, int ano, Month mes){
+        return quedas.stream().filter( queda -> queda.getData().getMonth().equals(mes) && queda.getData().getYear() == ano).toList();
     }
 
     public List<Queda> filterQuedasPorDia(List<Queda> quedas, LocalDate data){
