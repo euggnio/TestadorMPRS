@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Verificador diario</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <script src="/javascript.js"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
     <script th:src="@{/javascript.js}"></script>
     <link rel="icon" type="image/x-icon" href="/ico.png">
 </head>
@@ -15,8 +14,16 @@
 
 <main>
 
-    <div style="margin: 10px 0;">
-        <label for="calendario">Start date:</label>
+    <input type="checkbox" id="toggle-switch" hidden>
+    <label for="toggle-switch" class="toggle-label">
+        <span class="option-one">Dia</span>
+        <span class="option-two">Mês</span>
+        <span class="toggle-slider"></span>
+    </label>
+
+
+    <div class="controleDia">
+        <label for="calendario">Data:</label>
         <input
                 type="date"
                 id="calendario"
@@ -25,21 +32,35 @@
                 th:min="${datas.getLast()}"
                 th:max="${datas.getFirst()}" />
         <button onclick="outraData()">GO</button>
-    </div>
-
-    <div class="botoes">
-        <div class="btMes"  th:each="mes : ${#numbers.sequence(0, datas.getFirst().getMonth())}">
-            <a th:href=" '/historicoQuedas/mes/' + ${mes+1}">
-                <button th:text="${#temporals.monthName(datas.getFirst().withMonth(mes+1))}" th:value="${mes+1}">
-                </button>
-            </a>
+        <div>
+            <button onclick="diaHoje()">Hoje</button>
         </div>
     </div>
 
-    <div>
-        <button id="diaAntes" style="font-size: large;" onclick="setasData(-1)">&lt;</button>
+    <div class="controleMes">
+
+        <select id="dropAno">
+            <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
+                    th:value="${ano}"
+                    th:text="${ano}" ></option>
+        </select>
+
+
+        <select id="dropMes">
+            <option th:each="mes : ${#numbers.sequence(0, 11)}"
+                    th:value="${mes+1}"
+                    th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
+                                #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
+        </select>
+
+        <button onclick="outroMes()">GO</button>
+
+    </div>
+
+    <div class="tituloBox">
+        <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
         <label th:text="${titulo}" id="titulo" style="font-size: larger; font-weight: bold;"></label>
-        <button id="diaDepois" style="font-size: large;" onclick="setasData(1)">&gt;</button>
+        <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
     </div>
 
     <div id="count" style="margin: 15px 0;">Total de Quedas:</div>
@@ -85,70 +106,7 @@
     </tbody>
     </table>
 
-    <script>
-
-        window.addEventListener('load', checksFaltaDeLuz);
-        window.addEventListener('load', countLines);
-        window.addEventListener('load', desabilitaFlechas);
-        window.addEventListener('load', paginaAtualChecks);
-
-        function paginaAtualChecks(){
-            let paginaInputs = document.getElementsByClassName("paginaAtual");
-
-            for(elem of paginaInputs){
-                elem.value = window.location.pathname;
-            }
-        }
-
-        function checksFaltaDeLuz(){
-            let checks = document.getElementsByClassName("checkFaltaDeLuz");
-
-            for(elem of checks){
-                elem.innerText = (elem.getAttribute("value") == "true") ? '✅' : '❌'
-            }
-        }
-
-        function outraData(){
-            let input = document.getElementById("calendario");
-
-            if(input.value.includes("-")){
-                window.location = '/historicoQuedas/dia/' + input.value;
-            }
-        }
-
-        function desabilitaFlechas(){
-            let antes = document.getElementById("diaAntes");
-            let depois = document.getElementById("diaDepois");
-
-            if (window.location.href.indexOf("mes") > -1) {
-                antes.style.display = "none";
-                depois.style.display = "none";
-            }else{
-                antes.style.display = "";
-                depois.style.display = "";
-            }
-        }
-
-        function setasData(valor){
-            let titulo = document.getElementById("titulo");
-            let date = new Date(titulo.innerText + "T00:00:00.000Z");
-            date.setDate(date.getDate() + valor);
-
-            if(date <= Date.now())
-                window.location = '/historicoQuedas/dia/' + date.toISOString().substring(0, 10);
-        }
-
-        function countLines(){
-            let table = document.getElementById("dataTable");
-            let count = document.getElementById("count");
-            let tr = table.getElementsByTagName("tr");
-
-            count.innerText = count.innerText + ' ' + (tr.length - 1);
-        }
-
-
-    </script>
-
+    <script th:src="@{/historicoQuedas.js}"></script>
 </main>
 
 </body>
