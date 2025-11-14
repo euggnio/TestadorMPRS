@@ -51,16 +51,15 @@
         <select id="dropMes">
             <option th:each="mes : ${#numbers.sequence(0, 11)}"
                     th:value="${mes+1}"
-                    th:text="${#temporals.monthName(datas.getFirst().withMonth(mes+1))}"></option>
+                    th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
+                                #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
         </select>
 
         <button onclick="outroMes()">GO</button>
 
     </div>
 
-
-
-    <div>
+    <div class="tituloBox">
         <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
         <label th:text="${titulo}" id="titulo" style="font-size: larger; font-weight: bold;"></label>
         <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
@@ -106,7 +105,6 @@
     </table>
 
     <script>
-        window.addEventListener('load', desabilitaFlechas);
         window.addEventListener('load', checksFaltaDeLuz);
         window.addEventListener('load', countLines);
         window.addEventListener('load', paginaAtualChecks);
@@ -120,6 +118,11 @@
         function dadosSalvos() {
             const hoje = new Date();
 
+            if (window.location.href.indexOf("mes") <= -1 &&
+                window.location.href.indexOf("dia") <= -1){
+                localStorage.clear();
+            }
+
             if(localStorage.getItem('ano') == null){
                 localStorage.setItem('ano', hoje.getFullYear());
                 dropAno.value = hoje.getFullYear();
@@ -128,8 +131,8 @@
             }
 
             if(localStorage.getItem('mes') == null){
-                localStorage.setItem('mes', hoje.getMonth());
-                dropMes.value = hoje.getMonth();
+                localStorage.setItem('mes', hoje.getMonth()+1);
+                dropMes.value = hoje.getMonth()+1;
             }else{
                 dropMes.value = parseInt(localStorage.getItem('mes'));
             }
@@ -198,26 +201,36 @@
             window.location = '/historicoQuedas/mes/' + inputAno.value + '/' + inputMes.value;
         }
 
-        function desabilitaFlechas(){
-            let antes = document.getElementById("diaAntes");
-            let depois = document.getElementById("diaDepois");
-
-            if (window.location.href.indexOf("mes") > -1) {
-                antes.style.display = "none";
-                depois.style.display = "none";
-            }else{
-                antes.style.display = "";
-                depois.style.display = "";
-            }
-        }
-
         function setasData(valor){
-            let titulo = document.getElementById("titulo");
-            let date = new Date(titulo.innerText + "T00:00:00.000Z");
-            date.setDate(date.getDate() + valor);
+            const hoje = new Date();
 
-            if(date <= Date.now())
-                window.location = '/historicoQuedas/dia/' + date.toISOString().substring(0, 10);
+            if(switcher.checked){
+                let mes = parseInt(localStorage.getItem('mes')) + valor;
+                let ano = parseInt(localStorage.getItem('ano'));
+                if(mes == 0){
+                    mes = 12;
+                    ano = ano - 1;
+                }
+                if(mes == 13){
+                    mes = 1;
+                    ano = ano + 1;
+                }
+
+                // se o ano for menor OK, se ano for igual confere mes
+                if(ano < hoje.getFullYear() || (ano == hoje.getFullYear() && mes <= hoje.getMonth()+1)){
+                    localStorage.setItem('mes', mes);
+                    localStorage.setItem('ano', ano);
+                    window.location = '/historicoQuedas/mes/' + ano + '/' + mes;
+                }
+            }else{
+                let titulo = document.getElementById("titulo");
+                let date = new Date(titulo.innerText + "T00:00:00.000Z");
+                date.setDate(date.getDate() + valor);
+
+                if(date <= hoje)
+                    window.location = '/historicoQuedas/dia/' + date.toISOString().substring(0, 10);
+            }
+
         }
 
         function countLines(){

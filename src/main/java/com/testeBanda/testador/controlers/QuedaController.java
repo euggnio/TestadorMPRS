@@ -58,7 +58,8 @@ public class QuedaController {
         LocalDate data = LocalDate.now().withMonth(Integer.parseInt(mesString));
         List<Queda> quedasDoMes = quedaService.filterQuedasPorMes(todasQuedas, ano, data.getMonth());
 
-        String tituloString = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR"))) + " " + ano;
+        String tituloString = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR")));
+        tituloString = tituloString.substring(0,1).toUpperCase() + tituloString.substring(1) + " " + ano;
 
         model.addAttribute("titulo", tituloString);
         model.addAttribute("quedas", quedasDoMes);
