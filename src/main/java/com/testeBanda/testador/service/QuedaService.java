@@ -1,26 +1,35 @@
 package com.testeBanda.testador.service;
 
+import com.testeBanda.testador.DTO.DadosAlertaDTO;
+import com.testeBanda.testador.api.CheckMKAPI;
+import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.Alerta;
+import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
+import com.testeBanda.testador.utils.Calculos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class QuedaService{
 
     @Autowired
     private QuedaRepository quedaRepository;
+    private CidadeService cidadeService;
     private final NagiosAPI nagiosAPI;
+    private final CheckMKAPI checkMKAPI;
 
-    public QuedaService(NagiosAPI nagiosAPI) {
+    public QuedaService(NagiosAPI nagiosAPI, CheckMKAPI checkMKAPI,CidadeService cidadeService) {
         this.nagiosAPI = nagiosAPI;
+        this.checkMKAPI = checkMKAPI;
+        this.cidadeService = cidadeService;
     }
 
     public void editaFaltaDeLuz(long id, boolean novoValor){
@@ -37,16 +46,58 @@ public class QuedaService{
         return todasQuedas;
     }
 
+    public void sincronizarNomesCidades(){
+        List<Queda> quedas = getQuedas();
+        List<Cidades> cidades = cidadeService.findAll();
+        for (Cidades cidade : cidades) {
+            Optional<Queda> primeiraQueda = quedas.stream()
+                    .filter(queda -> Calculos.nomesIguais(cidade.nome, queda.getNomeCidade()))
+                    .findFirst(); // <-- para no primeiro que encontrarprimeiraQueda
+            if(primeiraQueda.isPresent()){
+                cidade.nagiosID = primeiraQueda.get().getNomeCidade();
+                cidadeService.salvarCidade(cidade);
+            }
+            //TODO Else para se n encontrou correspondencia?
+        }
+    }
+
+    public void sincronizarQuedasComCidade(List<Queda> quedas){
+        List<Cidades> cidades = cidadeService.findAll();
+        for (Cidades cidade : cidades) {
+            for (Queda q : quedas){
+                if(q.getNomeCidade().equals(cidade.nagiosID)){
+                    q.setCidade(cidade);
+                    System.out.println("Sincronizando queda " + q.getNomeCidade() + " com sucesso em " + cidade.nagiosID);
+                }
+            }
+        }
+    }
+
+    public void salvarQuedas(List<Queda> quedas){
+        List<Cidades> cidades = cidadeService.findAll();
+        for (Queda queda : quedas) {
+            for (Cidades cidade : cidades) {
+                if( Objects.equals(cidade.nagiosID, queda.getNomeCidade()) ){
+                    queda.setCidade(cidade);
+                }
+            }
+        }
+        quedaRepository.saveAll(quedas);
+    }
+
     public void atualizaQuedas(){
         List<Queda> quedasNoNagios = getQuedas();
         List<Queda> quedasNoBanco = quedaRepository.findAll();
 
-        if(quedasNoBanco.isEmpty()){
-            quedaRepository.saveAll(quedasNoNagios);
-        }else{
+        if(quedasNoBanco.isEmpty())
+        {
+            sincronizarNomesCidades();
+            salvarQuedas(quedasNoNagios);
+        }
+        else{
             Queda ultimaQueda = quedasNoBanco.getLast();
             List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, ultimaQueda.getData().minusWeeks(1));
-
+            sincronizarQuedasComCidade(quedasRecentes);
             boolean match;
             for(Queda quedaRecente : quedasRecentes){
                 match = false;
@@ -54,14 +105,27 @@ public class QuedaService{
                     if(comparaQuedas(quedaRecente, quedaBanco)){
                         match = true;
                         //quedas que estavam sem UP, recebem tempo de duração
+
+
                         if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
                             quedaBanco.setTempoFora(quedaRecente.getTempoFora());
+                            quedaBanco.setUptime(getUptime(quedaBanco));
                             quedaRepository.save(quedaBanco);
                         }
                     }
                 }
                 if(!match){quedaRepository.save(quedaRecente);}
             }
+        }
+    }
+
+    public String getUptime(Queda queda){
+        if(queda.getCidade() == null){
+            return "ERRO CIDADE NULL";
+        }
+        else{
+            Long l = this.checkMKAPI.getUptimePosQueda(queda);
+            return TimeUnit.SECONDS.toMinutes(l) + " Minutos";
         }
     }
 
@@ -95,7 +159,7 @@ public class QuedaService{
     }
 
     private boolean comparaQuedas(Queda a, Queda b){
-        return a.getCidade().equals(b.getCidade()) && a.getData().equals(b.getData());
+        return a.getNomeCidade().equals(b.getNomeCidade()) && a.getData().equals(b.getData());
     }
 
     private List<Queda> filterQuedasAposData(List<Queda> quedas, LocalDateTime dataDeCorte){
@@ -114,11 +178,17 @@ public class QuedaService{
         });
     }
 
+    public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto) {
+        List<Queda> quedas = getQuedas();
+        dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade();
+        dto.quedas = quedas;
+        return dto;
+    }
+
     private Map<String, ArrayList<Alerta>> separaAlertasPorCidade(List<Alerta> alertas){
         Map<String,ArrayList<Alerta>> mapaAlerta = new HashMap<>();
         for (Alerta item : alertas) {
             String cidade = item.getNome();
-
             mapaAlerta.putIfAbsent(cidade, new ArrayList<>());
             mapaAlerta.get(cidade).add(item);
         }
@@ -127,7 +197,6 @@ public class QuedaService{
     }
 
     private List<Queda> listaDeQuedas(Map<String,ArrayList<Alerta>> alertasPorCidades){
-
         List<Queda> todasQuedas = new ArrayList<>();
         Deque<Alerta> pilha = new ArrayDeque<>();
             for (ArrayList<Alerta> alertasDaCidade : alertasPorCidades.values()) {
@@ -157,6 +226,5 @@ public class QuedaService{
             }
         return todasQuedas;
     }
-
 
 }

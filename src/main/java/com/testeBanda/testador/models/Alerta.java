@@ -1,5 +1,6 @@
 package com.testeBanda.testador.models;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,39 +29,6 @@ public class Alerta  {
         else {
             this.tipo = tipo;
         }
-    }
-
-
-    public String getNome() {
-        return nome;
-    }
-
-    public LocalDateTime getData() {
-        return data;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setData(LocalDateTime data) {
-        this.data = data;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public String getTempoFora() {
-        return tempoFora;
-    }
-
-    public void setTempoFora(String tempoFora) {
-        this.tempoFora = tempoFora;
     }
 
     @Override

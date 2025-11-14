@@ -1,6 +1,7 @@
 package com.testeBanda.testador.service;
 
 
+import com.testeBanda.testador.api.Microtik;
 import com.testeBanda.testador.utils.DataAboutTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

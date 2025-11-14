@@ -1,66 +1,45 @@
 package com.testeBanda.testador.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import java.util.List;
-
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class Queda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
-    private String cidade;
+    private String nomeCidade;
     private LocalDateTime data;
     private Duration tempoFora;
     private boolean faltaDeLuz;
+    private String uptime;
 
-    public Queda() {
-    }
+    @Getter
+    @ManyToOne
+    private Cidades cidade;
 
     public Queda(String cidade, LocalDateTime data, Duration tempoFora) {
-        this.cidade = cidade;
+        this.nomeCidade = cidade;
         this.data = data;
         this.tempoFora = tempoFora;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public String getCidade() {
-        return cidade;
-    }
-
-    public Duration getTempoFora() {
-        return tempoFora;
-    }
-
-    public LocalDateTime getData() {
-        return data;
-    }
-
-    public boolean isFaltaDeLuz() {
-        return faltaDeLuz;
-    }
-
-    public void setFaltaDeLuz(boolean faltaDeLuz) {
-        this.faltaDeLuz = faltaDeLuz;
-    }
-
-    public void setTempoFora(Duration tempoFora) {
-        this.tempoFora = tempoFora;
+    public LocalDateTime getDataUp(){
+        return this.data.plus(tempoFora);
     }
 
     public String toString() {
         return "Queda{" +
-                "cidade='" + cidade + '\'' +
+                "cidade='" + nomeCidade + '\'' +
                 ", data=" + data +
                 ", tempoFora='" + tempoFora + '\'' +
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +

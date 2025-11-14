@@ -50,12 +50,13 @@
         <th>Cidade</th>
         <th>Data </th>
         <th>Tempo Fora</th>
+        <th>UPTime</th>
         <th>Foi Queda de Luz?</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="queda : ${quedas}" class="linha">
-        <td th:text="${queda.cidade}"></td>
+        <td th:text="${queda.nomeCidade}"></td>
         <td>
             <label th:text="${queda.data.toLocalDate()}"></label><br>
             <label th:text="${queda.data.toLocalTime()}"></label>
@@ -66,6 +67,9 @@
         </td>
         <td th:unless="${queda.tempoFora.toSeconds() != 0}">
             <label>DOWN</label>
+        </td>
+        <td>
+            <label th:text="${queda.getUptime()}"></label>
         </td>
         <td style="display: flex; align-items: center; justify-content: space-evenly;">
             <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>

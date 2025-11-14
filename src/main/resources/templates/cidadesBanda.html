@@ -22,7 +22,6 @@
     </div>
 
     <button id="buttonLigar" class="" th:attr="onclick='iniciarTeste()'" >
-
         <span id="statusTeste">INICIAR TESTE</span>
     </button>
     <button  class="" th:attr="onclick='mostrarHistorico()'" >
@@ -101,10 +100,10 @@
                             <span class="dado" th:text="${cidade.ultimoTesteBanda}"></span>
                             <span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
                             <span class="dado" th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}" th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
-                            <button class="buttonLigarTeste dado"
+                            <button class="buttonLigarTeste "
                                     th:attr="data-cidade=${cidade.nome}"
                                     onclick="iniciarTeste(this.getAttribute('data-cidade'))">
-                                <span>Testar</span>
+                                Testar
                             </button>
                         </div>
                     <div class="background" >

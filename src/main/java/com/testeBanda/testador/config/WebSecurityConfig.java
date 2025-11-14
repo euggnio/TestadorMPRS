@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -23,10 +24,12 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.POST, "/configuracao").permitAll()
                         .requestMatchers("/", "/grafico", "/error").permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .permitAll()
+                        .loginPage("/login")
                         .defaultSuccessUrl("/cidadesBanda")
                 )
                 .csrf(csrf -> csrf.disable())
@@ -52,6 +55,6 @@ public class WebSecurityConfig {
 
     @Bean
     WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().requestMatchers("/style.css", "/static/**", "/img.png"));
+        return (web -> web.ignoring().requestMatchers("/style.css","/static/**","/img.png","/backgroundLogin1.jpg"));
     }
 }

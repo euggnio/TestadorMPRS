@@ -1,7 +1,7 @@
-package com.testeBanda.testador.service;
+package com.testeBanda.testador.api;
 
 import com.testeBanda.testador.models.Cidades;
-import com.testeBanda.testador.repository.CidadesRepository;
+import com.testeBanda.testador.service.CidadeService;
 import com.testeBanda.testador.utils.Calculos;
 import com.testeBanda.testador.utils.DataAboutTest;
 import lombok.Getter;

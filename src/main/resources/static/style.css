@@ -2,6 +2,7 @@ body {
     font-family: "Nunito", sans-serif;
     font-optical-sizing: auto;    text-align: center;
     background-color: rgba(238, 238, 238, 0.75) !important;
+    margin: 0px;
 }
 
 header {
@@ -12,6 +13,55 @@ header {
     width: 100%;
     justify-content: space-around;
     text-align: center;
+}
+
+.backgroundLogin {
+    background-image: url("backgroundLogin1.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center center;
+    display: flex;
+    justify-content: center;
+}
+
+.login{
+    margin-top: 15%;
+    width: auto;
+    height: 35%;
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    padding: 3em 3em 2em 2em;
+    input{
+        border: 1px solid rgba(0, 0, 0, 0.42);
+        border-radius: 4px;
+        height: 2.5em;
+        margin-top: 1.5em;
+        padding-left: 15px;
+        margin-bottom: 1em;
+    }
+    .submit{
+        background-color: #393E46;
+        color: white;
+    }
+    .submit:hover{
+        background-color: #222831;
+    }
+    .erro{
+        color: red;
+    }
+    label{
+        font-size: 3em;
+        font-weight: bold;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        background-color: #393E46;
+        color: #FFFFFF;
+        padding: 7px;
+    }
+    span{
+        font-size: smaller;
+    }
 }
 
 .menu{

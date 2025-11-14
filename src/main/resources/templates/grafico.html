@@ -42,6 +42,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
     <div id="chart-quedas" style="width: 50%; height: 500px"></div>
 </div>
 
+
 <script type="text/javascript" th:inline="javascript">
     let nomeFiltro = "";
     let mes = "todos";
@@ -256,16 +257,16 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 </script>
 <script type="text/javascript" th:inline="javascript">
     function graficoDeQuedas() {
-        const dados = [[${alertas.alertasDown}]];
+        const dados = [[${alertas.getQuedas()}]];
         const alertasProcessados = dados.map(a => {
             const data = new Date(a.data);
             const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
             const dia = data.getDate();
-            return {mes, cidade: a.nome, dia: dia};
+            return {mes, nomeCidade: a.nomeCidade, dia: dia};
         });
 
         const filtrados = nomeFiltro && nomeFiltro.trim() !== ""
-            ? alertasProcessados.filter(a => a.cidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
+            ? alertasProcessados.filter(a => a.nomeCidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
             : alertasProcessados;
         let meses;
         let totaisPorMes;
@@ -280,7 +281,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 filtrados.filter(a => a.mes === mes.slice(0,3) && a.dia === dia).length
             );
         }
-        const cidades = [...new Set(filtrados.map(a => a.cidade))];
+        const cidades = [...new Set(filtrados.map(a => a.nomeCidade))];
 
         const series = cidades.map(cidade => {
             return {
@@ -291,10 +292,10 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 data: meses.map(m => {
                     if (mes === "todos") {
                         // aqui 'm' é mês
-                        return filtrados.filter(a => a.cidade === cidade && a.mes === m).length;
+                        return filtrados.filter(a => a.nomeCidade === cidade && a.mes === m).length;
                     } else {
                         // aqui 'm' é dia
-                        return filtrados.filter(a => a.cidade === cidade && a.mes === mes.slice(0,3) && a.dia === m).length;
+                        return filtrados.filter(a => a.nomeCidade === cidade && a.mes === mes.slice(0,3) && a.dia === m).length;
                     }
                 }),
             };
@@ -329,7 +330,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 axisPointer: { type: 'shadow' },
                 formatter: function (params) {
                     const filtered = params
-                        .filter(p => p.value > 0 && p.seriesName !== 'Total')
+                        .filter(p => p.value > 1 && p.seriesName !== 'Total')
                         .sort((a, b) => a.value - b.value); // <-- ordena do menor para o maior
 
                     let result = `${params[0].axisValue}<br/>`;
@@ -370,7 +371,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         myChart.setOption(option);
     }
     function graficoCidade() {
-        let alertasProcessados = [[${alertas.alertasDown}]]; // dados do Thymeleaf
+        let alertasProcessados = [[${alertas.getQuedas()}]]; // dados do Thymeleaf
         if (mes == null || mes === "" || mes === "undefined" || mes === "todos") {
             console.log("Todos os alertas em gráfico de alertas por cidade");
         } else {
@@ -384,12 +385,12 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 
         const filtrados = (nomeFiltro && nomeFiltro.trim() !== "")
             ? alertasProcessados.filter(a =>
-                a.nome && a.nome.toUpperCase().includes(nomeFiltro.toUpperCase()))
+                a.nomeCidade && a.nomeCidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
             : alertasProcessados;
 
         const cidades = [];
         for (let i = 0; i < filtrados.length; i++) {
-            const cidade = filtrados[i].nome;
+            const cidade = filtrados[i].nomeCidade;
             if (cidade && !cidades.includes(cidade)) {
                 cidades.push(cidade);
             }
@@ -399,7 +400,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         for (let i = 0; i < cidades.length; i++) {
             let contador = 0;
             for (let j = 0; j < filtrados.length; j++) {
-                if (filtrados[j].nome === cidades[i]) {
+                if (filtrados[j].nomeCidade === cidades[i]) {
                     contador++;
                 }
             }
@@ -408,10 +409,10 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 
         const cidadesTotais = cidades.map((cidade, i) => ({ cidade, total: totais[i] }));
         cidadesTotais.sort((a, b) => b.total - a.total);
-
+        console.log(cidadesTotais);
         const cidadesOrdenadas = cidadesTotais.map(obj => obj.cidade);
         const totaisOrdenados = cidadesTotais.map(obj => obj.total);
-
+        console.log(cidadesOrdenadas)
         var chartDom = document.getElementById('chart-quedasCidades');
         var myChart = echarts.init(chartDom);
 

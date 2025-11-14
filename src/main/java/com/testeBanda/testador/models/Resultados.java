@@ -9,7 +9,16 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Resultados {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private LocalDateTime dataTeste;
+    private String resultado;
+    @ManyToOne
+    private Cidades cidade;
 
     public Resultados(LocalDateTime dataTeste  , String resultado, Cidades cidades) {
         this.cidade = cidades;
@@ -17,26 +26,8 @@ public class Resultados {
         this.resultado = resultado;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
-    private LocalDateTime dataTeste;
-    private String resultado;
-
-    @ManyToOne
-    private Cidades cidade;
-
     public String getDia(){
         return this.dataTeste.getDayOfMonth() + "/" + this.dataTeste.getMonthValue();
-
-    }
-
-    public String getResultado() {
-        return resultado;
-    }
-
-    public Resultados(){
 
     }
 }

@@ -3,7 +3,6 @@ package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.DTO.TesteBandaDTO;
 import com.testeBanda.testador.models.Cidades;
-import com.testeBanda.testador.repository.CidadesRepository;
 import com.testeBanda.testador.service.CidadeService;
 import com.testeBanda.testador.service.TesterService;
 import org.springframework.beans.factory.annotation.Autowired;

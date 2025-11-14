@@ -2,6 +2,7 @@ package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.service.QuedaService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ public class QuedaController {
 
     private final QuedaService quedaService;
 
+    @Autowired
     public QuedaController(QuedaService quedaService) {
         this.quedaService = quedaService;
     }
@@ -27,9 +29,7 @@ public class QuedaController {
     public String historicoQuedas(Model model) {
         List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
         List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-
         List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, listaDeDatas.getFirst());
-
         model.addAttribute("titulo", listaDeDatas.getFirst());
         model.addAttribute("quedas", quedasDoDia);
         model.addAttribute("datas", listaDeDatas);

@@ -2,9 +2,11 @@ package com.testeBanda.testador.utils;
 
 import com.testeBanda.testador.models.Cidades;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -118,6 +120,14 @@ public class Calculos {
         return resultado.toString();
     }
 
+    public static boolean nomesIguais(String nome1, String nome2) {
+        Function<String, String> normalize = s -> Normalizer.normalize(s, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .replaceAll("[_\\s]", "")
+                .replaceAll("[-\\s]", "")
+                .toLowerCase();
+        return normalize.apply(nome1).equals(normalize.apply(nome2));
+    }
 }
 
 

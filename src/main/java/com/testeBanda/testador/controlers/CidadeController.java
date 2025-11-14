@@ -1,6 +1,8 @@
 package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.DTO.DadosAlertaDTO;
+import com.testeBanda.testador.api.Microtik;
+import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.*;
 import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.InetAddress;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,15 +21,15 @@ public class CidadeController {
 
     private final CidadeService cidadeService;
     private final Microtik microtik;
-    private final NagiosAPI nagiosAPI;
     private final GraficosService graficoService;
+    private final QuedaService quedaService;
 
     @Autowired
-    public CidadeController(CidadeService cidadeService, Microtik microtik, NagiosAPI nagiosAPI, GraficosService graficosService) {
+    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService) {
         this.cidadeService = cidadeService;
         this.microtik = microtik;
-        this.nagiosAPI = nagiosAPI;
         this.graficoService = graficosService;
+        this.quedaService = quedaService;
     }
 
     @GetMapping("/unidade/{city}")
@@ -39,10 +39,10 @@ public class CidadeController {
         if ( cidade == null) {
             cidade = new Cidades();
             cidade.nome = "Canoas";
-            cidade.nomeSistema = "Canoas";
+            cidade.smokeID = "Canoas";
         }
         String cacti = graficoService.cacti(cidade.cacti);
-        String smoke = graficoService.pegarUnidadeSmoke(cidade.nomeSistema);
+        String smoke = graficoService.pegarUnidadeSmoke(cidade.smokeID);
         model.addAttribute("smoke", smoke);
         model.addAttribute("cacti", cacti);
         model.addAttribute("cidade", cidade);
@@ -101,7 +101,7 @@ public class CidadeController {
     @GetMapping("/grafico")
     public String grafico(Model model){
         DadosAlertaDTO dados = new DadosAlertaDTO();
-        model.addAttribute("alertas",nagiosAPI.listaDeAlertas(dados));
+        model.addAttribute("alertas",quedaService.PreencherDTO(dados));
         return "grafico";
     }
 
@@ -129,8 +129,11 @@ public class CidadeController {
     }
 
     @GetMapping("/login")
-    public String login() {
-        return "cidadesBanda";
+    public String login(@RequestParam(value = "error", required = false) String error,Model model) {
+        if(error != null) {
+            model.addAttribute("erro", "Login ou senha incorretos!");
+        }
+        return "login";
     }
 
 }

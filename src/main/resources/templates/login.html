@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>ObservadorDoEugenio</title>
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+  <script src="/javascript.js"></script>
+  <script th:src="@{/javascript.js}"></script>
+  <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body class="backgroundLogin">
+  <div class="login">
+    <form method="POST" th:action="@{/login}">
+      <label>Testador 2.0</label>
+      <h3 class="erro" th:text="${erro}"></h3>
+      <br>
+      <input type="text" name="username" placeholder="Login">
+      <br>
+      <input type="password" name="password" placeholder="Senha">
+      <br>
+      <input type="submit" value="Acessar" class="submit">
+    </form>
+    <span>
+      Desenvolvido por Eugenio Cartagena e Artur Amaral &copy;
+    </span>
+  </div>
+</body>
+</html>
