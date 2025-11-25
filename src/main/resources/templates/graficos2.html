@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificador diario</title>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+
+    <script th:src="@{/javascript.js}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="/ico.png">
+
+</head>
+<body>
+<div th:replace="~{header :: header}"></div>
+
+
+<div id="chartQuedasPorDia" style="width: 60%; height: 500px; margin:auto;"></div>
+
+<input type="text" name="cidade" id="seletorCidade">
+<button onClick="novaCidade()">go</button>
+
+<div id="chartTempoPorCidade" style="width: 60%; height: 250px; margin:auto;"></div>
+<div id="chartQuedasPorCidade" style="width: 60%; height: 250px; margin:auto;"></div>
+
+
+</body>
+
+<script type="text/javascript" th:inline="javascript">
+    const quedas = /*[[${quedas}]]*/ null;
+</script>
+<script th:src="@{/graficosCalendario.js}"></script>
+
+</html>

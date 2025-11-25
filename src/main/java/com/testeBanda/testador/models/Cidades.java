@@ -1,5 +1,6 @@
 package com.testeBanda.testador.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -32,13 +33,16 @@ public class Cidades {
     public String nagiosID;
     public String checkMKid;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Resultados> resultados;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Contato> contatos;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false, mappedBy = "cidade")
     public List<Queda> quedas;
 
 
