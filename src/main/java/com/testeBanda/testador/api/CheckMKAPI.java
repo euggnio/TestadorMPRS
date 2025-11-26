@@ -38,15 +38,16 @@ public class CheckMKAPI {
             node = rootNode.path("metrics");
             uptime = node.get(0).path("data_points").get(0).asLong();
         }catch (Exception e) {
-            e.printStackTrace();
-            uptime = 0;
+            System.out.println("ERRO CHECKMK API: " + e.getMessage());
+            uptime = -1;
         }
+        client.close();
         return uptime;
     }
 
     private String getJsonUptime(Queda queda) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        String isoTime = formatter.format(queda.getDataUp());
+        String isoTime = formatter.format(queda.getDataUp(1));
             return """
         {
           "time_range": {
