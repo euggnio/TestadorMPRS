@@ -12,6 +12,13 @@ function filtraCidade(quedas, cidade){
     return quedas.filter((queda) => queda.nomeCidade == cidade)
 }
 
+function listaCidades(){
+    let setCid = new Set()
+    quedas.forEach(q => setCid.add(q.nomeCidade))
+
+    return Array.from(setCid).sort()
+}
+
 function listaTempos(quedas, cidade){
     let quedasCidade = filtraCidade(quedas, cidade)
     return quedasCidade.map((queda => {
@@ -264,6 +271,21 @@ fazGraficoQntQuedasCidade(chartQuedasPorCidade, quedas, "Pedro_Osorio")
 
 const chartTempoPorCidade = document.getElementById('chartTempoPorCidade')
 fazGraficoTempoQuedasCidade(chartTempoPorCidade, quedas, "Pedro_Osorio")
+
+function fazDropCidades(){
+    let select = document.getElementById("seletorCidade")
+    const lista = listaCidades()
+
+    lista.forEach(cid => {
+        let elem = document.createElement('option')
+        elem.value = elem.innerText = cid
+        select.appendChild(elem)
+    })
+}
+window.addEventListener('load', fazDropCidades)
+
+let inputCidade = document.getElementById("seletorCidade")
+inputCidade.addEventListener('change', novaCidade)
 
 function novaCidade(){
     let input = document.getElementById("seletorCidade")
