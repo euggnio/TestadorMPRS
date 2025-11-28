@@ -1,3 +1,9 @@
+// const quedas -> deve ser definido em tag inline do template html assim
+//
+//<script type="text/javascript" th:inline="javascript">
+//    const quedas = /*[[${quedas}]]*/ null;
+//</script>
+
 function mapaDeQuedasNum(quedas){
     let mapa = new Map()
     quedas.forEach((queda) => {
@@ -18,6 +24,8 @@ function listaCidades(){
 
     return Array.from(setCid).sort()
 }
+
+function cidadeAleatoria(){return listaCidades()[Math.floor(Math.random() * 181)]}
 
 function listaTempos(quedas, cidade){
     let quedasCidade = filtraCidade(quedas, cidade)
@@ -63,10 +71,7 @@ function dadosTempoQuedas(year, quedas, cidade) {
             exce = 0
         }
 
-        data.push([
-            dia,
-            tempo
-        ]);
+        data.push([dia, tempo]);
     }
     return data;
 }
@@ -77,7 +82,7 @@ function fazGraficoQntQuedasTodas(elem, quedas){
     let dados = dadosQntQuedas(anoAtual, quedas);
 
     option = {
-      gradientColor: ['#dedede', '#00adb5', '#00588b'],
+      gradientColor: ['#cddede', '#00adb5', '#00588b', '#003333'],
       title: {
         top: 30,
         left: 'center',
@@ -96,11 +101,12 @@ function fazGraficoQntQuedasTodas(elem, quedas){
         max: 40,
         type: 'piecewise',
         pieces: [
-            { min: 0, max: 2},
-            { min: 2, max: 7},
+            { min: 1, max: 3},
+            { min: 3, max: 7},
             { min: 7, max: 12},
             { min: 12, max: 20},
-            { min: 20, max: 60}
+            { min: 20, max: 60},
+            { min: 60}
         ],
         splitNumber: 5,
         orient: 'horizontal',
@@ -108,7 +114,7 @@ function fazGraficoQntQuedasTodas(elem, quedas){
         top: 65,
         target: {
             outOfRange: {
-                color: ["ffff"]
+                color: '#eeeeef'
             }
         }
       },
@@ -263,15 +269,6 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
 }
 
 
-const chartQuedasPorDia = document.getElementById('chartQuedasPorDia')
-fazGraficoQntQuedasTodas(chartQuedasPorDia, quedas)
-
-const chartQuedasPorCidade = document.getElementById('chartQuedasPorCidade')
-fazGraficoQntQuedasCidade(chartQuedasPorCidade, quedas, "Pedro_Osorio")
-
-const chartTempoPorCidade = document.getElementById('chartTempoPorCidade')
-fazGraficoTempoQuedasCidade(chartTempoPorCidade, quedas, "Pedro_Osorio")
-
 function fazDropCidades(){
     let select = document.getElementById("seletorCidade")
     const lista = listaCidades()
@@ -285,13 +282,151 @@ function fazDropCidades(){
 window.addEventListener('load', fazDropCidades)
 
 let inputCidade = document.getElementById("seletorCidade")
-inputCidade.addEventListener('change', novaCidade)
-
-function novaCidade(){
+inputCidade.addEventListener('change', () => {
     let input = document.getElementById("seletorCidade")
+    novaCidade(input.value)
+})
 
-    let cidade = input.value
+function novaCidade(cidade){
+    document.getElementById("seletorCidade").value = cidade
+    fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade)
+    fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade)
 
-    fazGraficoQntQuedasCidade(chartQuedasPorCidade, quedas, cidade)
-    fazGraficoTempoQuedasCidade(chartTempoPorCidade, quedas, cidade)
+    fazGraficoEstatisticas(document.getElementById("statsCid"), filtraCidade(quedas, cidade))
+    fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade))
 }
+
+function segundosParaDuration(s){
+    s = Math.floor(s)
+    let horas = Math.floor(s / 3600);
+    let minutos = Math.floor((s - horas * 3600) / 60)
+    let segundos = s - (horas * 3600) - (minutos * 60)
+
+    return Temporal.Duration.from({hours: horas, minutes: minutos, seconds: segundos})
+}
+
+const ult = new Date(quedas[0].data)
+const agr = new Date()
+let segundosT = Math.floor((agr - ult) / 1000)
+
+function timer(){
+    let timer = document.getElementById("timer")
+    ++segundosT
+    const dur = segundosParaDuration(segundosT)
+
+    timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
+}
+document.getElementById("ultima").innerText = '(' + quedas[0].nomeCidade + " por "
+                                       + segundosParaDuration(quedas[0].tempoFora).toLocaleString('pt')
+                                       + ')'
+timer()
+setInterval(timer, 1000)
+
+function pad(num){return num <= 9 ? "0" + num : "" + num;}
+
+function fazGraficoEstatisticas(elem, quedas){
+    const todosTempos = quedas.map(q => q.tempoFora)
+
+    const media = Math.floor(ss.mean(todosTempos)/60)
+    const mediana = Math.floor(ss.median(todosTempos)/60)
+    const desvio = Math.floor(ss.standardDeviation(todosTempos)/60)
+    const moda = Math.floor(ss.mode(todosTempos)/60)
+
+    let option = {
+      color: '#00adb5',
+      title: {
+        top: 30,
+        left: 'center',
+        text: "Duração das Quedas (minutos)"
+      },
+      tooltip: {
+        formatter: function (params) {
+          let data = segundosParaDuration(params.data * 60)
+          return data.toLocaleString('pt')
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: ['Média', 'Mediana', 'Moda', 'Desvio Padrão']
+      },
+      xAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          data: [media, mediana, moda, desvio],
+          type: 'bar'
+        }
+      ]
+    };
+
+    const chart = echarts.init(elem)
+    chart.clear()
+    chart.setOption(option)
+}
+
+function fazGraficoQntPorTempo(elem, quedas){
+    const todosTempos = quedas.map(q => Math.floor(q.tempoFora/60))
+
+    let tempos = [0,0,0,0,0]
+
+    todosTempos.forEach(t => {
+        switch(true){
+            case t <= 10:
+                tempos[0]++
+                break
+            case t <= 60:
+                tempos[1]++
+                break
+            case t <= 120:
+                tempos[2]++
+                break
+            case t <= 240:
+                tempos[3]++
+                break
+            default:
+                tempos[4]++
+        }
+    })
+
+    let option = {
+      color: '#00adb5',
+      title: {
+        top: 30,
+        left: 'center',
+        text: "Quantidade de Quedas por Duração"
+      },
+      tooltip: {
+        formatter: function (params) {
+          return params.data + " quedas"
+        }
+      },
+      xAxis: {
+        type: 'category',
+        data: ['Até 10min', 'Até 1h', 'Até 2h', 'Até 4h', 'Mais de 4h']
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          data: tempos,
+          type: 'bar'
+        }
+      ]
+    };
+
+    console.log(tempos.reduce((a,b)=>a+b), todosTempos)
+
+    const chart = echarts.init(elem)
+    chart.clear()
+    chart.setOption(option)
+}
+
+
+fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas)
+
+fazGraficoEstatisticas(document.getElementById("stats"), quedas)
+fazGraficoQntPorTempo(document.getElementById("tempos"), quedas)
+
+window.addEventListener('load', () => novaCidade(cidadeAleatoria()))
