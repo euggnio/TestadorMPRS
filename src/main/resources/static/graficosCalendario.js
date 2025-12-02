@@ -207,7 +207,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
     let dados = dadosTempoQuedas(anoAtual, quedas, cidade);
 
     let option = {
-          gradientColor: ['#dedede', '#00adb5', '#00588b'],
+          gradientColor: ['#abdede', '#00adb5', '#00588b'],
           title: {
             top: 30,
             left: 'center',
@@ -233,7 +233,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
             max: 24,
             type: 'piecewise',
             pieces: [
-                 { min: 0, max: 10, label: "Até 10min"},
+                 { min: 5, max: 10, label: "Até 10min"},
                  { min: 10, max: 60, label: "Até 1h"},
                  { min: 60, max: 120, label: "Até 2h"},
                  { min: 120, max: 240, label: "Até 4h"},
@@ -243,7 +243,12 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
             orient: 'horizontal',
             left: 'center',
             top: 65,
-            inactiveColor: '#d3d3d3'
+            inactiveColor: '#dedede',
+            target: {
+              outOfRange: {
+                color: '#dedede'
+              }
+            }
           },
           calendar: {
             top: 120,
@@ -337,7 +342,7 @@ function fazGraficoEstatisticas(elem, quedas){
       title: {
         top: 30,
         left: 'center',
-        text: "Duração das Quedas (minutos)"
+        text: "Duração das Quedas\n(minutos)"
       },
       tooltip: {
         formatter: function (params) {
@@ -347,15 +352,25 @@ function fazGraficoEstatisticas(elem, quedas){
       },
       yAxis: {
         type: 'category',
-        data: ['Média', 'Mediana', 'Moda', 'Desvio Padrão']
+        data: ['Desvio Padrão', 'Média', 'Mediana', 'Moda'],
+        axisLabel: {show: false}
       },
       xAxis: {
         type: 'value'
       },
       series: [
         {
-          data: [media, mediana, moda, desvio],
-          type: 'bar'
+          data: [desvio, media, mediana, moda],
+          type: 'bar',
+          itemStyle: {
+            borderRadius: [0, 5, 5, 0],
+          },
+          label: {
+            position: 'insideLeft',
+            formatter: '{b}',
+            fontSize: 12,
+            show: true
+          }
         }
       ]
     };
@@ -392,9 +407,9 @@ function fazGraficoQntPorTempo(elem, quedas){
     let option = {
       color: '#00adb5',
       title: {
-        top: 30,
+        top: 10,
         left: 'center',
-        text: "Quantidade de Quedas por Duração"
+        text: "Quantidade de Quedas\npor Duração"
       },
       tooltip: {
         formatter: function (params) {
@@ -403,7 +418,11 @@ function fazGraficoQntPorTempo(elem, quedas){
       },
       xAxis: {
         type: 'category',
-        data: ['Até 10min', 'Até 1h', 'Até 2h', 'Até 4h', 'Mais de 4h']
+        data: ['Até 10min', 'Até 1h', 'Até 2h', 'Até 4h', 'Mais de 4h'],
+        axisLabel: {
+            fontSize: 11,
+            rotate: 75
+        }
       },
       yAxis: {
         type: 'value'
@@ -411,7 +430,10 @@ function fazGraficoQntPorTempo(elem, quedas){
       series: [
         {
           data: tempos,
-          type: 'bar'
+          type: 'bar',
+          itemStyle: {
+            borderRadius: [5, 5, 0, 0],
+          },
         }
       ]
     };

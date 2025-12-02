@@ -14,31 +14,42 @@
 
     <link rel="icon" type="image/x-icon" href="/ico.png">
 
+    <style>
+        .grafico{
+            border: solid 1px gray;
+            border-radius: 10px;
+        }
+    </style>
+
 </head>
 <body>
 <div th:replace="~{header :: header}"></div>
 
-<h2>Tempo desde a Última Queda</h2>
-<h1 id="timer"></h1>
-<p id="ultima"></p>
-
-<div id="chartQuedasPorDia" style="width: 70%; height: 300px; margin:auto;"></div>
-
-<div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
-    <div id="tempos" style="width: 35%; height: 250px; margin:auto;"></div>
-    <div id="stats" style="width: 60%; height: 250px; margin:auto;"></div>
+<div class="grafico" style="width: 30em; margin: auto; margin-top: 15px;">
+    <h2>Tempo desde a Última Queda</h2>
+    <h1 id="timer"></h1>
+    <p id="ultima"></p>
 </div>
 
-<label for="seletorCidade">Cidade:</label>
-<select name="cidade" id="seletorCidade"></select>
-<button onClick="novaCidade(cidadeAleatoria())">Aleatória</button>
+<div style="width:85%; margin: auto;">
+    <div id="chartQuedasPorDia" style="width: 70%; height: 300px; margin:auto;"></div>
 
-<div id="chartTempoPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
-<div id="chartQuedasPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+    <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
+        <div id="tempos" style="width: 35%; height: 300px; margin:auto;"></div>
+        <div id="stats" style="width: 60%; height: 300px; margin:auto;"></div>
+    </div>
 
-<div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
-    <div id="temposCid" style="width: 35%; height: 250px; "></div>
-    <div id="statsCid" style="width: 60%; height: 250px; "></div>
+    <label for="seletorCidade">Cidade:</label>
+    <select name="cidade" id="seletorCidade"></select>
+    <button onClick="novaCidade(cidadeAleatoria())">Aleatória</button>
+
+    <div id="chartTempoPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+    <div id="chartQuedasPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+
+    <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
+        <div id="temposCid" style="width: 35%; height: 300px;"></div>
+        <div id="statsCid" style="width: 60%; height: 300px;"></div>
+    </div>
 </div>
 
 </body>
