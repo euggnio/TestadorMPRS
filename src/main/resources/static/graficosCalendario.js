@@ -109,8 +109,13 @@ function fazGraficoQntQuedasTodas(elem, quedas){
                    const data = params.value[0];
                    const value = params.value[1];
 
-                   return data + '<br>' + value + ' quedas';
-                   }
+                   return '<a class="tooltip" href=/historicoQuedas/dia/'
+                          + data + ' target="_blank">' + data + '</a>'
+                          + '<br>' + value + ' quedas';
+                   },
+        position: (point) => [point[0]-2, point[1]-60],
+        triggerOn: 'click',
+        enterable: true
       },
       visualMap: {
         min: 0,
@@ -173,12 +178,15 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
                                 const data = params.value[0];
                                 const value = params.value[1];
 
-                                return data + '<br>' + value + ' quedas';
-                            }
+                                return '<a class="tooltip" href=/historicoQuedas/dia/'
+                                       + data + ' target="_blank">' + data + '</a>'
+                                       + '<br>' + value + ' quedas';
+                            },
+            position: (point) => [point[0]-2, point[1]-60],
+            triggerOn: 'click',
+            enterable: true
           },
           visualMap: {
-            min: 0,
-            max: 2,
             type: 'piecewise',
             pieces: [
                         { min: 0, max: 0},
@@ -186,7 +194,6 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
                         { min: 2, max: 3},
                         { min:3, label: '3+'}
                     ],
-            splitNumber: 3,
             orient: 'horizontal',
             left: 'center',
             top: 65,
@@ -241,9 +248,15 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
                                minutes: mins
                            };
                            const brFormatter = new Intl.DurationFormat('pt', { style: 'short' });
+                           let str = params.value[1] == 0 ? '0 min' : brFormatter.format(value)
 
-                           return data + '<br>' + brFormatter.format(value);
-                           }
+                           return '<a class="tooltip" href=/historicoQuedas/dia/'
+                                  + data + ' target="_blank">' + data + '</a>'
+                                  + '<br>' + str;
+                           },
+            position: (point) => [point[0]-2, point[1]-60],
+            triggerOn: 'click',
+            enterable: true
           },
           visualMap: {
             min: 0,
@@ -339,9 +352,15 @@ function timer(){
 
     timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
 }
-document.getElementById("ultima").innerText = '(' + quedas[0].nomeCidade + " por "
-                                       + segundosParaDuration(quedas[0].tempoFora).toLocaleString('pt')
-                                       + ')'
+let txtUlt = ""
+if(quedas[0].tempoFora > 0){
+    txtUlt = '(' + quedas[0].nomeCidade + " por "
+            + segundosParaDuration(quedas[0].tempoFora).toLocaleString('pt') + ')'
+}else{
+    txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
+}
+
+document.getElementById("ultima").innerText = txtUlt
 timer()
 setInterval(timer, 1000)
 
