@@ -67,7 +67,6 @@ public class QuedaService{
             for (Queda q : quedas){
                 if(q.getNomeCidade().equals(cidade.nagiosID)){
                     q.setCidade(cidade);
-                    System.out.println("Sincronizando queda " + q.getNomeCidade() + " com sucesso em " + cidade.nagiosID);
                 }
             }
         }
@@ -89,14 +88,18 @@ public class QuedaService{
         List<Queda> quedasNoNagios = getQuedas();
         List<Queda> quedasNoBanco = quedaRepository.findAll();
 
+        //Verificação inicial, preenchendo o banco de dados. roda uma unica vez
+        //TODO criar um metodo para isso, metodos de
+        // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
         if(quedasNoBanco.isEmpty())
         {
             sincronizarNomesCidades();
             salvarQuedas(quedasNoNagios);
         }
+
         else{
             Queda ultimaQueda = quedasNoBanco.getLast();
-            List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, ultimaQueda.getData().minusWeeks(1));
+            List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, ultimaQueda.getData().minusWeeks(4));
             sincronizarQuedasComCidade(quedasRecentes);
             boolean match;
             for(Queda quedaRecente : quedasRecentes){
@@ -105,10 +108,11 @@ public class QuedaService{
                     if(comparaQuedas(quedaRecente, quedaBanco)){
                         match = true;
                         //quedas que estavam sem UP, recebem tempo de duração
-
-
                         if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
                             quedaBanco.setTempoFora(quedaRecente.getTempoFora());
+                            quedaRepository.save(quedaBanco);
+                        }
+                        if( quedaBanco.getTempoFora().isPositive()){
                             quedaBanco.setUptime(getUptime(quedaBanco));
                             quedaRepository.save(quedaBanco);
                         }
@@ -119,13 +123,12 @@ public class QuedaService{
         }
     }
 
-    public String getUptime(Queda queda){
+    public Long getUptime(Queda queda){
         if(queda.getCidade() == null){
-            return "ERRO CIDADE NULL";
+            return -2L;
         }
         else{
-            Long l = this.checkMKAPI.getUptimePosQueda(queda);
-            return TimeUnit.SECONDS.toMinutes(l) + " Minutos";
+            return checkMKAPI.getUptimePosQueda(queda);
         }
     }
 
@@ -149,10 +152,8 @@ public class QuedaService{
         return quedas.stream().filter( queda -> queda.getData().toLocalDate().equals(data)).toList();
     }
 
-
     private List<Queda> getQuedas(){
         List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDoAno()));
-
         sortQuedasPorData(todasQuedas);
 
         return todasQuedas;
@@ -179,7 +180,7 @@ public class QuedaService{
     }
 
     public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto) {
-        List<Queda> quedas = getQuedas();
+        List<Queda> quedas = quedaRepository.findAll();
         dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade();
         dto.quedas = quedas;
         return dto;

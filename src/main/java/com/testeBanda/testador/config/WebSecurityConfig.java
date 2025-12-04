@@ -24,13 +24,12 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(HttpMethod.POST, "/configuracao").permitAll()
                         .requestMatchers("/", "/grafico", "/error").permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/static/**")).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .permitAll()
                         .loginPage("/login")
-                        .defaultSuccessUrl("/cidadesBanda")
+                        .defaultSuccessUrl("/cidadesBanda", true)
                 )
                 .csrf(csrf -> csrf.disable())
                 .logout((logout) ->
@@ -49,7 +48,6 @@ public class WebSecurityConfig {
                         .password("adm123")
                         .roles("USER")
                         .build();
-
         return new InMemoryUserDetailsManager(user);
     }
 

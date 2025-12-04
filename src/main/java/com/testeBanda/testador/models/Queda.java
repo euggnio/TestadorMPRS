@@ -24,21 +24,29 @@ public class Queda {
     private LocalDateTime data;
     private Duration tempoFora;
     private boolean faltaDeLuz;
-    private String uptime;
+    private Long uptime;
+
 
     @JsonIgnore
     @Getter
     @ManyToOne
+    @JsonIgnore
     private Cidades cidade;
 
     public Queda(String cidade, LocalDateTime data, Duration tempoFora) {
         this.nomeCidade = cidade;
         this.data = data;
         this.tempoFora = tempoFora;
+        this.uptime = 0L;
+        faltaDeLuz = false;
     }
 
     public LocalDateTime getDataUp(){
         return this.data.plus(tempoFora).plus(Duration.ofSeconds(60));
+    }
+
+    public LocalDateTime getDataUp(int minutes){
+        return this.data.plus(tempoFora).plusMinutes(minutes);
     }
 
     public String toString() {
@@ -49,6 +57,40 @@ public class Queda {
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +
                 //", CIDADE='" + cidade + '\'' +
                 "}";
+    }
+
+    public Boolean verificarQuedaEnergia(){
+        if(this.uptime == null || this.uptime <= 0){
+            return false;
+        }
+        return TimeUnit.SECONDS.toMinutes(this.uptime) <= 10;
+    }
+
+    public void setUptime(Long uptime){
+        this.uptime = uptime;
+        faltaDeLuz = uptime <= 660 && uptime > 0;
+    }
+
+    public String getUptimeFormatado() {
+        if(this.uptime == null || this.uptime <= 0){
+            return "Erro ao verificar uptime";
+        }
+        Duration d = Duration.ofSeconds(this.uptime);
+
+        long dias = d.toDays();
+        long horas = d.toHoursPart();
+        long minutos = d.toMinutesPart();
+        long segundos = d.toSecondsPart();
+
+        StringBuilder sb = new StringBuilder();
+
+        if (dias > 0) sb.append(dias).append(" dias ");
+        if (horas > 0) sb.append(horas).append(" horas ");
+        if (minutos > 0) sb.append(minutos).append(" minutos ");
+        if (segundos > 0)
+            sb.append(segundos).append(" segundos");
+
+        return sb.toString().trim();
     }
 
 

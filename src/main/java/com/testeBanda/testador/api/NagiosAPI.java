@@ -7,7 +7,6 @@ import com.testeBanda.testador.models.Disponibilidade;
 import com.testeBanda.testador.models.Mes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,7 +24,6 @@ public class NagiosAPI {
         String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&" +
                 "starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
         JsonNode alertListNode = sendRequest(url,"alertlist");
-
         return criaListaDeAlertas(alertListNode);
     }
 
@@ -36,13 +34,11 @@ public class NagiosAPI {
                 String name = alert.path("name").asText();
                 if(name.equals("1Teste")) continue;
                 String tipo = alert.path("plugin_output").asText();
-
                 long timestampMillis = alert.path("timestamp").asLong();
                 LocalDateTime data = LocalDateTime.ofInstant(
                         Instant.ofEpochMilli(timestampMillis),
                         TimeZone.getDefault().toZoneId()
                 );
-
                 alertas.add(new Alerta(name, data, tipo));
             }
         }

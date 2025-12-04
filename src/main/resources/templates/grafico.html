@@ -54,7 +54,6 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         }
         const chartIndisp = echarts.init(document.getElementById('chart-indisponibilidade'));
         const dados = [[${alertas.mesDisponibilidades}]];
-
         if (mes === "todos") {
             // Mapa para armazenar soma e contagem por cidade
             const mapa = new Map();
