@@ -43,8 +43,8 @@ public class Cidades {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Contato> contatos;
 
-    @JsonBackReference
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false, mappedBy = "cidade")
     public List<Queda> quedas;
 
 

@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.concurrent.TimeUnit;
 
 @Entity
@@ -26,6 +27,7 @@ public class Queda {
     private Long uptime;
 
 
+    @JsonIgnore
     @Getter
     @ManyToOne
     @JsonIgnore
@@ -40,7 +42,7 @@ public class Queda {
     }
 
     public LocalDateTime getDataUp(){
-        return this.data.plus(tempoFora);
+        return this.data.plus(tempoFora).plus(Duration.ofSeconds(60));
     }
 
     public LocalDateTime getDataUp(int minutes){
@@ -53,6 +55,7 @@ public class Queda {
                 ", data=" + data +
                 ", tempoFora='" + tempoFora + '\'' +
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +
+                //", CIDADE='" + cidade + '\'' +
                 "}";
     }
 

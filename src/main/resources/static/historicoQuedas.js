@@ -104,9 +104,12 @@ function setasData(valor){
             mes = 1;
             ano = ano + 1;
         }
+        let anos = Array.from(document.getElementById("dropAno").getElementsByTagName("option")).map(e => parseInt(e.value))
 
-        // se o ano for menor OK, se ano for igual confere mes
-        if(ano < hoje.getFullYear() || (ano == hoje.getFullYear() && mes <= hoje.getMonth()+1)){
+        // se o ano for menor e na lista OK, se ano for igual confere mes
+        if( (ano < hoje.getFullYear()  && anos.includes(ano)) ||
+            (ano == hoje.getFullYear() && mes <= hoje.getMonth()+1) )
+        {
             localStorage.setItem('mes', mes);
             localStorage.setItem('ano', ano);
             window.location = '/historicoQuedas/mes/' + ano + '/' + mes;
