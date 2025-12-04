@@ -30,7 +30,13 @@ function cidadeAleatoria(){return listaCidades()[Math.floor(Math.random() * 181)
 function listaTempos(quedas, cidade){
     let quedasCidade = filtraCidade(quedas, cidade)
     return quedasCidade.map((queda => {
-               return {data: queda.data.substring(0,10), tempo: (queda.tempoFora/60)}
+               let tempoDigital = queda.data.substring(11, 16).split(':')
+               let minutosAteQueda = parseInt(tempoDigital[0]) * 60
+               minutosAteQueda += parseInt(tempoDigital[1])
+
+               return {data: queda.data.substring(0,10),
+                       tempo: (queda.tempoFora/60),
+                       hora: minutosAteQueda}
            }))
 }
 
@@ -62,17 +68,27 @@ function dadosTempoQuedas(year, quedas, cidade) {
         let dia = echarts.time.format(time, '{yyyy}-{MM}-{dd}', false)
         let quedasDia = listaDeTempos.filter((tempo) => tempo.data == dia)
 
-        let tempo = quedasDia.reduce((total, queda) => total + queda.tempo, 0) + exce
-
-        if(tempo > 1440) {
-            exce = tempo - 1440
-            tempo = 1440
-        }else{
+        let tempo = 0
+        if(exce < 1440){
+            tempo = exce
             exce = 0
+        }else{
+            tempo = 1440
+            exce = exce - 1440
         }
+
+        quedasDia.forEach(q => {
+            if(q.tempo + q.hora < 1440){
+                tempo += q.tempo
+            }else{  // caso transborde para o prox dia
+                tempo += 1440 - q.hora
+                exce = q.tempo - tempo
+            }
+        })
 
         data.push([dia, tempo]);
     }
+    console.log(filtraCidade(quedas, cidade))
     return data;
 }
 
@@ -146,7 +162,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
     let dados = dadosQntQuedas(anoAtual, filtraCidade(quedas, cidade));
 
     let option = {
-          gradientColor: ['#dedede', '#00adb5', '#00588b'],
+          gradientColor: ['#dedede', '#00adb5', '#00588b', '#000000'],
           title: {
             top: 30,
             left: 'center',
@@ -167,7 +183,8 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
             pieces: [
                         { min: 0, max: 0},
                         { min: 1, max: 1},
-                        { min: 2, max: 2}
+                        { min: 2, max: 3},
+                        { min:3, label: '3+'}
                     ],
             splitNumber: 3,
             orient: 'horizontal',
@@ -175,7 +192,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
             top: 65,
             target: {
                 outOfRange: {
-                    color: ["ffff"]
+                    color: '#dedede'
                 }
             }
           },
@@ -207,7 +224,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
     let dados = dadosTempoQuedas(anoAtual, quedas, cidade);
 
     let option = {
-          gradientColor: ['#abdede', '#00adb5', '#00588b'],
+          gradientColor: ['#dedede', '#abdede', '#00adb5', '#00588b'],
           title: {
             top: 30,
             left: 'center',
@@ -233,6 +250,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
             max: 24,
             type: 'piecewise',
             pieces: [
+                 { max: 5, label: "Sem quedas"},
                  { min: 5, max: 10, label: "Até 10min"},
                  { min: 10, max: 60, label: "Até 1h"},
                  { min: 60, max: 120, label: "Até 2h"},
@@ -437,8 +455,6 @@ function fazGraficoQntPorTempo(elem, quedas){
         }
       ]
     };
-
-    console.log(tempos.reduce((a,b)=>a+b), todosTempos)
 
     const chart = echarts.init(elem)
     chart.clear()
