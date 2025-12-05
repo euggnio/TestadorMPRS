@@ -35,8 +35,18 @@
     <p id="ultima"></p>
 </div>
 
+<label for="dropAno">Ano: </label>
+<select id="dropAno" style="margin-top: 15px;">
+    <option th:each="ano : ${#numbers.sequence(quedas.getLast().getData().getYear(),
+                                               quedas.getFirst().getData().getYear())}"
+            th:value="${ano}"
+            th:text="${ano}" ></option>
+</select>
+
 <div style="width:85%; margin: auto;">
     <div id="chartQuedasPorDia" style="width: 70%; height: 300px; margin:auto;"></div>
+
+    <label id="total" style="//display:none"></label>
 
     <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
         <div id="tempos" style="width: 35%; height: 300px; margin:auto;"></div>
@@ -45,7 +55,7 @@
 
     <label for="seletorCidade">Cidade:</label>
     <select name="cidade" id="seletorCidade"></select>
-    <button onClick="novaCidade(cidadeAleatoria())">Aleatória</button>
+    <button id="aleatoria">Aleatória</button>
 
     <div id="chartTempoPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
     <div id="chartQuedasPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>

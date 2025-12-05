@@ -93,16 +93,15 @@ function dadosTempoQuedas(year, quedas, cidade) {
 }
 
 
-function fazGraficoQntQuedasTodas(elem, quedas){
-    const anoAtual = new Date().getFullYear()
-    let dados = dadosQntQuedas(anoAtual, quedas);
+function fazGraficoQntQuedasTodas(elem, quedas, ano){
+    let dados = dadosQntQuedas(ano, quedas);
 
     option = {
       gradientColor: ['#cddede', '#00adb5', '#00588b', '#003333'],
       title: {
         top: 30,
         left: 'center',
-        text: 'Quedas por dia'
+        text: 'Quedas por dia (' + ano + ')'
       },
       tooltip: {
         formatter: function (params) {
@@ -144,7 +143,7 @@ function fazGraficoQntQuedasTodas(elem, quedas){
         left: 30,
         right: 30,
         cellSize: ['auto', 13],
-        range: '2025',
+        range: ano,
         itemStyle: {
           borderWidth: 0.5
         },
@@ -162,16 +161,15 @@ function fazGraficoQntQuedasTodas(elem, quedas){
     chart.setOption(option)
 }
 
-function fazGraficoQntQuedasCidade(elem, quedas, cidade){
-    const anoAtual = new Date().getFullYear()
-    let dados = dadosQntQuedas(anoAtual, filtraCidade(quedas, cidade));
+function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
+    let dados = dadosQntQuedas(ano, filtraCidade(quedas, cidade));
 
     let option = {
           gradientColor: ['#dedede', '#00adb5', '#00588b', '#000000'],
           title: {
             top: 30,
             left: 'center',
-            text: "Quantidade de Quedas em " + cidade
+            text: "Quantidade de Quedas em " + cidade + " (" + ano + ')'
           },
           tooltip: {
             formatter: function (params) {
@@ -208,7 +206,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
             left: 30,
             right: 30,
             cellSize: ['auto', 13],
-            range: '2025',
+            range: ano,
             itemStyle: {
               borderWidth: 0.5
             },
@@ -226,16 +224,15 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade){
     chart.setOption(option)
 }
 
-function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
-    const anoAtual = new Date().getFullYear()
-    let dados = dadosTempoQuedas(anoAtual, quedas, cidade);
+function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
+    let dados = dadosTempoQuedas(ano, quedas, cidade);
 
     let option = {
           gradientColor: ['#dedede', '#abdede', '#00adb5', '#00588b'],
           title: {
             top: 30,
             left: 'center',
-            text: "Tempo Fora em " + cidade
+            text: "Tempo Fora em " + cidade + " (" + ano + ')'
           },
           tooltip: {
             formatter: function (params) {
@@ -286,7 +283,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
             left: 30,
             right: 30,
             cellSize: ['auto', 13],
-            range: '2025',
+            range: ano,
             itemStyle: {
               borderWidth: 0.5
             },
@@ -295,7 +292,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
           series: {
             type: 'heatmap',
             coordinateSystem: 'calendar',
-            data: dadosTempoQuedas(anoAtual, quedas, cidade)
+            data: dadosTempoQuedas(ano, quedas, cidade)
           }
         };
 
@@ -303,7 +300,6 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade){
     chart.clear()
     chart.setOption(option)
 }
-
 
 function fazDropCidades(){
     let select = document.getElementById("seletorCidade")
@@ -317,19 +313,25 @@ function fazDropCidades(){
 }
 window.addEventListener('load', fazDropCidades)
 
+let aleatoria = document.getElementById("aleatoria")
 let inputCidade = document.getElementById("seletorCidade")
 inputCidade.addEventListener('change', () => {
     let input = document.getElementById("seletorCidade")
-    novaCidade(input.value)
+    let ano = document.getElementById("dropAno").value
+    novaCidade(input.value, ano)
+})
+aleatoria.addEventListener('click', () => {
+    let ano = document.getElementById("dropAno").value
+    novaCidade(cidadeAleatoria(), ano)
 })
 
-function novaCidade(cidade){
+function novaCidade(cidade, ano){
     document.getElementById("seletorCidade").value = cidade
-    fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade)
-    fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade)
+    fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, ano)
+    fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, ano)
 
-    fazGraficoEstatisticas(document.getElementById("statsCid"), filtraCidade(quedas, cidade))
-    fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade))
+    fazGraficoEstatisticas(document.getElementById("statsCid"), filtraCidade(quedas, cidade), ano)
+    fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade), ano)
 }
 
 function segundosParaDuration(s){
@@ -353,21 +355,21 @@ function timer(){
     timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
 }
 let txtUlt = ""
+let tempoUltima = segundosParaDuration(quedas[0].tempoFora).round("minutes")
 if(quedas[0].tempoFora > 0){
     txtUlt = '(' + quedas[0].nomeCidade + " por "
-            + segundosParaDuration(quedas[0].tempoFora).toLocaleString('pt') + ')'
+            + tempoUltima.toLocaleString('pt') + ')'
 }else{
     txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
 }
-
 document.getElementById("ultima").innerText = txtUlt
 timer()
 setInterval(timer, 1000)
 
 function pad(num){return num <= 9 ? "0" + num : "" + num;}
 
-function fazGraficoEstatisticas(elem, quedas){
-    const todosTempos = quedas.map(q => q.tempoFora)
+function fazGraficoEstatisticas(elem, quedas, ano){
+    const todosTempos = quedas.filter(q => q.data.substring(0,4) == ano).map(q => q.tempoFora)
 
     const media = Math.floor(ss.mean(todosTempos)/60)
     const mediana = Math.floor(ss.median(todosTempos)/60)
@@ -379,7 +381,7 @@ function fazGraficoEstatisticas(elem, quedas){
       title: {
         top: 30,
         left: 'center',
-        text: "Duração das Quedas\n(minutos)"
+        text: "Duração das Quedas " + ano + "\n(minutos)"
       },
       tooltip: {
         formatter: function (params) {
@@ -417,8 +419,8 @@ function fazGraficoEstatisticas(elem, quedas){
     chart.setOption(option)
 }
 
-function fazGraficoQntPorTempo(elem, quedas){
-    const todosTempos = quedas.map(q => Math.floor(q.tempoFora/60))
+function fazGraficoQntPorTempo(elem, quedas, ano){
+    const todosTempos = quedas.filter(q => q.data.substring(0,4) == ano).map(q => Math.floor(q.tempoFora/60))
 
     let tempos = [0,0,0,0,0]
 
@@ -446,7 +448,7 @@ function fazGraficoQntPorTempo(elem, quedas){
       title: {
         top: 10,
         left: 'center',
-        text: "Quantidade de Quedas\npor Duração"
+        text: "Quantidade de Quedas\npor Duração " + ano
       },
       tooltip: {
         formatter: function (params) {
@@ -480,10 +482,30 @@ function fazGraficoQntPorTempo(elem, quedas){
     chart.setOption(option)
 }
 
+function novoAno(){
+    let dropAno = document.getElementById("dropAno");
+    let ano = dropAno.value
 
-fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas)
+    fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, ano)
 
-fazGraficoEstatisticas(document.getElementById("stats"), quedas)
-fazGraficoQntPorTempo(document.getElementById("tempos"), quedas)
+    fazGraficoEstatisticas(document.getElementById("stats"), quedas, ano)
+    fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, ano)
 
-window.addEventListener('load', () => novaCidade(cidadeAleatoria()))
+    novaCidade(document.getElementById("seletorCidade").value, ano)
+}
+
+let dropAno = document.getElementById("dropAno");
+dropAno.addEventListener('change', novoAno)
+
+let anoAtual = new Date().getFullYear()
+dropAno.value = anoAtual
+
+let total = document.getElementById("total")
+total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == anoAtual).length
+
+fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, anoAtual)
+
+fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
+fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
+
+window.addEventListener('load', () => novaCidade(cidadeAleatoria(), anoAtual))

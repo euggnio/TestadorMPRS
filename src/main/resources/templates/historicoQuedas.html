@@ -28,7 +28,7 @@
                     th:value="${datas.getFirst()}"
                     th:min="${datas.getLast()}"
                     th:max="${datas.getFirst()}" />
-            <button onclick="outraData()">GO</button>
+<!--            <button onclick="outraData()">GO</button>-->
             <div>
                 <button onclick="diaHoje()">Hoje</button>
             </div>
@@ -50,7 +50,7 @@
                                     #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
             </select>
 
-            <button onclick="outroMes()">GO</button>
+<!--            <button onclick="outroMes()">GO</button>-->
 
         </div>
 
@@ -68,7 +68,7 @@
             <th>Cidade</th>
             <th>Data </th>
             <th>Tempo Fora</th>
-            <th>UPTime</th>
+            <th>Uptime</th>
             <th>Foi Queda de Luz?</th>
         </tr>
         </thead>
@@ -91,7 +91,7 @@
 
             </td>
             <td style="display: flex; align-items: center; justify-content: space-evenly;">
-                <label class="checkFaltaDeLuz" th:value="${queda.verificarQuedaEnergia()}" ></label>
+<!--                <label class="checkFaltaDeLuz" th:value="${queda.verificarQuedaEnergia()}" ></label>-->
                 <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>
                 <form action="/editaFaltaDeLuz" method="POST" >
                     <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">

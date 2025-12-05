@@ -85,7 +85,6 @@ public class QuedaService{
     }
 
     public void atualizaQuedas(){
-        List<Queda> quedasNoNagios = getQuedas();
         List<Queda> quedasNoBanco = quedaRepository.findAll();
 
         //Verificação inicial, preenchendo o banco de dados. roda uma unica vez
@@ -93,11 +92,13 @@ public class QuedaService{
         // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
         if(quedasNoBanco.isEmpty())
         {
+            List<Queda> todasQuedasNoNagios = getQuedasDesde2023();
             sincronizarNomesCidades();
-            salvarQuedas(quedasNoNagios);
+            salvarQuedas(todasQuedasNoNagios);
         }
-
         else{
+            List<Queda> quedasNoNagios = getQuedas();
+
             Queda ultimaQueda = quedasNoBanco.getLast();
             List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, ultimaQueda.getData().minusWeeks(4));
             sincronizarQuedasComCidade(quedasRecentes);
@@ -154,6 +155,13 @@ public class QuedaService{
 
     private List<Queda> getQuedas(){
         List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDoAno()));
+        sortQuedasPorData(todasQuedas);
+
+        return todasQuedas;
+    }
+
+    private List<Queda> getQuedasDesde2023(){
+        List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDesde2023()));
         sortQuedasPorData(todasQuedas);
 
         return todasQuedas;

@@ -26,8 +26,6 @@ public class Queda {
     private boolean faltaDeLuz;
     private Long uptime;
 
-
-    @JsonIgnore
     @Getter
     @ManyToOne
     @JsonIgnore
@@ -73,22 +71,21 @@ public class Queda {
 
     public String getUptimeFormatado() {
         if(this.uptime == null || this.uptime <= 0){
-            return "Erro ao verificar uptime";
+            return "ERRO";
         }
         Duration d = Duration.ofSeconds(this.uptime);
 
         long dias = d.toDays();
         long horas = d.toHoursPart();
         long minutos = d.toMinutesPart();
-        long segundos = d.toSecondsPart();
+        //long segundos = d.toSecondsPart();
 
         StringBuilder sb = new StringBuilder();
 
         if (dias > 0) sb.append(dias).append(" dias ");
-        if (horas > 0) sb.append(horas).append(" horas ");
-        if (minutos > 0) sb.append(minutos).append(" minutos ");
-        if (segundos > 0)
-            sb.append(segundos).append(" segundos");
+        if (horas > 0) sb.append(horas).append("h e ");
+        if (minutos > 0) sb.append(minutos).append("min");
+        //if (segundos > 0) sb.append(segundos).append(" segundos");
 
         return sb.toString().trim();
     }

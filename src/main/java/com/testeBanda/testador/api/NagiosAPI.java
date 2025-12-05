@@ -27,6 +27,16 @@ public class NagiosAPI {
         return criaListaDeAlertas(alertListNode);
     }
 
+    public List<Alerta> todosAlertasDesde2023(){
+        Instant instant = Instant.parse("2023-01-01T00:01:00Z");
+        long inicio = instant.getEpochSecond();
+        long fim = Instant.now().getEpochSecond();
+        String url =  nagios + "archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&"
+                + "starttime=" + inicio + "&endtime=" + fim;
+        JsonNode alertListNode = sendRequest(url,"alertlist");
+        return criaListaDeAlertas(alertListNode);
+    }
+
     private List<Alerta> criaListaDeAlertas(JsonNode json) {
         List<Alerta> alertas = new ArrayList<>();
         if (json.isArray()) {

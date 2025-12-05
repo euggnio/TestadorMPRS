@@ -42,6 +42,18 @@ function dadosSalvos() {
     }else{
         switcher.checked = (localStorage.getItem('switcher') == "true");
     }
+
+    // entra por link para dia enquanto switcher esta em mes
+    let url = window.location.pathname
+    if(url.includes("dia") && switcher.checked){
+        let dia = url.split('/').at(-1)
+
+        localStorage.setItem('switcher', false)
+        localStorage.setItem('dia', dia);
+
+        switcher.checked = false;
+        calendario.value = dia;
+    }
 }
 
 function checksFaltaDeLuz(){
@@ -80,6 +92,7 @@ function outraData(){
     localStorage.setItem('dia', calendario.value);
     window.location = '/historicoQuedas/dia/' + calendario.value;
 }
+calendario.addEventListener('change', outraData)
 
 function outroMes() {
     let inputMes = document.getElementById("dropMes");
@@ -89,6 +102,8 @@ function outroMes() {
     localStorage.setItem('ano', inputAno.value);
     window.location = '/historicoQuedas/mes/' + inputAno.value + '/' + inputMes.value;
 }
+dropAno.addEventListener('change', outroMes)
+dropMes.addEventListener('change', outroMes)
 
 function setasData(valor){
     const hoje = new Date();

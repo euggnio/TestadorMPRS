@@ -95,6 +95,10 @@
     column-gap: 2px;
 }
 
+#calendario{
+    margin: 10px 0;
+}
+
 #titulo{
     padding: 0.4em;
     width: 9em;
