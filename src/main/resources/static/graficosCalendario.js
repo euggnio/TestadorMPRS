@@ -484,6 +484,7 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
 
 function novoAno(){
     let dropAno = document.getElementById("dropAno");
+    let total = document.getElementById("total")
     let ano = dropAno.value
 
     fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, ano)
@@ -492,6 +493,8 @@ function novoAno(){
     fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, ano)
 
     novaCidade(document.getElementById("seletorCidade").value, ano)
+
+    total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == ano).length
 }
 
 let dropAno = document.getElementById("dropAno");

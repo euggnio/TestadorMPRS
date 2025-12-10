@@ -88,6 +88,11 @@
     padding: 0.5em;
 }
 
+.nomeCidade{
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
 .tituloBox{
     display: flex;
     justify-content: center;

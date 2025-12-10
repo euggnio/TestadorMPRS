@@ -92,34 +92,43 @@ public class QuedaService{
         // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
         if(quedasNoBanco.isEmpty())
         {
-            List<Queda> todasQuedasNoNagios = getQuedasDesde2023();
+            List<Queda> todasQuedasNoNagios = getQuedasDesde2023(); // se estiver vazio pega o historico completo do nagios
             sincronizarNomesCidades();
             salvarQuedas(todasQuedasNoNagios);
         }
         else{
-            List<Queda> quedasNoNagios = getQuedas();
+            LocalDateTime dataUltimaQueda = quedasNoBanco.getLast().getData().minusWeeks(2);
 
-            Queda ultimaQueda = quedasNoBanco.getLast();
-            List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, ultimaQueda.getData().minusWeeks(4));
+            List<Queda> quedasNoNagios = getQuedas();
+            List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, dataUltimaQueda);
+
             sincronizarQuedasComCidade(quedasRecentes);
-            boolean match;
-            for(Queda quedaRecente : quedasRecentes){
-                match = false;
-                for(Queda quedaBanco : quedasNoBanco){
-                    if(comparaQuedas(quedaRecente, quedaBanco)){
-                        match = true;
-                        //quedas que estavam sem UP, recebem tempo de duração
-                        if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
-                            quedaBanco.setTempoFora(quedaRecente.getTempoFora());
-                            quedaRepository.save(quedaBanco);
-                        }
-                        if( quedaBanco.getTempoFora().isPositive()){
-                            quedaBanco.setUptime(getUptime(quedaBanco));
-                            quedaRepository.save(quedaBanco);
-                        }
+
+            processaNovasQuedas(quedasRecentes, filterQuedasAposData(quedasNoBanco, dataUltimaQueda.minusMonths(1)));
+        }
+    }
+
+    /** Adiciona uptime e calcula tempo fora para quedas que estavam DOWN até a última atualização */
+    private void processaNovasQuedas(List<Queda> quedasRecentes, List<Queda> quedasNoBanco){
+        boolean match;
+        for(Queda quedaRecente : quedasRecentes){
+            match = false;
+            for(Queda quedaBanco : quedasNoBanco){
+                if(comparaQuedas(quedaRecente, quedaBanco)){
+                    match = true;
+                    //quedas que estavam sem UP, recebem tempo de duração
+                    if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
+                        quedaBanco.setTempoFora(quedaRecente.getTempoFora());
+                        quedaRepository.save(quedaBanco);
+                    }
+                    if( quedaBanco.getTempoFora().isPositive() && quedaBanco.getUptime() <= 0){
+                        quedaBanco.setUptime(getUptime(quedaBanco));
+                        quedaRepository.save(quedaBanco);
                     }
                 }
-                if(!match){quedaRepository.save(quedaRecente);}
+            }
+            if(!match){
+                quedaRepository.save(quedaRecente);
             }
         }
     }
@@ -129,7 +138,9 @@ public class QuedaService{
             return -2L;
         }
         else{
-            return checkMKAPI.getUptimePosQueda(queda);
+            Long tempo = checkMKAPI.getUptimePosQueda(queda);
+            System.out.println("Uptime em " + queda.getNomeCidade() + " " + queda.getData() + ": " + tempo);
+            return tempo;
         }
     }
 
@@ -190,7 +201,7 @@ public class QuedaService{
     public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto) {
         List<Queda> quedas = quedaRepository.findAll();
         dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade();
-        dto.quedas = quedas;
+        dto.quedas = quedas.stream().filter(q -> q.getData().getYear() == LocalDateTime.now().getYear()).toList();
         return dto;
     }
 
@@ -208,31 +219,32 @@ public class QuedaService{
     private List<Queda> listaDeQuedas(Map<String,ArrayList<Alerta>> alertasPorCidades){
         List<Queda> todasQuedas = new ArrayList<>();
         Deque<Alerta> pilha = new ArrayDeque<>();
-            for (ArrayList<Alerta> alertasDaCidade : alertasPorCidades.values()) {
-                pilha.clear();
 
-                for(Alerta alerta : alertasDaCidade){
-                    if(alerta.getTipo().contains("DOWN")){
-                        pilha.push(alerta);
-                    }
-                    if(alerta.getTipo().contains("UP")){
-                        if(!pilha.isEmpty()){
-                            Alerta down = pilha.pop();
-                            Duration duration = Duration.between(down.getData(), alerta.getData());
-                            Queda queda = new Queda(alerta.getNome(), down.getData(), duration);
-                            todasQuedas.add(queda);
-                        }
-                    }
+        for (ArrayList<Alerta> alertasDaCidade : alertasPorCidades.values()) {
+            pilha.clear();
+
+            for(Alerta alerta : alertasDaCidade){
+                if(alerta.getTipo().contains("DOWN")){
+                    pilha.push(alerta);
                 }
-                //quedas acontecendo no momento são adicionadas com duração zero
-                for(Alerta alerta : pilha){
-                    if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
-                        Duration duration = Duration.ZERO;
-                        Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration);
+                if(alerta.getTipo().contains("UP")){
+                    if(!pilha.isEmpty()){
+                        Alerta down = pilha.pop();
+                        Duration duration = Duration.between(down.getData(), alerta.getData());
+                        Queda queda = new Queda(alerta.getNome(), down.getData(), duration);
                         todasQuedas.add(queda);
                     }
                 }
             }
+            //quedas acontecendo no momento são adicionadas com duração zero
+            for(Alerta alerta : pilha){
+                if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
+                    Duration duration = Duration.ZERO;
+                    Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration);
+                    todasQuedas.add(queda);
+                }
+            }
+        }
         return todasQuedas;
     }
 

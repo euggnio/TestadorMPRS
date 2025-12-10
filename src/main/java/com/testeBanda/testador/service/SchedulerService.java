@@ -27,6 +27,7 @@ public class SchedulerService {
 
     @Scheduled(fixedDelay = 60000)
     public void schedulerQuedas(){
+        //System.out.println("*** ATUALIZANDO QUEDAS ***");
         quedaService.atualizaQuedas();
     }
 

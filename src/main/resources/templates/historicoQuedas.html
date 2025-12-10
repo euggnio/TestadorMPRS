@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
     <script th:src="@{/javascript.js}"></script>
     <link rel="icon" type="image/x-icon" href="/ico.png">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 </head>
 <body>
     <div th:replace="~{header :: header}"></div>
@@ -74,11 +75,19 @@
         </thead>
         <tbody>
         <tr th:each="queda : ${quedas}" class="linha">
-            <td th:text="${queda.nomeCidade}"></td>
+            <td class="nomeCidade" th:if="${queda.cidade != null}">
+                <a th:text="${queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
+<!--                <label th:text="${queda.cidade.nome}"></label>-->
+            </td>
+            <td class="nomeCidade" th:unless="${queda.cidade != null}">
+                <label th:text="${queda.nomeCidade}"></label>
+            </td>
+
             <td>
                 <label th:text="${queda.data.toLocalDate()}"></label><br>
                 <label th:text="${queda.data.toLocalTime()}"></label>
             </td>
+
             <td th:if="${queda.tempoFora.toSeconds() != 0}">
                 <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
                 <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
@@ -86,10 +95,11 @@
             <td th:unless="${queda.tempoFora.toSeconds() != 0}">
                 <label>DOWN</label>
             </td>
+
             <td>
                 <label th:text="${queda.getUptimeFormatado()}"></label>
-
             </td>
+
             <td style="display: flex; align-items: center; justify-content: space-evenly;">
 <!--                <label class="checkFaltaDeLuz" th:value="${queda.verificarQuedaEnergia()}" ></label>-->
                 <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>
@@ -104,6 +114,7 @@
         </tbody>
         </table>
 
+        <script> const quedas = /*[[${quedas}]]*/ null;</script>
         <script th:src="@{/historicoQuedas.js}"></script>
     </main>
 </body>

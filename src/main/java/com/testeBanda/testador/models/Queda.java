@@ -39,10 +39,6 @@ public class Queda {
         faltaDeLuz = false;
     }
 
-    public LocalDateTime getDataUp(){
-        return this.data.plus(tempoFora).plus(Duration.ofSeconds(60));
-    }
-
     public LocalDateTime getDataUp(int minutes){
         return this.data.plus(tempoFora).plusMinutes(minutes);
     }
@@ -53,7 +49,7 @@ public class Queda {
                 ", data=" + data +
                 ", tempoFora='" + tempoFora + '\'' +
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +
-                //", CIDADE='" + cidade + '\'' +
+                ", uptime='" + uptime + '\'' +
                 "}";
     }
 
@@ -83,7 +79,7 @@ public class Queda {
         StringBuilder sb = new StringBuilder();
 
         if (dias > 0) sb.append(dias).append(" dias ");
-        if (horas > 0) sb.append(horas).append("h e ");
+        if (horas > 0) sb.append(horas).append("h ");
         if (minutos > 0) sb.append(minutos).append("min");
         //if (segundos > 0) sb.append(segundos).append(" segundos");
 
