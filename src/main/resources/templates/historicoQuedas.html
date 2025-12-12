@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Verificador diario</title>
+    <title>Testador</title>
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
     <script th:src="@{/javascript.js}"></script>
@@ -28,7 +28,7 @@
                     name="calendario"
                     th:value="${datas.getFirst()}"
                     th:min="${datas.getLast()}"
-                    th:max="${datas.getFirst()}" />
+                    th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
 <!--            <button onclick="outraData()">GO</button>-->
             <div>
                 <button onclick="diaHoje()">Hoje</button>

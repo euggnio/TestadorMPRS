@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Verificador diario</title>
+    <title>Testador</title>
 
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 
@@ -74,5 +74,89 @@
     const quedas = /*[[${quedas}]]*/ null;
 </script>
 <script th:src="@{/graficosCalendario.js}"></script>
+
+<script>
+
+    //  *** Tempo desde última queda com contador  ***
+    const ult = new Date(quedas[0].data)
+    const agr = new Date()
+    let segundosT = Math.floor((agr - ult) / 1000)
+
+    function pad(num){return num <= 9 ? "0" + num : "" + num;}
+
+    function timer(){
+        let timer = document.getElementById("timer")
+        ++segundosT
+        const dur = segundosParaDuration(segundosT)
+
+        timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
+    }
+    let txtUlt = ""
+    let tempoUltima = segundosParaDuration(quedas[0].tempoFora).round("minutes")
+    if(quedas[0].tempoFora > 0){
+        txtUlt = '(' + quedas[0].nomeCidade + " por "
+                + tempoUltima.toLocaleString('pt') + ')'
+    }else{
+        txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
+    }
+    document.getElementById("ultima").innerText = txtUlt
+    timer()
+    setInterval(timer, 1000)
+
+
+
+    //  ***  Dropdown de seleção de cidades  ***
+    function fazDropCidades(){
+        let select = document.getElementById("seletorCidade")
+        const lista = listaCidades()
+
+        lista.forEach(cid => {
+            let elem = document.createElement('option')
+            elem.value = elem.innerText = cid
+            select.appendChild(elem)
+        })
+    }
+    window.addEventListener('load', fazDropCidades)
+
+
+
+    //  *** Funcionalidade do dropdown e do botão de cidade aleatória  ***
+    let aleatoria = document.getElementById("aleatoria")
+    let inputCidade = document.getElementById("seletorCidade")
+    let dropAno = document.getElementById("dropAno");
+
+    dropAno.addEventListener('change', novoAno)
+
+    inputCidade.addEventListener('change', () => {
+        let input = document.getElementById("seletorCidade")
+        let ano = document.getElementById("dropAno").value
+        novaCidade(input.value, ano)
+    })
+
+    aleatoria.addEventListener('click', () => {
+        let ano = document.getElementById("dropAno").value
+        novaCidade(cidadeAleatoria(), ano)
+    })
+
+</script>
+
+<script>
+
+    //  *** Montagem inicial da página  ***
+    let anoAtual = new Date().getFullYear()
+    dropAno.value = anoAtual
+
+    let total = document.getElementById("total")
+    total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == anoAtual).length
+
+    fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, anoAtual)
+
+    fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
+    fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
+
+    window.addEventListener('load', () => novaCidade(cidadeAleatoria(), anoAtual))
+
+
+</script>
 
 </html>

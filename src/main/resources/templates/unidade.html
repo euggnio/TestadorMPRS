@@ -3,16 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Testador</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <script src="/javascript.js"></script>
     <script th:src="@{/javascript.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
           rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/ico.png">
 
+    <style>
+        td{
+            width: 50%;
+        }
+        .links{
+            text-decoration: none;
+            color: #00adb5;
+        }
+    </style>
 </head>
 <body>
 
@@ -79,7 +88,9 @@
                 <thead>
                 <tr>
                     <th>CIDADE</th>
-                    <th>CACTI - BANDA</th>
+                    <th> CACTI - BANDA &nbsp;
+                        <a class="links" target="_blank" th:href=" 'http://linux61.mp.rs.gov.br/cacti/graph.php?local_graph_id=' + ${cidade.cacti} + '&rra_id=0' ">[link]</a>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
@@ -128,20 +139,38 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>SMOKE 30H</th>
-                        <th>SMOKE 3H</th>
+                        <th>Calendário de Quedas</th>
+                        <th> SMOKE &nbsp;
+                            <a class="links" target="_blank" th:href=" 'http://linux61.mp.rs.gov.br/smokeping/?target=' + ${cidade.smokeID.charAt(0)} + '.' + ${cidade.smokeID}">[link]</a>
+                        </th>
                     </tr>
                     <tr>
                         <td>
-                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_108000.png?'+${#dates.createNow().getTime()}"
-                             width="100%">
+                            <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>
+                            <div id="chartQuedasPorCidade" style="width: 95%; height: 215px; margin:auto; margin-bottom: 30px"></div>
+<!--                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_108000.png?'+${#dates.createNow().getTime()}"-->
+<!--                             width="100%">-->
+                        </td>
                         <td>
                         <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
-                             width="100%"></td>
+                             width="100%" alt="Gráfico Smoke">
                         </td>
                     </tr>
                 </tbody>
             </table>
+
+    <script type="text/javascript" th:inline="javascript">
+        const quedas = /*[[${quedas}]]*/ null;
+        const cidade = /*[[${cidade.nagiosID}]]*/ null;
+    </script>
+    <script th:src="@{/graficosCalendario.js}"></script>
+    <script>
+        let anoAtual = new Date().getFullYear()
+        fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, anoAtual)
+        fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, anoAtual)
+
+    </script>
+
     <script>
         function filterTable() {
             //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.

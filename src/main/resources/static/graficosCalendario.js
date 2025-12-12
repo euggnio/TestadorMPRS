@@ -88,9 +88,10 @@ function dadosTempoQuedas(year, quedas, cidade) {
 
         data.push([dia, tempo]);
     }
-    console.log(filtraCidade(quedas, cidade))
+    //console.log(filtraCidade(quedas, cidade))
     return data;
 }
+
 
 
 function fazGraficoQntQuedasTodas(elem, quedas, ano){
@@ -301,73 +302,6 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
     chart.setOption(option)
 }
 
-function fazDropCidades(){
-    let select = document.getElementById("seletorCidade")
-    const lista = listaCidades()
-
-    lista.forEach(cid => {
-        let elem = document.createElement('option')
-        elem.value = elem.innerText = cid
-        select.appendChild(elem)
-    })
-}
-window.addEventListener('load', fazDropCidades)
-
-let aleatoria = document.getElementById("aleatoria")
-let inputCidade = document.getElementById("seletorCidade")
-inputCidade.addEventListener('change', () => {
-    let input = document.getElementById("seletorCidade")
-    let ano = document.getElementById("dropAno").value
-    novaCidade(input.value, ano)
-})
-aleatoria.addEventListener('click', () => {
-    let ano = document.getElementById("dropAno").value
-    novaCidade(cidadeAleatoria(), ano)
-})
-
-function novaCidade(cidade, ano){
-    document.getElementById("seletorCidade").value = cidade
-    fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, ano)
-    fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, ano)
-
-    fazGraficoEstatisticas(document.getElementById("statsCid"), filtraCidade(quedas, cidade), ano)
-    fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade), ano)
-}
-
-function segundosParaDuration(s){
-    s = Math.floor(s)
-    let horas = Math.floor(s / 3600);
-    let minutos = Math.floor((s - horas * 3600) / 60)
-    let segundos = s - (horas * 3600) - (minutos * 60)
-
-    return Temporal.Duration.from({hours: horas, minutes: minutos, seconds: segundos})
-}
-
-const ult = new Date(quedas[0].data)
-const agr = new Date()
-let segundosT = Math.floor((agr - ult) / 1000)
-
-function timer(){
-    let timer = document.getElementById("timer")
-    ++segundosT
-    const dur = segundosParaDuration(segundosT)
-
-    timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
-}
-let txtUlt = ""
-let tempoUltima = segundosParaDuration(quedas[0].tempoFora).round("minutes")
-if(quedas[0].tempoFora > 0){
-    txtUlt = '(' + quedas[0].nomeCidade + " por "
-            + tempoUltima.toLocaleString('pt') + ')'
-}else{
-    txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
-}
-document.getElementById("ultima").innerText = txtUlt
-timer()
-setInterval(timer, 1000)
-
-function pad(num){return num <= 9 ? "0" + num : "" + num;}
-
 function fazGraficoEstatisticas(elem, quedas, ano){
     const todosTempos = quedas.filter(q => q.data.substring(0,4) == ano).map(q => q.tempoFora)
 
@@ -482,6 +416,25 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
     chart.setOption(option)
 }
 
+
+function novaCidade(cidade, ano){
+    document.getElementById("seletorCidade").value = cidade
+    fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, ano)
+    fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, ano)
+
+    fazGraficoEstatisticas(document.getElementById("statsCid"), filtraCidade(quedas, cidade), ano)
+    fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade), ano)
+}
+
+function segundosParaDuration(s){
+    s = Math.floor(s)
+    let horas = Math.floor(s / 3600);
+    let minutos = Math.floor((s - horas * 3600) / 60)
+    let segundos = s - (horas * 3600) - (minutos * 60)
+
+    return Temporal.Duration.from({hours: horas, minutes: minutos, seconds: segundos})
+}
+
 function novoAno(){
     let dropAno = document.getElementById("dropAno");
     let total = document.getElementById("total")
@@ -496,19 +449,3 @@ function novoAno(){
 
     total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == ano).length
 }
-
-let dropAno = document.getElementById("dropAno");
-dropAno.addEventListener('change', novoAno)
-
-let anoAtual = new Date().getFullYear()
-dropAno.value = anoAtual
-
-let total = document.getElementById("total")
-total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == anoAtual).length
-
-fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, anoAtual)
-
-fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
-fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
-
-window.addEventListener('load', () => novaCidade(cidadeAleatoria(), anoAtual))

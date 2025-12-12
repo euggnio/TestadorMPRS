@@ -37,7 +37,7 @@ public class GraficosService {
     public String cacti(String id) {
         Instant now = Instant.now();
         long graphEnd = now.getEpochSecond();
-        long graphStart = now.minus(12, ChronoUnit.HOURS).getEpochSecond();
+        long graphStart = now.minus(3, ChronoUnit.HOURS).getEpochSecond();
         String urlStr = "http://linux61.mp.rs.gov.br/cacti/graph_json.php?rra_id=0&local_graph_id="+id+"&" +
                 "graph_start=" + graphStart +
                 "&graph_end=" + graphEnd +
