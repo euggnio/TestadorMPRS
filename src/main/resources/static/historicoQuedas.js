@@ -149,3 +149,31 @@ function countLines(){
 
     count.innerText = count.innerText + ' ' + (tr.length - 1);
 }
+
+function tempoForaDownAtual(){
+    let x  = document.getElementsByClassName("linha")
+
+    for(let i=1; i < x.length; i++){
+      let dia = x[i].childNodes[3].childNodes[1].innerHTML
+      let dataStr = x[i].childNodes[3].childNodes[4].innerHTML
+      let DOWNelem = x[i].childNodes[5].children[0]
+      let tempoForaStr = DOWNelem.innerHTML
+
+      if(tempoForaStr == "DOWN"){
+        let now = new Date();
+        let queda = new Date(dia + 'T' + dataStr)
+
+        let dif = (now - queda) / 60000
+
+        let newElem = document.createElement("label")
+
+        newElem.innerHTML = Math.floor(dif) + " min"
+        newElem.classList = "down-label"
+
+        x[i].getElementsByClassName("tempoForaEnquantoDown")[0].innerHTML = '(' + Math.floor(dif) + " min)"
+      }
+    }
+}
+setInterval(tempoForaDownAtual, 60000)
+
+tempoForaDownAtual()

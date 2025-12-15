@@ -29,30 +29,26 @@
                     th:value="${datas.getFirst()}"
                     th:min="${datas.getLast()}"
                     th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
-<!--            <button onclick="outraData()">GO</button>-->
             <div>
                 <button onclick="diaHoje()">Hoje</button>
             </div>
         </div>
 
         <div class="controleMes">
-
+            <label for="dropAno" style="display: none">Ano:</label>
             <select id="dropAno">
                 <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
                         th:value="${ano}"
                         th:text="${ano}" ></option>
             </select>
 
-
+            <label for="dropMes" style="display: none">Mes:</label>
             <select id="dropMes">
                 <option th:each="mes : ${#numbers.sequence(0, 11)}"
                         th:value="${mes+1}"
                         th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
                                     #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
             </select>
-
-<!--            <button onclick="outroMes()">GO</button>-->
-
         </div>
 
         <div class="tituloBox">
@@ -61,57 +57,56 @@
             <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
         </div>
 
-        <div id="count" style="margin: 15px 0;">Total de Quedas:</div>
+        <div id="count">Total de Quedas:</div>
 
         <table class="city" id="dataTable">
-        <thead>
-        <tr class="linha">
-            <th>Cidade</th>
-            <th>Data </th>
-            <th>Tempo Fora</th>
-            <th>Uptime</th>
-            <th>Foi Queda de Luz?</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="queda : ${quedas}" class="linha">
-            <td class="nomeCidade" th:if="${queda.cidade != null}">
-                <a th:text="${queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
-<!--                <label th:text="${queda.cidade.nome}"></label>-->
-            </td>
-            <td class="nomeCidade" th:unless="${queda.cidade != null}">
-                <label th:text="${queda.nomeCidade}"></label>
-            </td>
+            <thead>
+                <tr class="linha">
+                    <th>Cidade</th>
+                    <th>Data </th>
+                    <th>Tempo Fora</th>
+                    <th>Uptime</th>
+                    <th>Foi Queda de Luz?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="queda : ${quedas}" class="linha">
+                    <td class="nomeCidade" th:if="${queda.cidade != null}">
+                        <a th:text="${queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
+                    </td>
+                    <td class="nomeCidade" th:unless="${queda.cidade != null}">
+                        <label th:text="${queda.nomeCidade}"></label>
+                    </td>
 
-            <td>
-                <label th:text="${queda.data.toLocalDate()}"></label><br>
-                <label th:text="${queda.data.toLocalTime()}"></label>
-            </td>
+                    <td>
+                        <label th:text="${queda.data.toLocalDate()}"></label><br>
+                        <label th:text="${queda.data.toLocalTime()}" id="horasDaQueda"></label>
+                    </td>
 
-            <td th:if="${queda.tempoFora.toSeconds() != 0}">
-                <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
-                <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
-            </td>
-            <td th:unless="${queda.tempoFora.toSeconds() != 0}">
-                <label>DOWN</label>
-            </td>
+                    <td th:if="${queda.tempoFora.toSeconds() != 0}">
+                        <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
+                        <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
+                    </td>
+                    <td th:unless="${queda.tempoFora.toSeconds() != 0}">
+                        <label class="down-label">DOWN</label><br>
+                        <label class="tempoForaEnquantoDown"></label>
+                    </td>
 
-            <td>
-                <label th:text="${queda.getUptimeFormatado()}"></label>
-            </td>
+                    <td>
+                        <label th:text="${queda.getUptimeFormatado()}"></label>
+                    </td>
 
-            <td style="display: flex; align-items: center; justify-content: space-evenly;">
-<!--                <label class="checkFaltaDeLuz" th:value="${queda.verificarQuedaEnergia()}" ></label>-->
-                <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>
-                <form action="/editaFaltaDeLuz" method="POST" >
-                    <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">
-                    <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz" name="faltaDeLuz" hidden="hidden">
-                    <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual" name="paginaAtual" hidden="hidden">
-                    <button type="submit" style="float: right;" >Queda de Luz</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
+                    <td id="formFaltaDeLuz">
+                        <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label>
+                        <form action="/editaFaltaDeLuz" method="POST" >
+                            <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">
+                            <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz" name="faltaDeLuz" hidden="hidden">
+                            <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual" name="paginaAtual" hidden="hidden">
+                            <button type="submit" style="float: right;" >Queda de Luz</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
         </table>
 
         <script> const quedas = /*[[${quedas}]]*/ null;</script>

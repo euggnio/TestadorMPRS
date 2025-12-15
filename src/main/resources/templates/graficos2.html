@@ -7,8 +7,8 @@
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
 
     <script th:src="@{/javascript.js}"></script>
-    <script src="https://unpkg.com/simple-statistics@7.8.8/dist/simple-statistics.min.js"></script>
 
+    <script src="https://unpkg.com/simple-statistics@7.8.8/dist/simple-statistics.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 
     <style>
-        .grafico{
+        .borda{
             border: solid 1px gray;
             border-radius: 10px;
         }
@@ -29,44 +29,44 @@
 
 </head>
 <body>
-<div th:replace="~{header :: header}"></div>
+    <div th:replace="~{header :: header}"></div>
 
-<div class="grafico" style="width: 30em; margin: auto; margin-top: 15px;">
-    <h2>Tempo desde a Última Queda</h2>
-    <h1 id="timer"></h1>
-    <p id="ultima"></p>
-</div>
-
-<label for="dropAno">Ano: </label>
-<select id="dropAno" style="margin-top: 15px;">
-    <option th:each="ano : ${#numbers.sequence(quedas.getLast().getData().getYear(),
-                                               quedas.getFirst().getData().getYear())}"
-            th:value="${ano}"
-            th:text="${ano}" ></option>
-</select>
-
-<div style="width:85%; margin: auto;">
-    <div id="chartQuedasPorDia" style="width: 70%; height: 300px; margin:auto;"></div>
-
-    <label id="total" style="//display:none"></label>
-
-    <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
-        <div id="tempos" style="width: 35%; height: 300px; margin:auto;"></div>
-        <div id="stats" style="width: 60%; height: 300px; margin:auto;"></div>
+    <div class="borda" style="width: 30em; margin: auto; margin-top: 15px;">
+        <h2>Tempo desde a Última Queda</h2>
+        <h1 id="timer"></h1>
+        <p id="ultima"></p>
     </div>
 
-    <label for="seletorCidade">Cidade:</label>
-    <select name="cidade" id="seletorCidade"></select>
-    <button id="aleatoria">Aleatória</button>
+    <label for="dropAno">Ano: </label>
+    <select id="dropAno" style="margin-top: 15px;">
+        <option th:each="ano : ${#numbers.sequence(quedas.getLast().getData().getYear(),
+                                                   quedas.getFirst().getData().getYear())}"
+                th:value="${ano}"
+                th:text="${ano}" ></option>
+    </select>
 
-    <div id="chartTempoPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
-    <div id="chartQuedasPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+    <div style="width:85%; margin: auto;">
+        <div id="chartQuedasPorDia" style="width: 70%; height: 250px; margin:auto;"></div>
 
-    <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
-        <div id="temposCid" style="width: 35%; height: 300px;"></div>
-        <div id="statsCid" style="width: 60%; height: 300px;"></div>
+        <label id="total"></label>
+
+        <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
+            <div id="tempos" style="width: 35%; height: 300px; margin:auto;"></div>
+            <div id="stats" style="width: 60%; height: 300px; margin:auto;"></div>
+        </div>
+
+        <label for="seletorCidade">Cidade:</label>
+        <select name="cidade" id="seletorCidade"></select>
+        <button id="aleatoria">Aleatória</button>
+
+        <div id="chartTempoPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+        <div id="chartQuedasPorCidade" style="width: 70%; height: 250px; margin:auto;"></div>
+
+        <div style="display: flex; justify-content: space-around; width: 80%; margin: auto">
+            <div id="temposCid" style="width: 35%; height: 300px;"></div>
+            <div id="statsCid" style="width: 60%; height: 300px;"></div>
+        </div>
     </div>
-</div>
 
 </body>
 

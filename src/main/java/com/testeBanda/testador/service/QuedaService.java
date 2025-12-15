@@ -22,7 +22,7 @@ public class QuedaService{
 
     @Autowired
     private QuedaRepository quedaRepository;
-    private CidadeService cidadeService;
+    private final CidadeService cidadeService;
     private final NagiosAPI nagiosAPI;
     private final CheckMKAPI checkMKAPI;
 
@@ -116,11 +116,12 @@ public class QuedaService{
             for(Queda quedaBanco : quedasNoBanco){
                 if(comparaQuedas(quedaRecente, quedaBanco)){
                     match = true;
-                    //quedas que estavam sem UP, recebem tempo de duração
+                    // quedas que estavam sem UP, recebem tempo de duração
                     if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
                         quedaBanco.setTempoFora(quedaRecente.getTempoFora());
                         quedaRepository.save(quedaBanco);
                     }
+                    // quedas que tem tempo de duração, mas não tem uptime, recebem uptime
                     if( quedaBanco.getTempoFora().isPositive() && quedaBanco.getUptime() <= 0){
                         quedaBanco.setUptime(getUptime(quedaBanco));
                         quedaRepository.save(quedaBanco);
@@ -138,7 +139,17 @@ public class QuedaService{
             return -2L;
         }
         else{
-            Long tempo = checkMKAPI.getUptimePosQueda(queda);
+            Long tempo = checkMKAPI.getUptimePosQueda(queda, 0);
+
+            int offset = 0;
+            while(tempo <= 0 && offset < 5){
+                offset++;
+                System.out.println("offset:" + offset);
+                tempo = checkMKAPI.getUptimePosQueda(queda, offset);
+            }
+
+            System.out.println("offset final: " + offset);
+
             System.out.println("Uptime em " + queda.getNomeCidade() + " " + queda.getData() + ": " + tempo);
             return tempo;
         }

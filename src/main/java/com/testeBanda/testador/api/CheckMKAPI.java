@@ -20,14 +20,14 @@ public class CheckMKAPI {
     @Value("${checkmk.password}")
     private String password;
 
-    public Long getUptimePosQueda(Queda queda){
+    public Long getUptimePosQueda(Queda queda, int timeOffset){
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://zeus.mp.rs.gov.br/atena/check_mk/api/1.0/domain-types/metric/actions/get/invoke"))
                 .header("Authorization", "Basic " + this.getAuth())
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(getJsonUptime(queda)))
+                .POST(HttpRequest.BodyPublishers.ofString(getJsonUptime(queda, timeOffset)))
                 .build();
         JsonNode node = null;
         long uptime;
@@ -46,9 +46,9 @@ public class CheckMKAPI {
         return uptime;
     }
 
-    private String getJsonUptime(Queda queda) {
+    private String getJsonUptime(Queda queda, int minutes) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        String isoTime = formatter.format(queda.getDataUp(1));
+        String isoTime = formatter.format(queda.getDataUp().plusMinutes(minutes));
             return """
         {
           "time_range": {

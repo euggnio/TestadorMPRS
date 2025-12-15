@@ -21,6 +21,14 @@
             text-decoration: none;
             color: #00adb5;
         }
+        .tooltip{
+            color: #00adb5;
+            font-weight: bold;
+        }
+        #filtroCidade{
+            margin-top: 20px;
+            border: solid 2px gray;
+        }
     </style>
 </head>
 <body>
@@ -30,13 +38,14 @@
 
 
     <div class="centro">
-        <h3>🌐 DADOS CIDADE DE <span th:text="${cidade.nome}"></span> </h3>
-        <div >
-        <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
-        <ul id="listaCidades" class="listaCidades">
-            <!-- Itens adicionados dinamicamente -->
-        </ul>
-            </div>
+        <h2>🌐 DADOS CIDADE DE <span th:text="${cidade.nome}"></span></h2>
+        <div>
+            <label for="filtroCidade" style="display:none">Pesquisa cidade</label>
+            <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
+            <ul id="listaCidades" class="listaCidades">
+                <!-- Itens adicionados dinamicamente -->
+            </ul>
+        </div>
         <script th:inline="javascript">
             let nomeCidades = [];
             let busca = "";
@@ -86,12 +95,12 @@
     </div>
             <table class="city-auto" id="dataTable">
                 <thead>
-                <tr>
-                    <th>CIDADE</th>
-                    <th> CACTI - BANDA &nbsp;
-                        <a class="links" target="_blank" th:href=" 'http://linux61.mp.rs.gov.br/cacti/graph.php?local_graph_id=' + ${cidade.cacti} + '&rra_id=0' ">[link]</a>
-                    </th>
-                </tr>
+                    <tr>
+                        <th>CIDADE</th>
+                        <th> CACTI - BANDA &nbsp;
+                            <a class="links" target="_blank" th:href=" 'http://linux61.mp.rs.gov.br/cacti/graph.php?local_graph_id=' + ${cidade.cacti} + '&rra_id=0' ">[link]</a>
+                        </th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -148,11 +157,9 @@
                         <td>
                             <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>
                             <div id="chartQuedasPorCidade" style="width: 95%; height: 215px; margin:auto; margin-bottom: 30px"></div>
-<!--                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_108000.png?'+${#dates.createNow().getTime()}"-->
-<!--                             width="100%">-->
                         </td>
                         <td>
-                        <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
+                            <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
                              width="100%" alt="Gráfico Smoke">
                         </td>
                     </tr>
@@ -161,14 +168,14 @@
 
     <script type="text/javascript" th:inline="javascript">
         const quedas = /*[[${quedas}]]*/ null;
-        const cidade = /*[[${cidade.nagiosID}]]*/ null;
+        const nomeCidade = /*[[${cidade.nagiosID}]]*/ null;
     </script>
     <script th:src="@{/graficosCalendario.js}"></script>
     <script>
+        //  ***  Graficos de Calendario  ***
         let anoAtual = new Date().getFullYear()
-        fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, anoAtual)
-        fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, anoAtual)
-
+        fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, nomeCidade, anoAtual)
+        fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, nomeCidade, anoAtual)
     </script>
 
     <script>
@@ -193,7 +200,7 @@
                         }
                     }
                 }
-                //esconte ou mostra linhas da tabela com base no match.
+                //esconde ou mostra linhas da tabela com base no match.
                 tr[i].style.display = match ? "" : "none";
             }
         }

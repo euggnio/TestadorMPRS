@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalUnit;
 import java.util.concurrent.TimeUnit;
 
 @Entity
@@ -39,14 +38,14 @@ public class Queda {
         faltaDeLuz = false;
     }
 
-    public LocalDateTime getDataUp(int minutes){
-        return this.data.plus(tempoFora).plusMinutes(minutes);
+    public LocalDateTime getDataUp(){
+        return this.data.plus(tempoFora);
     }
 
     public String toString() {
         return "Queda{" +
                 "cidade='" + nomeCidade + '\'' +
-                ", data=" + data +
+                ", data='" + data + '\'' +
                 ", tempoFora='" + tempoFora + '\'' +
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +
                 ", uptime='" + uptime + '\'' +
@@ -74,14 +73,14 @@ public class Queda {
         long dias = d.toDays();
         long horas = d.toHoursPart();
         long minutos = d.toMinutesPart();
-        //long segundos = d.toSecondsPart();
 
         StringBuilder sb = new StringBuilder();
 
         if (dias > 0) sb.append(dias).append(" dias ");
         if (horas > 0) sb.append(horas).append("h ");
         if (minutos > 0) sb.append(minutos).append("min");
-        //if (segundos > 0) sb.append(segundos).append(" segundos");
+
+        if (d.compareTo(Duration.ofMinutes(1)) < 0) sb.append(">1min");
 
         return sb.toString().trim();
     }

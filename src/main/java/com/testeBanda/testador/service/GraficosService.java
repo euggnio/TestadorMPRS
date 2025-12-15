@@ -17,7 +17,6 @@ import java.time.temporal.ChronoUnit;
 public class GraficosService {
 
     public String pegarUnidadeSmoke(String cidade){
-        System.out.println(cidade);
         String url = "http://linux61.mp.rs.gov.br/smokeping/?target="+ cidade.charAt(0) +"." +cidade;
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -26,7 +25,7 @@ public class GraficosService {
                 .build();
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Resposta da URL: " + response.statusCode());
+            //System.out.println("Resposta da URL: " + response.statusCode());
         } catch (Exception e) {
             e.printStackTrace();
             return "Erro ao executar SMOKE";
@@ -50,7 +49,7 @@ public class GraficosService {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(conn.getInputStream());
-            System.out.println(rootNode);
+            //System.out.println(rootNode);
 
             String base64Image = rootNode.path("image").asText();
 

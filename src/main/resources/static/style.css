@@ -87,8 +87,6 @@ table {
     width: 90% !important;
 }
 
-
-
 .listaCidades{
     height: 150px;
     overflow: hidden;
@@ -100,7 +98,6 @@ table {
     position: absolute;
     background-color: #00ADB5;
 }
-
 
 .dadosAtual{
     background-color: #222831;
