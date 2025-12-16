@@ -433,7 +433,18 @@ function segundosParaDuration(s){
     let minutos = Math.floor((s - horas * 3600) / 60)
     let segundos = s - (horas * 3600) - (minutos * 60)
 
-    return Temporal.Duration.from({hours: horas, minutes: minutos, seconds: segundos})
+    return {hours: horas, minutes: minutos, seconds: segundos}
+}
+
+function stringDeTempo(jsonTempo){
+    let str = "";
+    if (jsonTempo.hours > 0 && jsonTempo.minutes > 0)
+        str +=  jsonTempo.hours + "horas e " + jsonTempo.minutes + " minutos"
+
+    if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " horas "
+    if (jsonTempo.minutes > 0) str +=  jsonTempo.minutes + " minutos"
+
+    return str
 }
 
 function novoAno(){

@@ -83,10 +83,10 @@
         timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
     }
     let txtUlt = ""
-    let tempoUltima = segundosParaDuration(quedas[0].tempoFora).round("minutes")
+    let tempoUltima = segundosParaDuration(quedas[0].tempoFora)
     if(quedas[0].tempoFora > 0){
         txtUlt = '(' + quedas[0].nomeCidade + " por "
-                + tempoUltima.toLocaleString('pt') + ')'
+                + stringDeTempo(tempoUltima) + ')'
     }else{
         txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
     }
