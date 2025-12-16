@@ -52,13 +52,6 @@ public class Queda {
                 "}";
     }
 
-    public Boolean verificarQuedaEnergia(){
-        if(this.uptime == null || this.uptime <= 0){
-            return false;
-        }
-        return TimeUnit.SECONDS.toMinutes(this.uptime) <= 10;
-    }
-
     public void setUptime(Long uptime){
         this.uptime = uptime;
         faltaDeLuz = uptime <= 660 && uptime > 0;

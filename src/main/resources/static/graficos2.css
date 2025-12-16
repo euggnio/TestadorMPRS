@@ -1,0 +1,49 @@
+.borda{
+    border: solid 1px gray;
+    border-radius: 10px;
+}
+
+.tooltip{
+    color: #00adb5;
+    font-weight: bold;
+}
+
+#tmpDesde{
+    width: 30em;
+    margin: auto;
+    margin-top: 15px;
+}
+
+#dropAno{
+    margin-top: 15px;
+}
+
+#blocoGraficos{
+    width:85%;
+    margin: auto;
+}
+
+.graficosBarra{
+    display: flex;
+    justify-content: space-around;
+    width: 80%;
+    margin: auto;
+}
+
+.graficoCaledario{
+    width: 70%;
+    height: 250px;
+    margin:auto;
+}
+
+.qntQuedasBarras{
+    width: 35%;
+    height: 300px;
+    margin:auto;
+}
+
+.statsBarras{
+    width: 60%;
+    height: 300px;
+    margin:auto;
+}
