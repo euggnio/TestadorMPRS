@@ -141,7 +141,7 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
         }
       },
       calendar: {
-        top: 120,
+        top: 130,
         left: 30,
         right: 30,
         cellSize: ['auto', 13],
@@ -149,7 +149,14 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
         itemStyle: {
           borderWidth: 0.5
         },
-        yearLabel: { show: false }
+        yearLabel: { show: false },
+        monthLabel: {
+          top: 1,
+          formatter: function (params) {
+            let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
+            return params.nameMap + '\n(' + monthList.length + ')';
+          }
+        }
       },
       series: {
         type: 'heatmap',
@@ -164,7 +171,8 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
 }
 
 function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
-    let dados = dadosQntQuedas(ano, filtraCidade(quedas, cidade));
+    quedas = filtraCidade(quedas, cidade)
+    let dados = dadosQntQuedas(ano, quedas);
 
     let option = {
           gradientColor: ['#dedede', '#00adb5', '#00588b', '#000000'],
@@ -212,7 +220,13 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
             itemStyle: {
               borderWidth: 0.5
             },
-            yearLabel: { show: false }
+            yearLabel: { show: false },
+            monthLabel: {
+              formatter: function (params) {
+                let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
+                return params.nameMap + '\n(' + monthList.length + ')';
+              }
+            }
           },
           series: {
             type: 'heatmap',
@@ -321,7 +335,7 @@ function fazGraficoEstatisticas(elem, quedas, ano){
       tooltip: {
         formatter: function (params) {
           let data = segundosParaDuration(params.data * 60)
-          return data.toLocaleString('pt')
+          return stringDeTempo(data)
         }
       },
       yAxis: {
@@ -438,11 +452,12 @@ function segundosParaDuration(s){
 
 function stringDeTempo(jsonTempo){
     let str = "";
-    if (jsonTempo.hours > 0 && jsonTempo.minutes > 0)
-        str +=  jsonTempo.hours + "horas e " + jsonTempo.minutes + " minutos"
 
     if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " horas "
-    if (jsonTempo.minutes > 0) str +=  jsonTempo.minutes + " minutos"
+    if (jsonTempo.minutes > 0) {
+        if(str != "") str += "e "
+        str +=  jsonTempo.minutes + " minutos"
+    }
 
     return str
 }

@@ -147,8 +147,14 @@ function countLines(){
     let table = document.getElementById("dataTable");
     let count = document.getElementById("count");
     let tr = table.getElementsByTagName("tr");
+    let arr = Array.from(tr)
+    arr.reverse().pop()
 
-    count.innerText = count.innerText + ' ' + (tr.length - 1);
+    let newArr = []
+    newArr = arr.filter(e => {return e.getElementsByClassName("checkFaltaDeLuz")[0].getAttribute("value") == "true"})
+
+    count.innerHTML = "Total de Quedas: " + (arr.length)
+                       + "<br>Queda de Luz: " + newArr.length
 }
 
 function tempoForaDownAtual(){
