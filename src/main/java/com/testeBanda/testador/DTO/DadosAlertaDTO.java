@@ -18,6 +18,7 @@ public class DadosAlertaDTO {
     public List<Alerta> alertasDown= new ArrayList<>();
     public List<Queda> quedas= new ArrayList<>();
     public List<Mes> mesDisponibilidades = new ArrayList<>();
+    public List<Integer> listaAnos;
 
     public ArrayList<Disponibilidade> getMesDeDisponibilidadeByMonthIndex(int monthIndex) {
         return mesDisponibilidades.stream()

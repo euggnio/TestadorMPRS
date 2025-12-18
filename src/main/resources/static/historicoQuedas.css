@@ -115,6 +115,8 @@
 #titulo{
     padding: 0.4em;
     width: 9em;
+    font-size: larger;
+    font-weight: bold;
 }
 
 #formFaltaDeLuz{

@@ -26,7 +26,20 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         <button th:text="${mes.getNomeMesPtBr()}" th:id="${mes.month.name()}" onclick="atualizarMes(this.id)">
         </button>
     </div>
+
+    <div class="btnMes" style="padding: 10px;">
+        <label for="dropAno" style="display:none;">Ano: </label>
+        <select id="dropAno">
+            <option value="" selected disabled hidden>Ano</option>
+            <option th:each="ano : ${alertas.listaAnos}"
+                    th:value="${ano}"
+                    th:text="${ano}" ></option>
+        </select>
+    </div>
+
+
 </div>
+
 <label id="listaAlertasPorTempoDeQueda"></label>
 <div class="btMes">
     <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >
@@ -495,7 +508,16 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         graficoCidade();
         graficoDeQuedas();
     }
+
+    dropAno.addEventListener('change', () => {
+        window.location.pathname = "/grafico/" + dropAno.value
+    })
+
+
 </script>
+
+
+
 
 </body>
 </html>

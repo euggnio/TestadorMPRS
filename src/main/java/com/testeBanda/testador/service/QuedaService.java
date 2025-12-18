@@ -209,10 +209,19 @@ public class QuedaService{
         });
     }
 
-    public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto) {
+    private List<Integer> listaDeAnos(List<Queda> quedas){
+        Set<Integer> setQ = new HashSet<>();
+        for(Queda q : quedas){
+            setQ.add(q.getData().getYear());
+        }
+        return new ArrayList<>(setQ);
+    }
+
+    public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto, int ano) {
         List<Queda> quedas = quedaRepository.findAll();
-        dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade();
-        dto.quedas = quedas.stream().filter(q -> q.getData().getYear() == LocalDateTime.now().getYear()).toList();
+        dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade(ano);
+        dto.quedas = quedas.stream().filter(q -> q.getData().getYear() == ano).toList();
+        dto.listaAnos = listaDeAnos(quedas);
         return dto;
     }
 

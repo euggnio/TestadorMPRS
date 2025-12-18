@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.InetAddress;
+import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,14 @@ public class CidadeController {
     @GetMapping("/grafico")
     public String grafico(Model model){
         DadosAlertaDTO dados = new DadosAlertaDTO();
-        model.addAttribute("alertas",quedaService.PreencherDTO(dados));
+        model.addAttribute("alertas", quedaService.PreencherDTO(dados, Year.now().getValue()));
+        return "grafico";
+    }
+
+    @GetMapping("/grafico/{ano}")
+    public String graficoAno(Model model, @PathVariable String ano){
+        DadosAlertaDTO dados = new DadosAlertaDTO();
+        model.addAttribute("alertas", quedaService.PreencherDTO(dados, Integer.parseInt(ano)));
         return "grafico";
     }
 
