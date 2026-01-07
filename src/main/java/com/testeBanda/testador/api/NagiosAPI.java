@@ -172,7 +172,7 @@ public class NagiosAPI {
     public ArrayList<Mes> relatorioDeDisponibilidade(int valorAno){
         ArrayList<Mes> meses = new ArrayList<>();
         Year ano = Year.of(valorAno);
-        Month mesPresente = LocalDate.now().getMonth();
+        Month mesPresente = LocalDate.now().getYear() == valorAno ? LocalDate.now().getMonth() : Month.of(12);
         for (Month m : Month.values()) {
             LocalDateTime inicoData = ano.atMonth(m.getValue()).atDay(1).atStartOfDay();
             LocalDateTime fimData = ano.atMonth(m.getValue()).atEndOfMonth().atTime(23, 59, 59);

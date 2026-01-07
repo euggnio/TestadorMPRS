@@ -319,6 +319,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
 
 function fazGraficoEstatisticas(elem, quedas, ano){
     const todosTempos = quedas.filter(q => q.data.substring(0,4) == ano).map(q => q.tempoFora)
+    if(todosTempos.length == 0) todosTempos.push(0)
 
     const media = Math.floor(ss.mean(todosTempos)/60)
     const mediana = Math.floor(ss.median(todosTempos)/60)
@@ -453,9 +454,9 @@ function segundosParaDuration(s){
 function stringDeTempo(jsonTempo){
     let str = "";
 
-    if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " horas "
+    if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " horas"
     if (jsonTempo.minutes > 0) {
-        if(str != "") str += "e "
+        if(str != "") str += " e "
         str +=  jsonTempo.minutes + " minutos"
     }
 
