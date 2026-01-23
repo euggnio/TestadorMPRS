@@ -97,7 +97,7 @@ public class QuedaService{
             salvarQuedas(todasQuedasNoNagios);
         }
         else{
-            LocalDateTime dataUltimaQueda = quedasNoBanco.getLast().getData().minusWeeks(2);
+            LocalDateTime dataUltimaQueda = quedasNoBanco.getLast().getData().minusWeeks(1);
 
             List<Queda> quedasNoNagios = getQuedas();
             List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, dataUltimaQueda);
@@ -142,7 +142,7 @@ public class QuedaService{
             Long tempo = checkMKAPI.getUptimePosQueda(queda, 0);
 
             int offset = 0;
-            while(tempo <= 0 && offset < 5){
+            while(tempo <= 0 && offset < 7){
                 offset++;
                 System.out.println("offset:" + offset);
                 tempo = checkMKAPI.getUptimePosQueda(queda, offset);
