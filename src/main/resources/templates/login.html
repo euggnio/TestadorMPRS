@@ -13,7 +13,7 @@
 <body class="backgroundLogin">
   <div class="login">
     <form method="POST" th:action="@{/login}">
-      <label>Testador 2.0</label>
+      <label th:text="Testador + ' ' +${versao}">Testador 2.6</label>
       <h3 class="erro" th:text="${erro}"></h3>
       <br>
       <input type="text" name="username" placeholder="Login">

@@ -2,11 +2,11 @@ package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.Microtik;
-import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.*;
 import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 
 @Controller
 public class CidadeController {
+
+    @Value("${testador.versao}")
+    private String versao;
 
     private final CidadeService cidadeService;
     private final Microtik microtik;
@@ -143,6 +146,7 @@ public class CidadeController {
         if(error != null) {
             model.addAttribute("erro", "Login ou senha incorretos!");
         }
+        model.addAttribute("versao", this.versao);
         return "login";
     }
 

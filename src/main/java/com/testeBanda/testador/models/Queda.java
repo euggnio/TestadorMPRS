@@ -2,6 +2,7 @@ package com.testeBanda.testador.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +25,8 @@ public class Queda {
     private Duration tempoFora;
     private boolean faltaDeLuz;
     private Long uptime;
-
+    @Size(min = 1, max = 10)
+    private String protocolo;
     @Getter
     @ManyToOne
     @JsonIgnore
@@ -59,7 +61,7 @@ public class Queda {
 
     public String getUptimeFormatado() {
         if(this.uptime == null || this.uptime <= 0){
-            return "ERRO";
+            return "N/A";
         }
         Duration d = Duration.ofSeconds(this.uptime);
 

@@ -223,6 +223,21 @@ input {
 
 }
 
+.inputModal{
+    position: absolute;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    z-index: 35;
+    background-color: rgba(0, 0, 0, 0.7);
+    .modal{
+        background-color: white;
+        padding: 3em;
+    }
+}
+
 #buttonTrocarForm{
     appearance: none;
     border: none;
@@ -383,6 +398,38 @@ button:hover{
     width: -webkit-fill-available;
     width: -moz-available;
     text-align: center;
+
+}
+
+iframe{
+    width: 100%;
+    height: 100%;
+}
+
+.flexContainer{
+    display: flex;
+    width: 100%;
+
+    height: 80rem;
+    .flexItem{
+        width: 60%;
+        border: 1px solid black;
+        height: 90vh;
+        .city{
+            width: 100% !important;
+        }
+        .miniText{
+            font-size: 0.68em;
+        }
+
+    }
+    .flexItem40{
+        width: 40% !important;
+    }
+    td:has(.protocolo:hover) {
+        background-color: rgba(0, 173, 181, 0.8);
+        cursor: pointer;
+    }
 
 }
 

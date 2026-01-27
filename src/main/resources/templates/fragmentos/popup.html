@@ -1,0 +1,20 @@
+<div class="inputModal" id="inputModal" th:fragment="modalForm()">
+    <div class="modal" tabindex="-1">
+        <div>
+            <div>
+                <div>
+                    <h5 id="titleModal"></h5>
+                </div>
+                <div>
+                    <form>
+                        <input type="text" id="modalValor" name="valor" class="form-control" placeholder="Digite aqui...">
+                    </form>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="enviarModal()">Salvar</button>
+                    <button class="btn btn-primary" onclick="fecharModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,13 +3,12 @@ package com.testeBanda.testador.controlers;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.service.QuedaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -71,9 +70,15 @@ public class QuedaController {
     public String editaFaltaDeLuz(@ModelAttribute("id") long quedaId,
                                   @ModelAttribute("faltaDeLuz") boolean novoValor,
                                   @ModelAttribute("paginaAtual") String paginaAtual){
-
         quedaService.editaFaltaDeLuz(quedaId, novoValor);
         return "redirect:" + paginaAtual;
+    }
+
+    @PostMapping("/editarProtocolo/{id}")
+    public ResponseEntity<String> editarProtocolo(@PathVariable long id, @RequestBody String data){
+        System.out.println(data);
+        quedaService.editarProtocolo(id, data);
+        return ResponseEntity.ok().body("Protocolo editado com sucesso!");
     }
 
 

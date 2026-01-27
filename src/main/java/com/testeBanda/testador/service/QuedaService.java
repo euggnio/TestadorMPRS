@@ -268,4 +268,9 @@ public class QuedaService{
         return todasQuedas;
     }
 
+    public void editarProtocolo(long id, String protocolo) {
+        Queda queda = quedaRepository.findById(id).get();
+        queda.setProtocolo(protocolo);
+        quedaRepository.save(queda);
+    }
 }
