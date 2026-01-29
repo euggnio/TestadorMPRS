@@ -193,7 +193,7 @@ public class QuedaService{
         return a.getNomeCidade().equals(b.getNomeCidade()) && a.getData().equals(b.getData());
     }
 
-    private List<Queda> filterQuedasAposData(List<Queda> quedas, LocalDateTime dataDeCorte){
+    public List<Queda> filterQuedasAposData(List<Queda> quedas, LocalDateTime dataDeCorte){
         return quedas.stream().filter( queda -> queda.getData().isAfter(dataDeCorte)).toList();
     }
 

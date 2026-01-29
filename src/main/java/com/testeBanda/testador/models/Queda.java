@@ -40,6 +40,7 @@ public class Queda {
         faltaDeLuz = false;
     }
 
+    @JsonIgnore
     public LocalDateTime getDataUp(){
         return this.data.plus(tempoFora);
     }
@@ -59,6 +60,7 @@ public class Queda {
         faltaDeLuz = uptime <= 660 && uptime > 0;
     }
 
+    @JsonIgnore
     public String getUptimeFormatado() {
         if(this.uptime == null || this.uptime <= 0){
             return "N/A";

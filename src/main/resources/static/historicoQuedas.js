@@ -1,7 +1,4 @@
-window.addEventListener('load', checksFaltaDeLuz);
-window.addEventListener('load', countLines);
-window.addEventListener('load', dadosSalvos);
-window.addEventListener('load', tempoForaDownAtual);
+
 
 let dropAno = document.getElementById("dropAno");
 let dropMes = document.getElementById("dropMes");
@@ -157,6 +154,9 @@ function countLines(){
                        + "<br>Queda de Luz: " + newArr.length
 }
 
+/*
+
+// Não necessário se tiver o NagMap
 function tempoForaDownAtual(){
     let x  = document.getElementsByClassName("linha")
 
@@ -177,4 +177,63 @@ function tempoForaDownAtual(){
     }
 }
 setInterval(tempoForaDownAtual, 60000)
+*/
+
+function isToday(){
+    let d = new Date()
+    const loc = window.location.pathname.slice(-10)
+
+    return loc == d.toISOString().slice(0,10) || loc == "ricoQuedas"
+}
+
+function isoToSeconds(isoDuration) {
+  const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+  const matches = isoDuration.match(regex);
+
+  const hours   = parseInt(matches[1] || 0);
+  const minutes = parseInt(matches[2] || 0);
+  const seconds = parseInt(matches[3] || 0);
+
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+function processaNovasQuedas(e){
+    const data = JSON.parse(e.data)
+    let listaNovas = []
+
+    let news = true
+    for(let event of data){
+        news = true
+        for(let q of quedas){
+            if(q.data == event.data && q.uptime == event.uptime && q.tempoFora == isoToSeconds(event.tempoFora)) {
+                news = false
+            }
+        }
+        if(news) listaNovas.push(event)
+    }
+
+    console.log(listaNovas)
+
+    if(listaNovas.length > 0 && isToday()){
+        window.location.reload()
+    }
+}
+
+function showMap(){
+    if(isToday()){
+        let map = document.getElementById("nagmap")
+        map.style.display = ""
+
+        let lista = document.getElementById("listaQuedas")
+        lista.style.width = "60%"
+    }
+}
+
+window.addEventListener('load', countLines);
+window.addEventListener('load', showMap);
+
+window.addEventListener('load', checksFaltaDeLuz);
+window.addEventListener('load', dadosSalvos);
+window.addEventListener('load', tempoForaDownAtual);
+
 
