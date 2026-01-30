@@ -197,19 +197,29 @@ function isoToSeconds(isoDuration) {
   return (hours * 3600) + (minutes * 60) + seconds;
 }
 
+function quedasIguais(q, e){
+    const msmData = q.data == e.data
+
+    const msmUptime = (q.uptime == e.uptime) || (q.uptime <= 0 && e.uptime <= 0)
+
+    const msmTempoFora = q.tempoFora == isoToSeconds(e.tempoFora)
+
+    return msmData && msmUptime && msmTempoFora
+}
+
 function processaNovasQuedas(e){
     const data = JSON.parse(e.data)
     let listaNovas = []
 
     let news = true
-    for(let event of data){
+    for(let eventQ of data){
         news = true
         for(let q of quedas){
-            if(q.data == event.data && q.uptime == event.uptime && q.tempoFora == isoToSeconds(event.tempoFora)) {
+            if(quedasIguais(q, eventQ)) {
                 news = false
             }
         }
-        if(news) listaNovas.push(event)
+        if(news) listaNovas.push(eventQ)
     }
 
     console.log(listaNovas)

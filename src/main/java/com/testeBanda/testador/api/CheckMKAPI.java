@@ -38,9 +38,9 @@ public class CheckMKAPI {
             node = rootNode.path("metrics");
             uptime = node.get(0).path("data_points").get(0).asLong();
         }catch (Exception e) {
-            System.out.println("ERRO CHECKMK API em " + queda.getNomeCidade() + " as " + queda.getData().toLocalDate());
+            System.out.println("ERRO CHECKMK API em " + queda.getNomeCidade() + " as " + queda.getData());
             System.out.println(e.getMessage());
-            uptime = -1;
+            uptime = -1L;
         }
         client.close();
         return uptime;

@@ -134,8 +134,13 @@
     height:3em;
 }
 
+#nagmap{
+    position: sticky;
+    top: 9vh;
+}
+
 @media only screen and (max-width: 1200px) {
-  body{
-    font-size: 0.9em;
+  .flexContainer{
+    font-size: 0.85em;
   }
 }

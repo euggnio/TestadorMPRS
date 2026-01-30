@@ -38,7 +38,7 @@ public class FluxController {
 
     @GetMapping(path = "/novas_quedas", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<List<Queda>> streamQuedas() {
-        return Flux.interval(Duration.ofSeconds(10))
+        return Flux.interval(Duration.ofSeconds(15))
                 .onBackpressureDrop()
                 .map(sequence -> quedaService.filterQuedasPorDia(quedaService.findQuedasNoBanco(), LocalDate.now()));
     }
