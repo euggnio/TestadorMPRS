@@ -244,6 +244,6 @@ window.addEventListener('load', showMap);
 
 window.addEventListener('load', checksFaltaDeLuz);
 window.addEventListener('load', dadosSalvos);
-window.addEventListener('load', tempoForaDownAtual);
+//window.addEventListener('load', tempoForaDownAtual);
 
 

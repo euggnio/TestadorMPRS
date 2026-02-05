@@ -108,7 +108,7 @@ public class QuedaService{
         }
     }
 
-    /** Adiciona uptime e calcula tempo fora para quedas que estavam DOWN até a última atualização */
+    /** Calcula tempo fora para quedas que estavam DOWN até a última atualização */
     private void processaNovasQuedas(List<Queda> quedasRecentes, List<Queda> quedasNoBanco){
         boolean match;
         for(Queda quedaRecente : quedasRecentes){
@@ -119,11 +119,6 @@ public class QuedaService{
                     // quedas que estavam sem UP, recebem tempo de duração
                     if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
                         quedaBanco.setTempoFora(quedaRecente.getTempoFora());
-                        quedaRepository.save(quedaBanco);
-                    }
-                    // quedas que tem tempo de duração, mas não tem uptime, recebem uptime
-                    if( quedaBanco.getTempoFora().isPositive() && quedaBanco.getUptime() <= 0){
-                        quedaBanco.setUptime(getUptime(quedaBanco));
                         quedaRepository.save(quedaBanco);
                     }
                 }
@@ -251,7 +246,7 @@ public class QuedaService{
                     if(!pilha.isEmpty()){
                         Alerta down = pilha.pop();
                         Duration duration = Duration.between(down.getData(), alerta.getData());
-                        Queda queda = new Queda(alerta.getNome(), down.getData(), duration);
+                        Queda queda = new Queda(alerta.getNome(), down.getData(), duration, alerta.getUptime());
                         todasQuedas.add(queda);
                     }
                 }
@@ -260,7 +255,7 @@ public class QuedaService{
             for(Alerta alerta : pilha){
                 if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
                     Duration duration = Duration.ZERO;
-                    Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration);
+                    Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L);
                     todasQuedas.add(queda);
                 }
             }
