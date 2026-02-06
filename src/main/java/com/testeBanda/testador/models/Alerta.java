@@ -22,7 +22,8 @@ public class Alerta  {
         if(tipo.contains("OK")){
             this.tipo = "UP";
             this.uptime = coletaUptimeDoAlerta(tipo);
-        }else if(tipo.contains("CRITICAL") || tipo.contains("timed out")){
+        }
+        else if(tipo.contains("CRITICAL") || tipo.contains("timed out")){
             this.tipo = "DOWN";
             this.uptime = 0L;
         }
