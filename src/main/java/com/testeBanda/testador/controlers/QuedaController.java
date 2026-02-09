@@ -1,5 +1,6 @@
 package com.testeBanda.testador.controlers;
 
+import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.service.QuedaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,12 @@ import java.util.Locale;
 public class QuedaController {
 
     private final QuedaService quedaService;
+    private final GlpiAPI glpiAPI;
 
     @Autowired
-    public QuedaController(QuedaService quedaService) {
+    public QuedaController(QuedaService quedaService, GlpiAPI glpiAPI) {
         this.quedaService = quedaService;
+        this.glpiAPI = glpiAPI;
     }
 
     @GetMapping("/historicoQuedas")
@@ -76,6 +79,15 @@ public class QuedaController {
 
     @PostMapping("/editarProtocolo/{id}")
     public ResponseEntity<String> editarProtocolo(@PathVariable long id, @RequestBody String data){
+        if ( data.length() > 10 ){
+            return ResponseEntity.badRequest().body("Data não pode ser maior que 10 caracteres");
+        }
+        quedaService.editarProtocolo(id, data);
+        return ResponseEntity.ok().body("Protocolo editado com sucesso!");
+    }
+
+    @PostMapping("/editarTicket/{id}")
+    public ResponseEntity<String> editarTicketGlpi(@PathVariable long id, @RequestBody String data){
         System.out.println(data);
         quedaService.editarProtocolo(id, data);
         return ResponseEntity.ok().body("Protocolo editado com sucesso!");

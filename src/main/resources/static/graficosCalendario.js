@@ -103,7 +103,10 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
       title: {
         top: 30,
         left: 'center',
-        text: 'Quedas por dia (' + ano + ')'
+        text: 'Quedas por dia (' + ano + ')',
+          textStyle: {
+              color: 'white'
+          }
       },
       tooltip: {
         formatter: function (params) {
@@ -116,7 +119,7 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
                    },
         position: (point) => [point[0]-2, point[1]-60],
         triggerOn: 'click',
-        enterable: true
+        enterable: true,
       },
       visualMap: {
         min: 0,
@@ -138,7 +141,11 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
             outOfRange: {
                 color: '#eeeeef'
             }
-        }
+        },
+          textStyle: {
+            color: "white"
+          }
+
       },
       calendar: {
         top: 130,
@@ -152,6 +159,9 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
         yearLabel: { show: false },
         monthLabel: {
           top: 1,
+            textStyle: {
+                color: 'white'
+            },
           formatter: function (params) {
             let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
             return params.nameMap + '\n(' + monthList.length + ')';
@@ -179,7 +189,10 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
           title: {
             top: 30,
             left: 'center',
-            text: "Quantidade de Quedas em " + cidade + " (" + ano + ')'
+            text: "Quantidade de Quedas em " + cidade + " (" + ano + ')',
+              textStyle: {
+                  color: 'white'
+              }
           },
           tooltip: {
             formatter: function (params) {
@@ -209,7 +222,10 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
                 outOfRange: {
                     color: '#dedede'
                 }
-            }
+            },
+              textStyle: {
+                color: 'white'
+              }
           },
           calendar: {
             top: 120,
@@ -222,6 +238,10 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
             },
             yearLabel: { show: false },
             monthLabel: {
+
+              textStyle: {
+                  color: 'white'
+              },
               formatter: function (params) {
                 let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
                 return params.nameMap + '\n(' + monthList.length + ')';
@@ -248,9 +268,16 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
           title: {
             top: 30,
             left: 'center',
-            text: "Tempo Fora em " + cidade + " (" + ano + ')'
+            text: "Tempo Fora em " + cidade + " (" + ano + ')',
+              textStyle: {
+                  color: 'white'
+              }
           },
           tooltip: {
+
+            textStyle: {
+                color: 'white'
+            },
             formatter: function (params) {
                            const data = params.value[0];
 
@@ -292,9 +319,18 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
               outOfRange: {
                 color: '#dedede'
               }
-            }
+            },
+              textStyle: {
+                  color: 'white'
+              }
           },
           calendar: {
+              monthLabel: {
+
+              textStyle: {
+                  color: 'white'
+              },
+              },
             top: 120,
             left: 30,
             right: 30,
@@ -331,7 +367,10 @@ function fazGraficoEstatisticas(elem, quedas, ano){
       title: {
         top: 30,
         left: 'center',
-        text: "Duração das Quedas " + ano + "\n(minutos)"
+        text: "Duração das Quedas " + ano + "\n(minutos)",
+          textStyle: {
+            color: 'white'
+          }
       },
       tooltip: {
         formatter: function (params) {
@@ -353,6 +392,7 @@ function fazGraficoEstatisticas(elem, quedas, ano){
           type: 'bar',
           itemStyle: {
             borderRadius: [0, 5, 5, 0],
+
           },
           label: {
             position: 'insideLeft',
@@ -398,7 +438,10 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
       title: {
         top: 10,
         left: 'center',
-        text: "Quantidade de Quedas\npor Duração " + ano
+        text: "Quantidade de Quedas\npor Duração " + ano,
+          textStyle: {
+              color: 'white'
+          }
       },
       tooltip: {
         formatter: function (params) {
@@ -412,6 +455,7 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
             fontSize: 11,
             rotate: 75
         }
+
       },
       yAxis: {
         type: 'value'

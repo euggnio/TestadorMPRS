@@ -27,10 +27,12 @@ public class Queda {
     private Long uptime;
     @Size(min = 1, max = 10)
     private String protocolo;
+    private String chamado;
     @Getter
     @ManyToOne
     @JsonIgnore
     private Cidades cidade;
+
 
     public Queda(String cidade, LocalDateTime data, Duration tempoFora) {
         this.nomeCidade = cidade;
@@ -38,6 +40,8 @@ public class Queda {
         this.tempoFora = tempoFora;
         this.uptime = 0L;
         faltaDeLuz = false;
+        this.protocolo = "";
+        this.chamado = "";
     }
 
     public LocalDateTime getDataUp(){

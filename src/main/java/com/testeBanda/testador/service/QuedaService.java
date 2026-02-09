@@ -2,6 +2,7 @@ package com.testeBanda.testador.service;
 
 import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.CheckMKAPI;
+import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.Alerta;
 import com.testeBanda.testador.models.Cidades;
@@ -25,11 +26,13 @@ public class QuedaService{
     private final CidadeService cidadeService;
     private final NagiosAPI nagiosAPI;
     private final CheckMKAPI checkMKAPI;
+    private final GlpiAPI glpiAPI;
 
-    public QuedaService(NagiosAPI nagiosAPI, CheckMKAPI checkMKAPI,CidadeService cidadeService) {
+    public QuedaService(NagiosAPI nagiosAPI, CheckMKAPI checkMKAPI, CidadeService cidadeService, GlpiAPI glpiAPI) {
         this.nagiosAPI = nagiosAPI;
         this.checkMKAPI = checkMKAPI;
         this.cidadeService = cidadeService;
+        this.glpiAPI = glpiAPI;
     }
 
     public void editaFaltaDeLuz(long id, boolean novoValor){
@@ -272,5 +275,8 @@ public class QuedaService{
         Queda queda = quedaRepository.findById(id).get();
         queda.setProtocolo(protocolo);
         quedaRepository.save(queda);
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "Protocolo ávato : " + protocolo);
     }
+
+
 }

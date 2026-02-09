@@ -18,15 +18,23 @@
 <div th:replace="~{header :: header}"></div>
 <main>
     <div class="searcher">
+        <div>
+            <button id="buttonLigar" class="statusTeste" th:attr="onclick='iniciarTeste()'"  >
+                <span id="statusTeste">Iniciar teste</span>
+            </button>
+            <button th:attr="onclick='mostrarHistorico()'" >
+                <span>Historico</span>
+            </button>
+            <button   >
+                <span>Filtrar</span>
+            </button>
+        </div>
+
+        <span style="font-size: larger">🔍︎</span>
         <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
+
     </div>
 
-    <button id="buttonLigar" class="" th:attr="onclick='iniciarTeste()'"  >
-        <span id="statusTeste">INICIAR TESTE</span>
-    </button>
-    <button  class="" th:attr="onclick='mostrarHistorico()'" >
-        <span><img th:src="@{/historia.png}" height="24" width="24"/></span>
-    </button>
 
     <br>
     <span style="font-size: small">Desligamento e inicio demoram alguns segundos para atualizar...</span>
@@ -45,7 +53,7 @@
             <th>Vel</th>
             <th>Banda</th>
             <th>Data</th>
-            <th th:colspan="2" id="filtro" onclick="
+            <th id="filtro" onclick="
             if(document.getElementById('search').value === 'NÃO'){
                 document.getElementById('search').value = 'OK'
             }else{
@@ -53,6 +61,7 @@
             }
              ; filterTable();"
             >Resultado▲</th>
+            <th>Testar</th>
         </tr>
         </thead>
         <tbody>
@@ -93,28 +102,33 @@
 <!--                    </td>-->
 <!--                </tr>-->
             <tr th:id="${cidade.nome}" class="linha">
-                <td colspan="6" style="position: relative; padding: 0px; border-bottom: solid 2px #000; ">
-                        <div class="resultadoColuna" >
-                            <span class="dado"><a  th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></span>
-                            <span class="dado" th:text="${cidade.velocidade}"></span>
-                            <span class="dado" th:text="${cidade.ultimoTesteBanda}"></span>
-                            <span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
-                            <span class="dado" th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}" th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
-                            <button class="buttonLigarTeste "
-                                    th:attr="data-cidade=${cidade.nome}"
-                                    onclick="iniciarTeste(this.getAttribute('data-cidade'))">
-                                Testar
-                            </button>
-                        </div>
-                    <div class="background" >
-                        <div class="resultado"
-                             th:each="resultado : ${cidade.getResultados()}"
-                             th:attr="data-resultado=${resultado.getResultado()},
+                <div class="background">
+                    <div class="resultado"
+                         th:each="resultado : ${cidade.getResultados()}"
+                         th:attr="data-resultado=${resultado.getResultado()},
                                data-velocidade=${cidade.velocidade},
                                data-dia=${resultado.getDia()}"
-                        >
-                        </div>
+                    >
                     </div>
+                </div>
+                <td>
+                    <span class="dado"><a th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></span>
+                </td>
+                <td><span class="dado" th:text="${cidade.velocidade}"></span>
+                </td>
+                <td><span class="dado" th:text="${cidade.ultimoTesteBanda}"></span>
+
+                <td><span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
+                </td>
+                <td><span class="dado" th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"
+                          th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
+                </td>
+                <td>
+                    <button class="ligarTeste "
+                            th:attr="data-cidade=${cidade.nome}"
+                            onclick="iniciarTeste(this.getAttribute('data-cidade'))">
+                        ▶
+                    </button>
                 </td>
             </tr>
 
@@ -167,14 +181,14 @@
                 console.log("acabou teste")
                 document.getElementById(linha.nome).classList.remove("text-shadows")
                 document.getElementById("statusAtual").innerHTML = "PARADO";
-                document.getElementById("buttonLigar").style.backgroundColor = "#00ADB5";
+                document.getElementById("buttonLigar").style.backgroundColor = "#00adb5";
 
                 document.getElementById("loader").classList.remove("loader")
                 if(linha.nome !== "@END"){
                     getDataAtualizada(linha.nome);
                 }
                 linha.nome = "@END";
-                document.getElementById("statusTeste").innerHTML = "INICIAR TESTE";
+                document.getElementById("statusTeste").innerHTML = "Iniciar teste";
 
                 linha.velocidade = "";
                 return
