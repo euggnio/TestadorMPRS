@@ -120,11 +120,27 @@
 }
 
 #formFaltaDeLuz{
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
+    button{
+        padding: 0.4em;
+    }
+}
+
+.checkFaltaDeLuz{
+    font-size: 1.5em;
 }
 
 #count{
     margin: 15px 0;
+    height:3em;
+}
+
+#nagmap{
+    position: sticky;
+    top: 9vh;
+}
+
+@media only screen and (max-width: 1200px) {
+  .flexContainer{
+    font-size: 0.85em;
+  }
 }

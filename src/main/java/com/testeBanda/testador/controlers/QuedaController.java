@@ -31,8 +31,11 @@ public class QuedaController {
     public String historicoQuedas(Model model) {
         List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
         List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-        List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, listaDeDatas.getFirst());
-        model.addAttribute("titulo", listaDeDatas.getFirst());
+
+        LocalDate data = LocalDate.now();
+        List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
+
+        model.addAttribute("titulo", data);
         model.addAttribute("quedas", quedasDoDia);
         model.addAttribute("datas", listaDeDatas);
         return "historicoQuedas";

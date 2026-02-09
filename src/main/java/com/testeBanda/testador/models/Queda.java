@@ -24,7 +24,7 @@ public class Queda {
     private LocalDateTime data;
     private Duration tempoFora;
     private boolean faltaDeLuz;
-    private Long uptime;
+    private long uptime;
     @Size(min = 1, max = 10)
     private String protocolo;
     private String chamado;
@@ -33,17 +33,17 @@ public class Queda {
     @JsonIgnore
     private Cidades cidade;
 
-
-    public Queda(String cidade, LocalDateTime data, Duration tempoFora) {
+    public Queda(String cidade, LocalDateTime data, Duration tempoFora, long uptime) {
         this.nomeCidade = cidade;
         this.data = data;
         this.tempoFora = tempoFora;
-        this.uptime = 0L;
+        this.uptime = uptime;
         faltaDeLuz = false;
         this.protocolo = "";
         this.chamado = "";
     }
 
+    @JsonIgnore
     public LocalDateTime getDataUp(){
         return this.data.plus(tempoFora);
     }
@@ -63,8 +63,9 @@ public class Queda {
         faltaDeLuz = uptime <= 660 && uptime > 0;
     }
 
+    @JsonIgnore
     public String getUptimeFormatado() {
-        if(this.uptime == null || this.uptime <= 0){
+        if(this.uptime <= 0){
             return "N/A";
         }
         Duration d = Duration.ofSeconds(this.uptime);

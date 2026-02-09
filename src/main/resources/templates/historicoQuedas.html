@@ -12,14 +12,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div th:replace="~{header :: header}"></div>
     <main>
+        <div th:replace="~{header :: header}"></div>
         <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
         <div class="flexContainer">
-            <div class="flexItem flexItem40">
+            <div id="nagmap" class="flexItem40" style="display:none;">
                 <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description"></iframe>
             </div>
-            <div class="flexItem">
+            <div id="listaQuedas" class="flexItem">
 
                 <input type="checkbox" id="toggle-switch" hidden>
                 <label for="toggle-switch" class="toggle-label">
@@ -80,10 +80,13 @@
                                 <a th:text="${queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
                                 <br>
                                 <label  class="miniText"
-                                        th:text="${'Em ' +queda.data.toLocalDate() + ' ás ' + queda.data.toLocalTime()}"></label>
+                                        th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
                             </td>
                             <td class="nomeCidade" th:unless="${queda.cidade != null}">
                                 <label th:text="${queda.nomeCidade}"></label>
+                                <br>
+                                <label  class="miniText"
+                                        th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
                             </td>
 
                             <td th:if="${queda.tempoFora.toSeconds() != 0}">
@@ -100,7 +103,6 @@
                             </td>
 
                             <td id="formFaltaDeLuz">
-
                                 <form action="/editaFaltaDeLuz" method="POST" >
                                     <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">
                                     <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz" name="faltaDeLuz" hidden="hidden">
@@ -108,15 +110,11 @@
                                     <button type="submit">       <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label></button>
                                 </form>
                             </td>
-                            <td>
-                                <label class="protocolo"
-                                       th:attr="data-id=${queda.id},
+                            <td class="protocolo" th:attr="data-id=${queda.id},
                                        data-endpoint='/editarProtocolo',
                                         data-acao='Protocolo'"
-                                       th:text="${!#strings.isEmpty(queda.protocolo) ? queda.protocolo : 'Vazio'}"
-                                       onclick="abrirModal(this)"
-                                >
-                                </label>
+                                onclick="abrirModal(this)"
+                                th:text="${!#strings.isEmpty(queda.protocolo) ? queda.protocolo : 'Vazio'}">
                             </td>
                             <td>
                                 <button type="submit">Abrir</button>
@@ -130,8 +128,20 @@
             </div>
         </div>
 
-        <script> const quedas = /*[[${quedas}]]*/ null;</script>
+        <script type="text/javascript" th:inline="javascript">
+            const quedas = /*[[${quedas}]]*/ null;
+        </script>
         <script th:src="@{/historicoQuedas.js}"></script>
+        <script>
+            window.addEventListener('load', () => {
+                if(isToday()){
+                    const evntSrc = new EventSource("/novas_quedas");
+                    evntSrc.onmessage = (event) => {
+                        processaNovasQuedas(event)
+                    };
+                }
+            })
+        </script>
     </main>
 </body>
 </html>
