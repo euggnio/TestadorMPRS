@@ -120,10 +120,12 @@ public class QuedaService{
 
                     if(quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()){
                         Duration tempoDaQueda = Duration.between( quedaBanco.getData(), LocalDateTime.now());
-                        String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
-                        quedaBanco.setChamado(ticket);
-                        if ( !ticket.isBlank() ){
-                            quedaRepository.save(quedaBanco);
+                        if ( tempoDaQueda.toSeconds() > 600 ){
+                            String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
+                            quedaBanco.setChamado(ticket);
+                            if ( !ticket.isBlank() ){
+                                quedaRepository.save(quedaBanco);
+                            }
                         }
                     }
                     // quedas que estavam sem UP, recebem tempo de duração
