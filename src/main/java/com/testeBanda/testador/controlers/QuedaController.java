@@ -89,11 +89,16 @@ public class QuedaController {
         return ResponseEntity.ok().body("Protocolo editado com sucesso!");
     }
 
-    @PostMapping("/editarTicket/{id}")
+    @PostMapping("/adicionarFollowUp/{id}")
     public ResponseEntity<String> editarTicketGlpi(@PathVariable long id, @RequestBody String data){
-        System.out.println(data);
-        quedaService.editarProtocolo(id, data);
-        return ResponseEntity.ok().body("Protocolo editado com sucesso!");
+        quedaService.adicionarFolloyUp(id, data);
+        return ResponseEntity.ok().body("FollowUp adicionado com sucesso!");
+    }
+
+    @PostMapping("/fecharChamado/{id}")
+    public ResponseEntity<String> fecharChamado(@PathVariable long id, @RequestBody(required = false) String data){
+        quedaService.fecharChamado(id, data);
+        return ResponseEntity.ok().body("Chamado fechado com sucesso!");
     }
 
 

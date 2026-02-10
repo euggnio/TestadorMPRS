@@ -9,139 +9,165 @@
     <script th:src="@{/fragmentosjs/popup.js}"></script>
 
     <link rel="icon" type="image/x-icon" href="/ico.png">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+          rel="stylesheet">
 </head>
 <body>
-    <main>
-        <div th:replace="~{header :: header}"></div>
-        <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
-        <div class="flexContainer">
-            <div id="nagmap" class="flexItem40" style="display:none;">
-                <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description"></iframe>
+<main>
+    <div th:replace="~{header :: header}"></div>
+    <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
+    <div class="flexContainer">
+        <div id="nagmap" class="flexItem40" style="display:none;">
+            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description"></iframe>
+        </div>
+        <div id="listaQuedas" class="flexItem">
+
+            <input type="checkbox" id="toggle-switch" hidden>
+            <label for="toggle-switch" class="toggle-label">
+                <span class="option-one">Dia</span>
+                <span class="option-two">Mês</span>
+                <span class="toggle-slider"></span>
+            </label>
+            <div class="controleDia">
+                <label for="calendario">Data:</label>
+                <input
+                        type="date"
+                        id="calendario"
+                        name="calendario"
+                        th:value="${datas.getFirst()}"
+                        th:min="${datas.getLast()}"
+                        th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
+                <div>
+                    <button onclick="diaHoje()">Hoje</button>
+                </div>
             </div>
-            <div id="listaQuedas" class="flexItem">
+            <div class="controleMes">
+                <label for="dropAno" style="display: none">Ano:</label>
+                <select id="dropAno">
+                    <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
+                            th:value="${ano}"
+                            th:text="${ano}"></option>
+                </select>
 
-                <input type="checkbox" id="toggle-switch" hidden>
-                <label for="toggle-switch" class="toggle-label">
-                    <span class="option-one">Dia</span>
-                    <span class="option-two">Mês</span>
-                    <span class="toggle-slider"></span>
-                </label>
-                <div class="controleDia">
-                    <label for="calendario">Data:</label>
-                    <input
-                            type="date"
-                            id="calendario"
-                            name="calendario"
-                            th:value="${datas.getFirst()}"
-                            th:min="${datas.getLast()}"
-                            th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
-                    <div>
-                        <button onclick="diaHoje()">Hoje</button>
-                    </div>
-                </div>
-                <div class="controleMes">
-                    <label for="dropAno" style="display: none">Ano:</label>
-                    <select id="dropAno">
-                        <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
-                                th:value="${ano}"
-                                th:text="${ano}" ></option>
-                    </select>
-
-                    <label for="dropMes" style="display: none">Mes:</label>
-                    <select id="dropMes">
-                        <option th:each="mes : ${#numbers.sequence(0, 11)}"
-                                th:value="${mes+1}"
-                                th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
+                <label for="dropMes" style="display: none">Mes:</label>
+                <select id="dropMes">
+                    <option th:each="mes : ${#numbers.sequence(0, 11)}"
+                            th:value="${mes+1}"
+                            th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
                                             #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
-                    </select>
-                </div>
-                <div class="tituloBox">
-                    <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
-                    <label th:text="${titulo}" id="titulo"></label>
-                    <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
-                </div>
-                <div id="count"></div>
+                </select>
+            </div>
+            <div class="tituloBox">
+                <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
+                <label th:text="${titulo}" id="titulo"></label>
+                <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
+            </div>
+            <div id="count"></div>
 
-                <table class="city" id="dataTable">
-                    <thead>
-                        <tr class="linha">
-                            <th>Quedas</th>
-                            <th>Tempo Fora</th>
-                            <th>Uptime</th>
-                            <th>Energia</th>
-                            <th>Protocolo</th>
-                            <th>GLPI</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="queda : ${quedas}" class="linha">
-                            <td class="nomeCidade" th:if="${queda.cidade != null}">
-                                <a th:text="${queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
-                                <br>
-                                <label  class="miniText"
-                                        th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
-                            </td>
-                            <td class="nomeCidade" th:unless="${queda.cidade != null}">
-                                <label th:text="${queda.nomeCidade}"></label>
-                                <br>
-                                <label  class="miniText"
-                                        th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
-                            </td>
+            <table class="city" id="dataTable">
+                <thead>
+                <tr class="linha">
+                    <th>Quedas</th>
+                    <th>Tempo Fora</th>
+                    <th>Uptime</th>
+                    <th>Energia</th>
+                    <th>Protocolo</th>
+                    <th>Chamado</th>
+                    <th>Açôes GLPI</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="queda : ${quedas}" class="linha">
+                    <td class="nomeCidade" th:if="${queda.cidade != null}">
+                        <a th:text="${queda.cidade.nome.length()> 20 ? queda.cidade.codigo + '.' : queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
+                        <br>
+                        <label class="miniText"
+                               th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
+                    </td>
+                    <td class="nomeCidade" th:unless="${queda.cidade != null}">
+                        <label th:text="${queda.nomeCidade}"></label>
+                        <br>
+                        <label class="miniText"
+                               th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
+                    </td>
 
-                            <td th:if="${queda.tempoFora.toSeconds() != 0}">
-                                <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
-                                <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
-                            </td>
-                            <td th:unless="${queda.tempoFora.toSeconds() != 0}">
-                                <label class="down-label">DOWN</label><br>
-                                <label class="tempoForaEnquantoDown"></label>
-                            </td>
+                    <td th:if="${queda.tempoFora.toSeconds() != 0}">
+                        <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
+                        <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
+                    </td>
+                    <td th:unless="${queda.tempoFora.toSeconds() != 0}">
+                        <label class="down-label">DOWN</label><br>
+                        <label class="tempoForaEnquantoDown"></label>
+                    </td>
 
-                            <td>
-                                <label th:text="${queda.getUptimeFormatado()}"></label>
-                            </td>
+                    <td>
+                        <label th:text="${queda.getUptimeFormatado()}"></label>
+                    </td>
 
-                            <td id="formFaltaDeLuz">
-                                <form action="/editaFaltaDeLuz" method="POST" >
-                                    <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id" hidden="hidden">
-                                    <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz" name="faltaDeLuz" hidden="hidden">
-                                    <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual" name="paginaAtual" hidden="hidden">
-                                    <button type="submit">       <label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}" ></label></button>
-                                </form>
-                            </td>
-                            <td class="protocolo" th:attr="data-id=${queda.id},
+                    <td id="formFaltaDeLuz">
+                        <form action="/editaFaltaDeLuz" method="POST">
+                            <input class="inputPequeno" type="text" th:value="${queda.id}" id="id" name="id"
+                                   hidden="hidden">
+                            <input class="inputPequeno" type="text" th:value="${!queda.faltaDeLuz}" id="faltaDeLuz"
+                                   name="faltaDeLuz" hidden="hidden">
+                            <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual"
+                                   name="paginaAtual" hidden="hidden">
+                            <button type="submit"><label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}"></label>
+                            </button>
+                        </form>
+                    </td>
+
+                    <td class="protocolo" th:attr="data-id=${queda.id},
                                        data-endpoint='/editarProtocolo',
                                         data-acao='Protocolo'"
-                                onclick="abrirModal(this)"
-                                th:text="${!#strings.isEmpty(queda.protocolo) ? queda.protocolo : 'Vazio'}">
-                            </td>
-                            <td>
-                                <button type="submit">Abrir</button>
-                                <button type="submit">Fechar</button>
-                                <button type="submit">Followup</button>
-                                <button type="submit">Sim</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                        onclick="abrirModal(this)"
+                        th:text="${!#strings.isEmpty(queda.protocolo) ? queda.protocolo : 'Vazio'}">
+                    </td>
+                    <td>
+                        <a th:if="${!#strings.isEmpty(queda.chamado)}"
+                           th:href="'https://glpi.mp.rs.gov.br/front/ticket.form.php?id=' + ${queda.chamado}"
+                           th:text="${queda.chamado + '⤴'}">
+                        </a>
+                        <label th:if="${#strings.isEmpty(queda.chamado)}"> N/A</label>
+                    </td>
+                    <td th:if="${!#strings.isEmpty(queda.chamado)}">
+                        <button type="submit" style="background-color: #e10000;"
+                                class="protocolo" th:attr="data-id=${queda.id},
+                                data-endpoint='/fecharChamado',
+                                data-acao='Fechamaento de chamado'"
+                                onclick="abrirModal(this)">
+                        Fechar</button>
+                        <button type="submit" style="background-color: #009300"
+                                class="protocolo" th:attr="data-id=${queda.id},
+                                data-endpoint='/adicionarFollowUp',
+                                data-acao='Adicionar acompanhamento'"
+                                onclick="abrirModal(this)">Acompanhamento
+                        </button>
+                        <button type="submit">Atribuir</button>
+                    </td>
+                    <td th:if="${#strings.isEmpty(queda.chamado)}">
+                        <button type="submit" th:if="${queda.getUptime() == '0'}">Abrir chamado</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <script type="text/javascript" th:inline="javascript">
-            const quedas = /*[[${quedas}]]*/ null;
-        </script>
-        <script th:src="@{/historicoQuedas.js}"></script>
-        <script>
-            window.addEventListener('load', () => {
-                if(isToday()){
-                    const evntSrc = new EventSource("/novas_quedas");
-                    evntSrc.onmessage = (event) => {
-                        processaNovasQuedas(event)
-                    };
-                }
-            })
-        </script>
-    </main>
+    <script type="text/javascript" th:inline="javascript">
+        const quedas = /*[[${quedas}]]*/ null;
+    </script>
+    <script th:src="@{/historicoQuedas.js}"></script>
+    <script>
+        window.addEventListener('load', () => {
+            if (isToday()) {
+                const evntSrc = new EventSource("/novas_quedas");
+                evntSrc.onmessage = (event) => {
+                    processaNovasQuedas(event)
+                };
+            }
+        })
+    </script>
+</main>
 </body>
 </html>

@@ -104,9 +104,7 @@ public class QuedaService{
 
             List<Queda> quedasNoNagios = getQuedas();
             List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, dataUltimaQueda);
-
             sincronizarQuedasComCidade(quedasRecentes);
-
             processaNovasQuedas(quedasRecentes, filterQuedasAposData(quedasNoBanco, dataUltimaQueda.minusMonths(1)));
         }
     }
@@ -119,6 +117,15 @@ public class QuedaService{
             for(Queda quedaBanco : quedasNoBanco){
                 if(comparaQuedas(quedaRecente, quedaBanco)){
                     match = true;
+
+                    if(quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()){
+                        Duration tempoDaQueda = Duration.between( quedaBanco.getData(), LocalDateTime.now());
+                        String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
+                        quedaBanco.setChamado(ticket);
+                        if ( !ticket.isBlank() ){
+                            quedaRepository.save(quedaBanco);
+                        }
+                    }
                     // quedas que estavam sem UP, recebem tempo de duração
                     if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
                         quedaBanco.setTempoFora(quedaRecente.getTempoFora());
@@ -258,6 +265,7 @@ public class QuedaService{
             //quedas acontecendo no momento são adicionadas com duração zero
             for(Alerta alerta : pilha){
                 if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
+                    System.out.println(alerta.toString());
                     Duration duration = Duration.ZERO;
                     Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L);
                     todasQuedas.add(queda);
@@ -271,8 +279,31 @@ public class QuedaService{
         Queda queda = quedaRepository.findById(id).get();
         queda.setProtocolo(protocolo);
         quedaRepository.save(queda);
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), "Protocolo ávato : " + protocolo);
+        if (!queda.getChamado().isBlank()){
+            glpiAPI.insertFollowUpTicket(queda.getChamado(), "Protocolo ávato : " + protocolo);
+        }
     }
+
+    public void adicionarFolloyUp(long id, String texto) {
+        Queda queda = quedaRepository.findById(id).get();
+        if(queda.getChamado().isBlank()){
+            return;
+        }
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
+    }
+
+    public void fecharChamado(long id, String texto) {
+        Queda queda = quedaRepository.findById(id).get();
+        if(queda.getChamado().isBlank()){
+            System.out.println("Chamado nao encontrado");
+            return;
+        }
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "Chamado fechado pelo testador, protocolo: " + queda.getProtocolo()
+        + " chamado: " + queda.getChamado() + " tempo fora: " + queda.getTempoFora() + " queda de energia? " + (queda.isFaltaDeLuz()? "Sim" : "nao"));
+        glpiAPI.closeGlpiTicket(queda.getChamado());
+    }
+
+
 
 
 }

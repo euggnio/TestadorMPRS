@@ -9,7 +9,6 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 @Entity
 @Getter
@@ -25,7 +24,6 @@ public class Queda {
     private Duration tempoFora;
     private boolean faltaDeLuz;
     private long uptime;
-    @Size(min = 1, max = 10)
     private String protocolo;
     private String chamado;
     @Getter

@@ -3,6 +3,7 @@ package com.testeBanda.testador.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,14 @@ import java.util.Objects;
 
 @Service
 public class GlpiAPI {
-
-    private String startSessionUrl = "http://glpi.mp.rs.gov.br/apirest.php/initSession";
-    private final String TicketUrl = "http://glpi.mp.rs.gov.br/apirest.php/Ticket";
-    private String user_token = "k9TLu3w0pbeMD5Wnlby7UyhV3UmjMqtGJ8kpUXwf";
-    private String appToken = "JWMboRQI3Zr91R0HYIcvm9sIK6zYXaFaW6mnK4b9";
+    @Value("${glpi.startSessionUrl}")
+    private String startSessionUrl;
+    @Value("${glpi.ticketUrl}")
+    private String TicketUrl;
+    @Value("${glpi.userToken}")
+    private String user_token;
+    @Value("${glpi.appToken}")
+    private String appToken;
     private String tokenInUse = "";
 
     public GlpiAPI() {
@@ -43,6 +47,7 @@ public class GlpiAPI {
         HttpResponse<String> response;
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode json = new ObjectMapper().readTree(response.body());
+        System.out.println("novo token " + json.get("session_token").asText());
         this.tokenInUse = json.get("session_token").asText();
     }
 
@@ -92,7 +97,7 @@ public class GlpiAPI {
         String sucess = "false";
         if (json.isArray() && json.has(0)) {
             JsonNode firstElement = json.get(0);
-            sucess = firstElement.get("678600").asText();
+            sucess = firstElement.get(ticket).asText();
         }
         if(sucess.equals("true") && response.statusCode() == 200) {
             return ResponseEntity.ok("Sucesso no fechamento do ticket");
@@ -119,7 +124,6 @@ public class GlpiAPI {
                 requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(json));
             }
             HttpRequest request = requestBuilder.build();
-
             return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
