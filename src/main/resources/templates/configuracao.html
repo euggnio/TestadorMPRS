@@ -51,34 +51,37 @@
         </tr>
     </table>
     <h3>Hosts</h3>
+    <form action="/atualizar" method="POST" id="salvaHost"></form>
     <table>
         <tr class="linha">
             <th>#</th>
             <th>Host</th>
             <th>Sigla</th>
             <th>Velocidade</th>
-            <th>Nome Sis</th>
+            <th>Smoke</th>
             <th>Cacti</th>
+            <th>Nagios</th>
             <th>Intra</th>
             <th>IP</th>
         </tr>
         <tr class="">
-            <form action="/atualizar" method="POST" >
-                <td><button type="submit">Salvar</button></td>
-                <td><input class="inputPequeno" type="text" id="nome" name="nome" placeholder="nome..."></td>
-                <td><input class="inputPequeno" type="text" id="codigo" name="codigo" placeholder="Sigla..."></td>
-                <td><input class="inputPequeno" type="text" id="velocidade" name="velocidade" placeholder="Velocidade, apenas numero!"></td>
-                <td><input class="inputPequeno" type="text" id="smokeID" name="smokeID" placeholder="smokeID"></td>
-                <td><input class="inputPequeno" type="text" id="cacti" name="cacti" placeholder="Id gráfico cacti"></td>
-                <td><input class="inputPequeno" type="text" id="intra" name="intra" placeholder="Codigo intranet..."></td>
-                <td><input class="inputPequeno" type="text" id="ip" name="ip" placeholder="IP..."></td>
-            </form>
+                <td><button form="salvaHost" type="submit">Salvar</button></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="nome" name="nome" placeholder="nome..."></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="codigo" name="codigo" placeholder="Sigla..."></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="velocidade" name="velocidade" placeholder="Velocidade, apenas numero!"></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="smokeID" name="smokeID" placeholder="Id no smoke"></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="cacti" name="cacti" placeholder="Id do gráfico cacti"></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="nagios" name="nagios" placeholder="Id no nagios"></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="intra" name="intra" placeholder="Codigo intranet..."></td>
+                <td><input form="salvaHost" class="inputPequeno" type="text" id="ip" name="ip" placeholder="IP..."></td>
+
         </tr>
         <tr th:each="host : ${hosts}" class="linha">
             <td>
-                <form action="/apagarCidade" method="POST" >
+                <form action="/apagarCidade" method="POST" th:data-host="${host.nome}"
+                      onsubmit="return confirm('Tem certeza que quer deletar o host ' + this.getAttribute('data-host') + '?');">
                     <input class="inputPequeno" type="text" th:value="${host.nome}" id="nome2" name="nome" hidden="hidden">
-            <button type="submit">Apagar</button>
+                <button type="submit">Apagar</button>
             </form>
             </td>
             <td>
@@ -95,6 +98,9 @@
             </td>
             <td>
                 <label th:text="${host.cacti}"></label>
+            </td>
+            <td>
+                <label th:text="${host.nagiosID}"></label>
             </td>
             <td>
                 <label th:text="${host.intra}"></label>

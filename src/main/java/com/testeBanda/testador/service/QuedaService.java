@@ -46,6 +46,17 @@ public class QuedaService{
     public List<Queda> findQuedasNoBanco(){
         List<Queda> todasQuedas = quedaRepository.findAll();
         Collections.reverse(todasQuedas);
+
+        // traz quedas atuais para o topo da lista
+        List<Queda> atuais = new ArrayList<>();
+        for(Queda q : todasQuedas){
+            if(q.getTempoFora() == Duration.ZERO){
+                atuais.add(q);
+            }
+        }
+        todasQuedas.removeAll(atuais);
+        todasQuedas.addAll(0, atuais);
+
         return todasQuedas;
     }
 
@@ -118,22 +129,8 @@ public class QuedaService{
                 if(comparaQuedas(quedaRecente, quedaBanco)){
                     match = true;
 
-                    if(quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()){
-                        Duration tempoDaQueda = Duration.between( quedaBanco.getData(), LocalDateTime.now());
-                        if ( tempoDaQueda.toSeconds() > 600 ){
-                            String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
-                            quedaBanco.setChamado(ticket);
-                            if ( !ticket.isBlank() ){
-                                quedaRepository.save(quedaBanco);
-                            }
-                        }
-                    }
-                    // quedas que estavam sem UP, recebem tempo de duração
-                    if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO){
-                        quedaBanco.setTempoFora(quedaRecente.getTempoFora());
-                        quedaBanco.setUptime(quedaRecente.getUptime());
-                        quedaRepository.save(quedaBanco);
-                    }
+                    abreGLPI(quedaBanco, quedaRecente);     // abre GLPI para quedas em andamento com mais de 10min
+                    resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
                 }
             }
             if(!match){
@@ -142,26 +139,27 @@ public class QuedaService{
         }
     }
 
-//    public Long getUptime(Queda queda){
-//        if(queda.getCidade() == null){
-//            return -2L;
-//        }
-//        else{
-//            Long tempo = checkMKAPI.getUptimePosQueda(queda, 0);
-//
-//            int offset = 0;
-//            while(tempo <= 0 && offset < 7){
-//                offset++;
-//                System.out.println("offset:" + offset);
-//                tempo = checkMKAPI.getUptimePosQueda(queda, offset);
-//            }
-//
-//            System.out.println("offset final: " + offset);
-//
-//            System.out.println("Uptime em " + queda.getNomeCidade() + " " + queda.getData() + ": " + tempo);
-//            return tempo;
-//        }
-//    }
+    private void abreGLPI(Queda quedaBanco, Queda quedaRecente){
+        if(quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()){
+            Duration tempoDaQueda = Duration.between( quedaBanco.getData(), LocalDateTime.now());
+            if ( tempoDaQueda.toSeconds() > 600 ){
+                String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
+                quedaBanco.setChamado(ticket);
+                if ( !ticket.isBlank() ){
+                    quedaRepository.save(quedaBanco);
+                }
+            }
+        }
+    }
+
+    private void resolveQueda(Queda quedaBanco, Queda quedaRecente){
+        if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO) {
+            quedaBanco.setTempoFora(quedaRecente.getTempoFora());
+            quedaBanco.setUptime(quedaRecente.getUptime());
+            glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+            quedaRepository.save(quedaBanco);
+        }
+    }
 
     public List<LocalDate> listaDeDatas(List<Queda> quedas){
         Set<LocalDate> setDeDatas = new HashSet<>();

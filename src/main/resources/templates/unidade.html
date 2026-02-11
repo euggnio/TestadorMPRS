@@ -40,8 +40,7 @@
 
     <div class="centro">
         <h2>🌐 DADOS CIDADE DE <span th:text="${cidade.nome}"></span></h2>
-        <div>
-            <label for="filtroCidade" style="display:none">Pesquisa cidade</label>
+        <div style="white-space: nowrap;">
             <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
             <ul id="listaCidades" class="listaCidades">
                 <!-- Itens adicionados dinamicamente -->
@@ -145,7 +144,7 @@
                                 </tbody>
                             </table>
                         </td>
-                        <td th:utext="${cacti}">
+                        <td th:utext="${cacti}" id="graficoCacti">
                         </td>
                     </tr>
                     <tr>
@@ -159,7 +158,7 @@
                             <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>
                             <div id="chartQuedasPorCidade" style="width: 95%; height: 215px; margin:auto; margin-bottom: 30px"></div>
                         </td>
-                        <td>
+                        <td id="graficoSmoke">
                             <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
                              width="100%" alt="Gráfico Smoke">
                         </td>

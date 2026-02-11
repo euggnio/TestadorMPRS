@@ -160,12 +160,17 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
         monthLabel: {
           top: 1,
             textStyle: {
-                color: 'white'
+                color: '#c3c3c3'
             },
           formatter: function (params) {
             let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
             return params.nameMap + '\n(' + monthList.length + ')';
           }
+        },
+        dayLabel: {
+          textStyle: {
+            color: '#c3c3c3'
+          },
         }
       },
       series: {
@@ -238,13 +243,17 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
             },
             yearLabel: { show: false },
             monthLabel: {
-
               textStyle: {
-                  color: 'white'
+                  color: '#c3c3c3'
               },
               formatter: function (params) {
                 let monthList = quedas.filter((queda) => queda.data.includes(ano + '-' + params.MM + '-'))
                 return params.nameMap + '\n(' + monthList.length + ')';
+              },
+            },
+            dayLabel: {
+              textStyle: {
+                color: '#c3c3c3'
               }
             }
           },
@@ -325,12 +334,16 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
               }
           },
           calendar: {
-              monthLabel: {
-
+            monthLabel: {
               textStyle: {
-                  color: 'white'
+                color: '#c3c3c3'
               },
+            },
+            dayLabel: {
+              textStyle: {
+                color: '#c3c3c3'
               },
+            },
             top: 120,
             left: 30,
             right: 30,

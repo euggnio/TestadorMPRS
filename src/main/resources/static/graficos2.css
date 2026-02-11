@@ -13,6 +13,7 @@
     width: 30em;
     margin: auto;
     margin-top: 15px;
+    background-color: #222831;
 }
 
 #dropAno{
@@ -31,12 +32,12 @@
     margin: auto;
 
 }
-
+/*
 .divsGraficos{
     background-color: #222831;
     border-radius: 5px;
 }
-
+*/
 
 .graficoCaledario{
     width: 70%;

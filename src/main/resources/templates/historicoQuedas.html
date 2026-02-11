@@ -73,13 +73,13 @@
                     <th>Energia</th>
                     <th>Protocolo</th>
                     <th>Chamado</th>
-                    <th>Açôes GLPI</th>
+                    <th>Ações GLPI</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="queda : ${quedas}" class="linha">
                     <td class="nomeCidade" th:if="${queda.cidade != null}">
-                        <a th:text="${queda.cidade.nome.length()> 20 ? queda.cidade.codigo + '.' : queda.cidade.nome}" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
+                        <a th:class="${queda.cidade.nome.length()> 20 ? 'nomeGrande' : ''}" th:text="${queda.cidade.nome}" target="_blank" th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"></a>
                         <br>
                         <label class="miniText"
                                th:text="${'Em ' +queda.data.toLocalDate() + ' às ' + queda.data.toLocalTime()}"></label>
@@ -95,7 +95,7 @@
                         <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
                         <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
                     </td>
-                    <td th:unless="${queda.tempoFora.toSeconds() != 0}">
+                    <td th:if="${queda.tempoFora.toSeconds() == 0}">
                         <label class="down-label">DOWN</label><br>
                         <label class="tempoForaEnquantoDown"></label>
                     </td>
@@ -112,7 +112,7 @@
                                    name="faltaDeLuz" hidden="hidden">
                             <input class="inputPequeno paginaAtual" type="text" value="" id="paginaAtual"
                                    name="paginaAtual" hidden="hidden">
-                            <button type="submit"><label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}"></label>
+                            <button type="submit" class="btnLuz"><label class="checkFaltaDeLuz" th:value="${queda.faltaDeLuz}"></label>
                             </button>
                         </form>
                     </td>
@@ -130,23 +130,32 @@
                         </a>
                         <label th:if="${#strings.isEmpty(queda.chamado)}"> N/A</label>
                     </td>
-                    <td th:if="${!#strings.isEmpty(queda.chamado)}">
+                    <td th:if="${queda.tempoFora.toSeconds() == 0 && !#strings.isEmpty(queda.chamado)}" class="controleGLPI">
                         <button type="submit" style="background-color: #e10000;"
-                                class="protocolo" th:attr="data-id=${queda.id},
+                                th:attr="data-id=${queda.id},
                                 data-endpoint='/fecharChamado',
                                 data-acao='Fechamaento de chamado'"
-                                onclick="abrirModal(this)">
-                        Fechar</button>
+                                onclick="abrirModal(this)"
+                                title="Fechar">
+                            <img class="btnGLPI" th:src="@{\close.png}" alt="Fechar">
+                        </button>
                         <button type="submit" style="background-color: #009300"
-                                class="protocolo" th:attr="data-id=${queda.id},
+                                th:attr="data-id=${queda.id},
                                 data-endpoint='/adicionarFollowUp',
                                 data-acao='Adicionar acompanhamento'"
-                                onclick="abrirModal(this)">Acompanhamento
+                                onclick="abrirModal(this)"
+                                title="Acompanhamento">
+                            <img class="btnGLPI" th:src="@{\comment.png}" alt="Acompanhamento">
                         </button>
-                        <button type="submit">Atribuir</button>
+                        <button type="submit" title="Atribuir">
+                            <img class="btnGLPI" th:src="@{\attrib.png}" alt="Atribuir">
+                        </button>
                     </td>
-                    <td th:if="${#strings.isEmpty(queda.chamado)}">
-                        <button type="submit" th:if="${queda.getUptime() == '0'}">Abrir chamado</button>
+                    <td th:if="${#strings.isEmpty(queda.chamado) && queda.tempoFora.toSeconds() == 0}">
+                        <button type="submit">Abrir chamado</button>
+                    </td>
+                    <td th:if="${queda.tempoFora.toSeconds() > 0}">
+                        <label>-</label>
                     </td>
                 </tr>
                 </tbody>

@@ -90,6 +90,9 @@
 .nomeCidade{
     font-size: 1.1em;
     font-weight: bold;
+    a{
+        color: #11bc7a;
+    }
 }
 
 .tituloBox{
@@ -125,8 +128,18 @@
     }
 }
 
+.btnLuz{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 3.3em;
+    height: 3.3em;
+}
+
 .checkFaltaDeLuz{
-    font-size: 1.5em;
+    font-size: 1.45em;
+    filter: drop-shadow(0 0 2px gray);
+    cursor: pointer;
 }
 
 #count{
@@ -139,8 +152,40 @@
     top: 9vh;
 }
 
+.nomeGrande{
+    font-size: 0.75em;
+}
+
+.btnGLPI{
+    width: 1.8em;
+}
+
+.quedasComMapa{
+    width: 60%;
+  }
+
+.controleGLPI{
+    white-space: nowrap;
+}
+
 @media only screen and (max-width: 1200px) {
   .flexContainer{
-    font-size: 0.85em;
+    font-size: 0.8em;
   }
+  a{
+    padding: 0.2em !important;
+  }
+  .quedasComMapa{
+    width: 67%;
+  }
+  .flexItem40{
+    width: 33% !important;
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+    .btnGLPI{
+        width: 1.3em;
+    }
+
 }

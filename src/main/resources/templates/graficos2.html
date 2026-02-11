@@ -22,7 +22,7 @@
 <body>
     <div th:replace="~{header :: header}"></div>
 
-    <div class="borda divsGraficos" id="tmpDesde">
+    <div class="borda" id="tmpDesde">
         <h2>Tempo desde a Última Queda</h2>
         <h1 id="timer"></h1>
         <p id="ultima"></p>
@@ -37,25 +37,25 @@
     </select>
 
     <div id="blocoGraficos">
-        <div id="chartQuedasPorDia" class="graficoCaledario divsGraficos"></div>
+        <div id="chartQuedasPorDia" class="graficoCaledario"></div>
 
         <label id="total"></label>
 
         <div class="graficosBarra">
-            <div id="tempos" class="qntQuedasBarras divsGraficos"></div>
-            <div id="stats" class="statsBarras divsGraficos"></div>
+            <div id="tempos" class="qntQuedasBarras"></div>
+            <div id="stats" class="statsBarras"></div>
         </div>
 
         <label for="seletorCidade">Cidade:</label>
         <select name="cidade" id="seletorCidade"></select>
         <button id="aleatoria">Aleatória</button>
 
-        <div id="chartTempoPorCidade" class="graficoCaledario divsGraficos"></div>
-        <div id="chartQuedasPorCidade" class="graficoCaledario divsGraficos"></div>
+        <div id="chartTempoPorCidade" class="graficoCaledario"></div>
+        <div id="chartQuedasPorCidade" class="graficoCaledario"></div>
 
         <div class="graficosBarra">
-            <div id="temposCid" class="qntQuedasBarras divsGraficos"></div>
-            <div id="statsCid" class="statsBarras divsGraficos"></div>
+            <div id="temposCid" class="qntQuedasBarras"></div>
+            <div id="statsCid" class="statsBarras"></div>
         </div>
     </div>
 

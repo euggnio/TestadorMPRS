@@ -199,12 +199,11 @@ function isoToSeconds(isoDuration) {
 
 function quedasIguais(q, e){
     const msmData = q.data == e.data
-
     const msmUptime = (q.uptime == e.uptime) || (q.uptime <= 0 && e.uptime <= 0)
-
     const msmTempoFora = q.tempoFora == isoToSeconds(e.tempoFora)
+    const msmChamado = q.chamado == e.chamado
 
-    return msmData && msmUptime && msmTempoFora
+    return msmData && msmUptime && msmTempoFora && msmChamado
 }
 
 function processaNovasQuedas(e){
@@ -222,8 +221,6 @@ function processaNovasQuedas(e){
         if(news) listaNovas.push(eventQ)
     }
 
-    console.log(listaNovas)
-
     if(listaNovas.length > 0 && isToday()){
         window.location.reload()
     }
@@ -235,7 +232,7 @@ function showMap(){
         map.style.display = ""
 
         let lista = document.getElementById("listaQuedas")
-        lista.style.width = "60%"
+        lista.classList.add("quedasComMapa")
     }
 }
 
