@@ -3,6 +3,7 @@ package com.testeBanda.testador.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class GlpiAPI {
     @Value("${glpi.startSessionUrl}")
@@ -30,12 +32,14 @@ public class GlpiAPI {
     }
 
     public  void getSessionToken() throws IOException, InterruptedException {
+        log.info("Requisitando novo token de sessão");
         if ( !Objects.equals(tokenInUse, "") && isTokenValido()) {
-            System.out.println("Token ainda é válido.");
+            log.info("Token ainda é válido");
             return;
         }
-        System.out.println("Token invalido");
+        log.warn("Token expirado, enviando nova requisição");
         URI uri = URI.create(startSessionUrl);
+        // TODO colocar em try..catch com log para erro
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
@@ -47,26 +51,29 @@ public class GlpiAPI {
         HttpResponse<String> response;
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode json = new ObjectMapper().readTree(response.body());
-        System.out.println("novo token " + json.get("session_token").asText());
+        log.info("novo token {}", json.get("session_token").asText());
         this.tokenInUse = json.get("session_token").asText();
     }
 
     private boolean isTokenValido(){
-            String url = "http://glpi.mp.rs.gov.br/apirest.php/getMyEntities";
-            HttpResponse<String> response = sendHttp(url, "", true, true); // Um GET simples
-            return response.statusCode() == 200;
+        String url = "http://glpi.mp.rs.gov.br/apirest.php/getMyEntities";
+        HttpResponse<String> response = sendHttp(url, "", true, true); // Um GET simples
+        return response.statusCode() == 200;
     }
 
     public  String createGlpiTicket(String unidade)   {
+        log.info("Criando chamado GLPI referente à unidade: {}", unidade);
         HttpResponse<String> response = sendHttp(TicketUrl, createGlpiJson(unidade),true,false);
         JsonNode json = null;
         try {
             json = new ObjectMapper().readTree(response.body());
             String ticket = json.get("id").asText();
             if(response.statusCode() == 201) {
+                log.info("Chamado criado com sucesso - GLPI {}", ticket);
                 return ticket;
             }
             else{
+                log.error("Chamado não foi criado");
                 return "";
             }
         } catch (JsonProcessingException e) {
@@ -75,35 +82,44 @@ public class GlpiAPI {
     }
 
     public  ResponseEntity<String> insertFollowUpTicket(String ticket, String content) {
+        log.info("Inserindo FollowUp ao chamado {} : {}", ticket, content);
         String uri = TicketUrl + "/" + ticket + "/ITILFollowup";
         HttpResponse<String> response = sendHttp(uri, addFollowUpJson(ticket,content), true, false);
         if (response.statusCode() == 201) {
+            log.info("FollowUp foi adicionado ao chamado {} com sucesso", ticket);
             return ResponseEntity.ok("FollowUp foi adicionado com sucesso");
         }
         else{
+            log.error("FollowUp não foi adicionado ao chamado {}", ticket);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("FollowUp não foi adicionado");
         }
     }
 
+    // TODO Revisar todo esse método
     public ResponseEntity<String> closeGlpiTicket(String ticket){
+        log.info("Fechando chamado {}", ticket);
         String uri = TicketUrl + "/" + ticket;
-        HttpResponse<String> response = sendHttp(uri, closeTicketJson(), false, false);
         JsonNode json;
         try {
+            HttpResponse<String> response = sendHttp(uri, closeTicketJson(), false, false);
             json = new ObjectMapper().readTree(response.body());
-        } catch (JsonProcessingException e) {
+
+            String sucess = "false";
+            if (json.isArray() && json.has(0)) {
+                JsonNode firstElement = json.get(0);
+                sucess = firstElement.get(ticket).asText();
+            }
+            if(sucess.equals("true") && response.statusCode() == 200) {
+                log.info("Chamado {} fechado com sucesso", ticket);
+                return ResponseEntity.ok("Sucesso no fechamento do ticket");
+            }
+            else{
+                throw new Exception("Optional error message");
+                //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket");
+            }
+        } catch (Exception e) {
+            log.error("Falha no fechamento do ticket {}", ticket, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket: " + e.getMessage());
-        }
-        String sucess = "false";
-        if (json.isArray() && json.has(0)) {
-            JsonNode firstElement = json.get(0);
-            sucess = firstElement.get(ticket).asText();
-        }
-        if(sucess.equals("true") && response.statusCode() == 200) {
-            return ResponseEntity.ok("Sucesso no fechamento do ticket");
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket");
         }
     }
 
@@ -126,6 +142,7 @@ public class GlpiAPI {
             HttpRequest request = requestBuilder.build();
             return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {
+            log.error("Erro na requisição : ", e);
             throw new RuntimeException(e);
         }
     }

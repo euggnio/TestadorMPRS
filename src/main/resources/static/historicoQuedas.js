@@ -236,11 +236,13 @@ function showMap(){
     }
 }
 
-window.addEventListener('load', countLines);
+window.addEventListener('DOMContentLoaded', dadosSalvos);
+
+window.addEventListener('DOMContentLoaded', countLines);
+window.addEventListener('DOMContentLoaded', checksFaltaDeLuz);
+
 window.addEventListener('load', showMap);
 
-window.addEventListener('load', checksFaltaDeLuz);
-window.addEventListener('load', dadosSalvos);
 //window.addEventListener('load', tempoForaDownAtual);
 
 

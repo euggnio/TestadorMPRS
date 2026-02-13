@@ -1,9 +1,11 @@
 package com.testeBanda.testador.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class SchedulerService {
     @Autowired
@@ -14,20 +16,20 @@ public class SchedulerService {
 
     @Scheduled(cron = "0 0 0,23 * * ?")
     public void schedulerTest() {
-        System.out.println("Scheduler Test");
+        log.info("Iniciando teste diário de banda");
         testerService.iniciarTeste("");
     }
 
     @Scheduled(cron = "30 00 10 * * ?")
     public void schedulerTestFalhas(){
-        System.out.println("Scheduler TestFalhas");
+        log.info("Iniciando segundo teste de banda para unidades que falharam o teste diário");
         testerService.ligarTesteFalhas();
         testerService.iniciarTeste("");
     }
 
     @Scheduled(fixedDelay = 60000)
     public void schedulerQuedas(){
-        System.out.println("*** ATUALIZANDO QUEDAS ***");
+        log.debug("ATUALIZANDO QUEDAS");
         quedaService.atualizaQuedas();
     }
 
