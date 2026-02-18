@@ -1,7 +1,6 @@
 package com.testeBanda.testador.service;
 
 import com.testeBanda.testador.DTO.DadosAlertaDTO;
-import com.testeBanda.testador.api.CheckMKAPI;
 import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.Alerta;
@@ -9,6 +8,7 @@ import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
 import com.testeBanda.testador.utils.Calculos;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
@@ -16,8 +16,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 public class QuedaService{
 
@@ -25,12 +25,10 @@ public class QuedaService{
     private QuedaRepository quedaRepository;
     private final CidadeService cidadeService;
     private final NagiosAPI nagiosAPI;
-    private final CheckMKAPI checkMKAPI;
     private final GlpiAPI glpiAPI;
 
-    public QuedaService(NagiosAPI nagiosAPI, CheckMKAPI checkMKAPI, CidadeService cidadeService, GlpiAPI glpiAPI) {
+    public QuedaService(NagiosAPI nagiosAPI, CidadeService cidadeService, GlpiAPI glpiAPI) {
         this.nagiosAPI = nagiosAPI;
-        this.checkMKAPI = checkMKAPI;
         this.cidadeService = cidadeService;
         this.glpiAPI = glpiAPI;
     }
@@ -39,6 +37,7 @@ public class QuedaService{
         if(quedaRepository.findById(id).isPresent()){
             Queda queda = quedaRepository.findById(id).get();
             queda.setFaltaDeLuz(novoValor);
+            log.info("Alterando energia na queda: {}", queda);
             quedaRepository.save(queda);
         }
     }
@@ -106,6 +105,7 @@ public class QuedaService{
         // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
         if(quedasNoBanco.isEmpty())
         {
+            log.info("Banco vazio, coletando todo histórico de quedas do nagios");
             List<Queda> todasQuedasNoNagios = getQuedasDesde2023(); // se estiver vazio pega o historico completo do nagios
             sincronizarNomesCidades();
             salvarQuedas(todasQuedasNoNagios);
@@ -129,12 +129,14 @@ public class QuedaService{
                 if(comparaQuedas(quedaRecente, quedaBanco)){
                     match = true;
 
-                    //abreGLPI(quedaBanco, quedaRecente); abre GLPI para quedas em andamento com mais de 10min
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
+
+                    //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
                 }
             }
             if(!match){
                 quedaRepository.save(quedaRecente);
+                log.info("Salvando nova queda no banco: {}", quedaRecente);
             }
         }
     }
@@ -146,6 +148,7 @@ public class QuedaService{
                 String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
                 quedaBanco.setChamado(ticket);
                 if ( !ticket.isBlank() ){
+                    log.info("Incluindo chamado {} na queda: {}", ticket, quedaBanco);
                     quedaRepository.save(quedaBanco);
                 }
             }
@@ -156,7 +159,11 @@ public class QuedaService{
         if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO) {
             quedaBanco.setTempoFora(quedaRecente.getTempoFora());
             quedaBanco.setUptime(quedaRecente.getUptime());
-            glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+            log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
+            if(!quedaBanco.getChamado().isBlank()){
+                fecharChamado(quedaBanco.getId() ,"Chamado fechado automaticamente com o retorno do link");
+                //glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+            }
             quedaRepository.save(quedaBanco);
         }
     }
@@ -284,9 +291,11 @@ public class QuedaService{
         }
     }
 
-    public void adicionarFolloyUp(long id, String texto) {
+    public void adicionarFollowUp(long id, String texto) {
         Queda queda = quedaRepository.findById(id).get();
+        log.info("Adicionando FollowUp do usuário à queda {}: '{}'", queda, texto);
         if(queda.getChamado().isBlank()){
+            log.error("Erro ao adicionar FollowUp - Queda sem chamado");
             return;
         }
         glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
@@ -294,12 +303,16 @@ public class QuedaService{
 
     public void fecharChamado(long id, String texto) {
         Queda queda = quedaRepository.findById(id).get();
+        log.info("Fechando chamado referente a queda: {}", queda);
         if(queda.getChamado().isBlank()){
-            System.out.println("Chamado nao encontrado");
+            log.info("Erro ao fechar chamado - Queda sem chamado");
             return;
         }
         glpiAPI.insertFollowUpTicket(queda.getChamado(), "Chamado fechado pelo testador, protocolo: " + queda.getProtocolo()
         + " chamado: " + queda.getChamado() + " tempo fora: " + queda.getTempoFora() + " queda de energia? " + (queda.isFaltaDeLuz()? "Sim" : "nao"));
+        if(!texto.isBlank()){
+            glpiAPI.insertFollowUpTicket(queda.getChamado(), texto);
+        }
         glpiAPI.closeGlpiTicket(queda.getChamado());
     }
 

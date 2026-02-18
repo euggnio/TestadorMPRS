@@ -91,7 +91,7 @@ public class QuedaController {
 
     @PostMapping("/adicionarFollowUp/{id}")
     public ResponseEntity<String> editarTicketGlpi(@PathVariable long id, @RequestBody String data){
-        quedaService.adicionarFolloyUp(id, data);
+        quedaService.adicionarFollowUp(id, data);
         return ResponseEntity.ok().body("FollowUp adicionado com sucesso!");
     }
 
