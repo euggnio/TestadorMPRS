@@ -26,7 +26,13 @@
                 <span>Historico</span>
             </button>
             <button   >
-                <span>Filtrar</span>
+                <span onclick="
+            if(document.getElementById('search').value === 'NÃO'){
+                document.getElementById('search').value = 'OK'
+            }else{
+                document.getElementById('search').value = 'NÃO'
+            }
+             ; filterTable();"> Filtrar</span>
             </button>
         </div>
 
@@ -66,52 +72,17 @@
         </thead>
         <tbody>
         <th:block th:each="cidade : ${cidades}" >
-<!--                <tr th:id="${cidade.nome}">-->
-<!--                    <td>-->
-<!--                        <button class="buttonCidade"><a th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></button>-->
-
-<!--                    </td>-->
-<!--                    <td th:text="${cidade.velocidade}"></td>-->
-<!--                    <td id="dados" th:text="${cidade.ultimoTesteBanda}">-->
-<!--                    <td th:text="${cidade.dataUltimoTeste}">-->
-<!--                    </td>-->
-<!--                    <td th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"-->
-<!--                        th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}">-->
-
-<!--                    </td>-->
-<!--                    <td>-->
-<!--                        <button class="buttonLigarTeste"-->
-<!--                                th:attr="data-cidade=${cidade.nome}"-->
-<!--                                onclick="iniciarTeste(this.getAttribute('data-cidade'))">-->
-<!--                            <span>Testar</span>-->
-<!--                        </button>-->
-<!--                    </td>-->
-<!--                </tr>-->
-
-<!--                <tr style="background-color: rebeccapurple" class="resultadoLinha" id="0">-->
-<!--                    <td colspan="6" style="padding: 0px 0px 2px 0px">-->
-<!--                        <div class="resultadoColuna">-->
-<!--                            <div class="resultado"-->
-<!--                                 th:each="resultado : ${cidade.getResultados()}"-->
-<!--                                 th:attr="data-resultado=${resultado.getResultado()},-->
-<!--                               data-velocidade=${cidade.velocidade},-->
-<!--                               data-dia=${resultado.getDia()}"-->
-<!--                            >-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </td>-->
-<!--                </tr>-->
             <tr th:id="${cidade.nome}" class="linha">
-                <div class="background">
-                    <div class="resultado"
-                         th:each="resultado : ${cidade.getResultados()}"
-                         th:attr="data-resultado=${resultado.getResultado()},
+                <td>
+                    <div class="background">
+                        <div class="resultado"
+                             th:each="resultado : ${cidade.getResultados()}"
+                             th:attr="data-resultado=${resultado.getResultado()},
                                data-velocidade=${cidade.velocidade},
                                data-dia=${resultado.getDia()}"
-                    >
+                        >
+                        </div>
                     </div>
-                </div>
-                <td>
                     <span class="dado"><a target="_blank" th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></span>
                 </td>
                 <td><span class="dado" th:text="${cidade.velocidade}"></span>
@@ -135,6 +106,7 @@
         </th:block>
         </tbody>
     </table>
+
     <script>
         function iniciarTeste(idCidade) {
             fetch(`/testeBanda`, {
@@ -150,11 +122,10 @@
                     }
                     return response.json(); // Pega a resposta JSON
                 })
-                .then(data => {
-                    if(data.status == "true"){
+                .then(async data => {
+                    if (data.status == "true") {
                         document.getElementById("statusTeste").innerHTML = "TESTE DESLIGADO."
-                    }
-                    else{
+                    } else {
                         document.getElementById("statusTeste").innerHTML = "INICIADO."
                     }
                 })

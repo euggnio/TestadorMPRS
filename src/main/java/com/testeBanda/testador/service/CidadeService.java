@@ -51,6 +51,7 @@ public class CidadeService {
     }
 
     public void salvarCidade(Cidades cidade) {
+        cidade.setVelocidade(cidade.getVelocidade() +" Mbps");
         cidadesRepository.save(cidade);
     }
 

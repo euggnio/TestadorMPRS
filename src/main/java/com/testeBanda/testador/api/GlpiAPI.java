@@ -3,6 +3,8 @@ package com.testeBanda.testador.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Marker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class GlpiAPI {
     @Value("${glpi.startSessionUrl}")
     private String startSessionUrl;
@@ -48,6 +51,7 @@ public class GlpiAPI {
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode json = new ObjectMapper().readTree(response.body());
         System.out.println("novo token " + json.get("session_token").asText());
+
         this.tokenInUse = json.get("session_token").asText();
     }
 
@@ -87,23 +91,25 @@ public class GlpiAPI {
 
     public ResponseEntity<String> closeGlpiTicket(String ticket){
         String uri = TicketUrl + "/" + ticket;
-        HttpResponse<String> response = sendHttp(uri, closeTicketJson(), false, false);
+        System.out.println("Tentando fechar GLPI " + ticket);
         JsonNode json;
         try {
+            HttpResponse<String> response = sendHttp(uri, closeTicketJson(), false, false);
             json = new ObjectMapper().readTree(response.body());
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket: " + e.getMessage());
-        }
         String sucess = "false";
         if (json.isArray() && json.has(0)) {
             JsonNode firstElement = json.get(0);
-            sucess = firstElement.get(ticket).asText();
-        }
+            JsonNode ticketNode = firstElement.get(ticket);
+            sucess = (ticketNode == null) ? "false" : ticketNode.asText();
+            }
         if(sucess.equals("true") && response.statusCode() == 200) {
             return ResponseEntity.ok("Sucesso no fechamento do ticket");
         }
         else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket");
+        }
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha no fechamento do ticket: " + e.getMessage());
         }
     }
 

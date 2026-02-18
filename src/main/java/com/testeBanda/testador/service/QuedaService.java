@@ -129,7 +129,7 @@ public class QuedaService{
                 if(comparaQuedas(quedaRecente, quedaBanco)){
                     match = true;
 
-                    abreGLPI(quedaBanco, quedaRecente);     // abre GLPI para quedas em andamento com mais de 10min
+                    //abreGLPI(quedaBanco, quedaRecente); abre GLPI para quedas em andamento com mais de 10min
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
                 }
             }
