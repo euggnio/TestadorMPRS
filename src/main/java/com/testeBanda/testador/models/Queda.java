@@ -2,13 +2,12 @@ package com.testeBanda.testador.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
@@ -30,6 +29,7 @@ public class Queda {
     @ManyToOne
     @JsonIgnore
     private Cidades cidade;
+    private String responsavel;
 
     public Queda(String cidade, LocalDateTime data, Duration tempoFora, long uptime) {
         this.nomeCidade = cidade;
@@ -58,13 +58,16 @@ public class Queda {
 
     public void setUptime(Long uptime){
         this.uptime = uptime;
-        faltaDeLuz = uptime <= 660 && uptime > 0;
+        this.faltaDeLuz = (uptime <= 660 && uptime > 0);
     }
 
     @JsonIgnore
     public String getUptimeFormatado() {
-        if(this.uptime <= 0){
+        if(this.uptime == 0){
             return "N/A";
+        }
+        if ( this.uptime < 0 ){
+            return "F/M";
         }
         Duration d = Duration.ofSeconds(this.uptime);
 

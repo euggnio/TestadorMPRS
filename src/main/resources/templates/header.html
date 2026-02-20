@@ -1,7 +1,8 @@
 
 <div th:fragment="~{header :: header}">
+
     <header>
-        <h1>⌛ Testador Mikrotik <span style="font-size: 0.5em">v.2.6.1 🔥</span></h1>
+        <h1>⌛ Testador Mikrotik <span style="font-size: 0.5em" id="versao">v....🔥</span></h1>
         <div class="menu">
             <a href="/grafico">        Dados 📈</a>
             <a href="/graficos2">      +Dados</a>
@@ -9,6 +10,16 @@
             <a href="/configuracao">   Configuração 🔧</a>
             <a href="/cidades">        Siglas 📖</a>
             <a href="/cidadesBanda">   Verificação de tráfego 🌐</a>
+
+            <script>
+
+                    fetch('/versao')
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById('versao').innerText = 'v.' + data.trim() + ' 🚀';
+                        });
+
+            </script>
         </div>
     </header>
 </div>

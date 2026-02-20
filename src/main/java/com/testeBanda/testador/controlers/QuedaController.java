@@ -4,6 +4,7 @@ import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.service.QuedaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +22,11 @@ public class QuedaController {
     private final QuedaService quedaService;
     private final GlpiAPI glpiAPI;
 
+    @Value("#{'${glpi.usuarios.nome}'.split(',')}")
+    private List<String> responsaveis;
+    @Value("#{'${glpi.usuarios.id}'.split(',')}")
+    private List<String> responsaveisid;
+
     @Autowired
     public QuedaController(QuedaService quedaService, GlpiAPI glpiAPI) {
         this.quedaService = quedaService;
@@ -34,7 +40,8 @@ public class QuedaController {
 
         LocalDate data = LocalDate.now();
         List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
-
+        model.addAttribute("responsaveis", responsaveis);
+        model.addAttribute("responsaveisid", responsaveisid);
         model.addAttribute("titulo", data);
         model.addAttribute("quedas", quedasDoDia);
         model.addAttribute("datas", listaDeDatas);
@@ -48,7 +55,8 @@ public class QuedaController {
 
         LocalDate data = LocalDate.parse(dataString);
         List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
-
+        model.addAttribute("responsaveis", responsaveis);
+        model.addAttribute("responsaveisid", responsaveisid);
         model.addAttribute("titulo", data);
         model.addAttribute("quedas", quedasDoDia);
         model.addAttribute("datas", listaDeDatas);
@@ -82,7 +90,9 @@ public class QuedaController {
 
     @PostMapping("/editarProtocolo/{id}")
     public ResponseEntity<String> editarProtocolo(@PathVariable long id, @RequestBody String data){
+        System.out.println("Teste");
         if ( data.length() > 10 ){
+            System.out.println(data);
             return ResponseEntity.badRequest().body("Data não pode ser maior que 10 caracteres");
         }
         quedaService.editarProtocolo(id, data);
@@ -99,6 +109,18 @@ public class QuedaController {
     public ResponseEntity<String> fecharChamado(@PathVariable long id, @RequestBody(required = false) String data){
         quedaService.fecharChamado(id, data);
         return ResponseEntity.ok().body("Chamado fechado com sucesso!");
+    }
+
+    @PostMapping("/abrirChamado/{id}")
+    public ResponseEntity<String> abrirChamado(@PathVariable long id){
+        quedaService.abrirChamado(id);
+        return ResponseEntity.ok().body("Chamado criado com sucesso!");
+    }
+
+    @PostMapping("/atribuirResponsavel/{id}")
+    public ResponseEntity<String> atribuirResponsavel(@PathVariable long id, @RequestBody String data){
+        quedaService.atribuirResponsavel(id,data);
+        return ResponseEntity.ok().body("Responsável adicionado com sucesso!");
     }
 
 

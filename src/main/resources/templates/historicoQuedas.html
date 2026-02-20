@@ -18,7 +18,7 @@
     <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
     <div class="flexContainer">
         <div id="nagmap" class="flexItem40" style="display:none;">
-            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description"></iframe>
+            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description" style="border-radius: 10px; border-color: #11bc7a;"></iframe>
         </div>
         <div id="listaQuedas" class="flexItem">
 
@@ -130,7 +130,8 @@
                         </a>
                         <label th:if="${#strings.isEmpty(queda.chamado)}"> N/A</label>
                     </td>
-                    <td th:if="${queda.tempoFora.toSeconds() == 0 && !#strings.isEmpty(queda.chamado)}" class="controleGLPI">
+
+                    <td th:if="${!#strings.isEmpty(queda.chamado) && queda.getUptime() == 0}" class="controleGLPI">
                         <button type="submit" style="background-color: #e10000;"
                                 th:attr="data-id=${queda.id},
                                 data-endpoint='/fecharChamado',
@@ -147,14 +148,35 @@
                                 title="Acompanhamento">
                             <img class="btnGLPI" th:src="@{\comment.png}" alt="Acompanhamento">
                         </button>
-                        <button type="submit" title="Atribuir">
-                            <img class="btnGLPI" th:src="@{\attrib.png}" alt="Atribuir">
+                        <div id="atribuidor">
+                            <button th:each="responsavel , i : ${responsaveisid}" type="submit"
+                                    th:attr="data-id=${queda.id},
+                                    data-endpoint='/atribuirResponsavel',
+                                    data-acao='Atribuir Responsavel ?',
+                                    data-abrir='false',
+                                    data-dado='20446'"
+                                    onclick='abrirModal(this)'
+                                    title="Atribuir">
+                                <span th:if="${responsavel == queda.responsavel}" >X</span>
+                                <span th:text="${responsaveis[i.index]}"></span>
+                            </button>
+                        </div>
+                        <button title="Atribuir" onclick="atribuir()">
+                            <img class="btnGLPI" th:src="@{\attrib.png}" alt="Atribuir" >
                         </button>
+
                     </td>
-                    <td th:if="${#strings.isEmpty(queda.chamado) && queda.tempoFora.toSeconds() == 0}">
-                        <button type="submit">Abrir chamado</button>
+                    <td th:if="${#strings.isEmpty(queda.chamado) && queda.tempoFora == 0}">
+                        <button type="submit"
+                                th:attr="data-id=${queda.id},
+                                data-endpoint='/abrirChamado',
+                                data-acao='Abrir chamado'",
+                                data-abrir='false'
+                                onclick="abrirModal(this)"
+                                title="Acompanhamento">
+                            Abrir chamado</button>
                     </td>
-                    <td th:if="${queda.tempoFora.toSeconds() > 0}">
+                    <td th:if="${ queda.tempoFora.toSeconds > 0 || (queda.tempoFora.toSeconds() <= 0 && #strings.isEmpty(queda.chamado))}">
                         <label>-</label>
                     </td>
                 </tr>

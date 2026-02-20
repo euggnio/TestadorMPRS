@@ -36,6 +36,12 @@ public class CidadeController {
         this.quedaService = quedaService;
     }
 
+    @GetMapping("/versao")
+    @ResponseBody
+    public String versao() {
+        return versao;
+    }
+
     @GetMapping("/unidade/{city}")
     public String unidade(@PathVariable String city, Model model) {
         Cidades cidade = cidadeService.findById(city);

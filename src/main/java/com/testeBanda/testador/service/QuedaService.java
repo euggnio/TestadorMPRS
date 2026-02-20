@@ -10,7 +10,10 @@ import com.testeBanda.testador.repository.QuedaRepository;
 import com.testeBanda.testador.utils.Calculos;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -99,7 +102,6 @@ public class QuedaService{
 
     public void atualizaQuedas(){
         List<Queda> quedasNoBanco = quedaRepository.findAll();
-
         //Verificação inicial, preenchendo o banco de dados. roda uma unica vez
         //TODO criar um metodo para isso, metodos de
         // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
@@ -130,8 +132,7 @@ public class QuedaService{
                     match = true;
 
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
-
-                    //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
+                    abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
                 }
             }
             if(!match){
@@ -161,8 +162,7 @@ public class QuedaService{
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             if(!quedaBanco.getChamado().isBlank()){
-                fecharChamado(quedaBanco.getId() ,"Chamado fechado automaticamente com o retorno do link");
-                //glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+                glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
             }
             quedaRepository.save(quedaBanco);
         }
@@ -296,7 +296,7 @@ public class QuedaService{
         log.info("Adicionando FollowUp do usuário à queda {}: '{}'", queda, texto);
         if(queda.getChamado().isBlank()){
             log.error("Erro ao adicionar FollowUp - Queda sem chamado");
-            return;
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Erro ao adicionar FollowUp - Queda sem chamado");
         }
         glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
     }
@@ -305,18 +305,52 @@ public class QuedaService{
         Queda queda = quedaRepository.findById(id).get();
         log.info("Fechando chamado referente a queda: {}", queda);
         if(queda.getChamado().isBlank()){
-            log.info("Erro ao fechar chamado - Queda sem chamado");
-            return;
+            log.info("Erro ao fechar chamado - Queda não foi encontrada");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha no fechamento do chamado - Não há chamado");
         }
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), "Chamado fechado pelo testador, protocolo: " + queda.getProtocolo()
-        + " chamado: " + queda.getChamado() + " tempo fora: " + queda.getTempoFora() + " queda de energia? " + (queda.isFaltaDeLuz()? "Sim" : "nao"));
+        String fechamento = """
+                    <p>Chamado fechado pelo testador<p>
+                    <p>Protocolo $s <p>
+                    <p>Chamado $s <p>
+                    <p>Tempo fora $s <p>
+                    <p>Queda de energia? $s <p>
+                    
+                """;
+        String fechamentoFormatado = String.format(
+                fechamento,
+                queda.getProtocolo(),
+                queda.getChamado(),
+                queda.getTempoFora(),
+                (queda.isFaltaDeLuz()? "Sim" : "nao"));
+
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), fechamentoFormatado);
         if(!texto.isBlank()){
             glpiAPI.insertFollowUpTicket(queda.getChamado(), texto);
         }
         glpiAPI.closeGlpiTicket(queda.getChamado());
     }
 
+    public void abrirChamado(long id) {
+        Optional<Queda> queda = quedaRepository.findById(id);
+        if(queda.isEmpty()){
+            log.info("Erro ao abrir chamado - Queda não foi encontrada");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
+        }
+        log.info("Abrir chamado referente a queda: {}", queda);
+        String ticket = glpiAPI.createGlpiTicket(queda.get().getCidade().getNome());
+        queda.get().setChamado(ticket);
+        quedaRepository.save(queda.get());
+    }
 
-
-
+    public void atribuirResponsavel(long id, String user) {
+        Optional<Queda> queda = quedaRepository.findById(id);
+        if(queda.isEmpty()){
+            log.info("Erro ao atribuir chamado - Queda não foi encontrada");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
+        }
+        log.info("Atribuir Responsavel referente a queda: {}", queda);
+        glpiAPI.assignTicketToUser(queda.get().getChamado(), user);
+        queda.get().setResponsavel(user);
+        quedaRepository.save(queda.get());
+    }
 }

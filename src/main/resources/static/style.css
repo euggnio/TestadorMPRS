@@ -527,6 +527,34 @@ iframe{
     }
 }
 
+.inputConfig{
+    width: 100%;
+    background-color: rgba(57, 62, 70, 0);
+    color: #c3c3c3;
+    font-weight: 700;
+    border: none !important;
+}
+
+.inputConfig2{
+    width: 100%;
+    background-color: rgba(57, 62, 70, 0.5);
+    color: white;
+    font-weight: 700;
+    border: none !important;
+}
+
+#atribuidor{
+    position: absolute;
+    display: none;
+    width: 200px;
+    background: #2c333c;
+    border: 1px solid #15ba7a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 10px;
+    z-index: 100;
+    border-radius: 8px;
+}
+
 
 /*
   --color-primary: #5192ED;

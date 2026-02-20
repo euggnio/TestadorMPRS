@@ -7,6 +7,7 @@ window.onload = async function() {
         contatosIntra(targetDiv)
         teste(targetDiv)
         carregarResultados()
+
     })
 
     await document.querySelectorAll("#contatos").forEach(td => {
@@ -16,23 +17,35 @@ window.onload = async function() {
     carregarResultados()
 };
 
+function atribuir() {
+    const at = document.getElementById("atribuidor");
+    if (!at) return;
 
-function trocarFormContato(button){
-    var div = button.parentNode;
-    var F = div.querySelector("#F");
-    var T = div.querySelector("#T");
-    if (T.style.display === ''){
-        button.innerHTML = 'Add contato'
-        T.style.display = 'none';
-        F.style.display = '';
-        return;
-    }
-    if(T.style.display === 'none'){
-        button.innerHTML = 'Lista de contatos'
-        F.style.display = 'none';
-        T.style.display = '';
-    }
+    const isHidden = window.getComputedStyle(at).display === "none";
+    at.style.display = isHidden ? "grid" : "none";
 }
+
+document.addEventListener("click", function (event) {
+
+    const at = document.getElementById("atribuidor");
+    if (!at) return;
+
+    const isHidden = window.getComputedStyle(at).display === "none";
+
+    // Se estiver fechado, não faz nada
+    if (isHidden) return;
+
+    // Se clicou dentro da div, não fecha
+    if (at.contains(event.target)) return;
+
+    // Se clicou no botão que chama atribuir(), não fecha
+    if (event.target.closest("[onclick='atribuir()']")) return;
+
+    // Caso contrário, fecha
+    at.style.display = "none";
+});
+
+
 
 async function contatosIntra(info) {
     var cidadeIntra = info.id;

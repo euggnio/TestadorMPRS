@@ -74,7 +74,7 @@
         </div>
         <div class="">
             <label for="velocidade">Velocidade</label>
-            <input form="salvaHost" class="inputPequeno" type="text" id="velocidade" name="velocidade" placeholder="Velocidade, apenas numero!">
+            <input form="salvaHost" class="inputPequeno" type="number" id="velocidade" name="velocidade" placeholder="Velocidade, apenas numero!">
         </div>
         <div class="">
             <label for="smokeID">SmokeID</label>
@@ -99,9 +99,34 @@
         <div class="">
             <label>#</label> <button form="salvaHost" type="submit">Salvar</button>
         </div>
+        <div class="">
+            <label>#</label> <button form="salvaHost" type="reset" th:onclick="${status} = 'a'">Cancelar</button>
+        </div>
     </div>
 </form>
 <h3>Hosts</h3>
+
+    <script th:inline="javascript">
+        let editAtualHost = '';
+        function liberarEdicaoHost(host){
+            hostClass = host.dataset.id;
+            form = document.getElementById(hostClass);
+            cancelar = document.getElementById(hostClass + 'cancelar');
+            if(editAtualHost.length <= 0){
+                cancelar.style.display = 'flex';
+                host.innerHTML = 'Salvar';
+                editAtualHost = hostClass;
+                var inputs = document.getElementsByClassName(hostClass)
+                console.log("" + editAtualHost)
+                for (var i = 0; i < inputs.length; i++) {
+                    inputs[i].readOnly = false;
+                    inputs[i].className += " inputConfig2";
+                }
+            }else if (editAtualHost == hostClass){
+                form.submit();
+            }
+        }
+    </script>
     <table>
         <tr class="linha">
             <th>Host</th>
@@ -115,32 +140,35 @@
             <th>#</th>
         </tr>
         <tr th:each="host : ${hosts}" class="linha">
-
-            <td>
-                <label th:text="${host.nome}"></label>
-            </td>
-            <td>
-                <label th:text="${host.codigo}"></label>
-            </td>
-            <td>
-                <label th:text="${host.velocidade}"></label>
-            </td>
-            <td>
-                <label th:text="${host.smokeID}"></label>
-            </td>
-            <td>
-                <label th:text="${host.cacti}"></label>
-            </td>
-            <td>
-                <label th:text="${host.nagiosID}"></label>
-            </td>
-            <td>
-                <label th:text="${host.intra}"></label>
-            </td>
-            <td>
-                <label th:text="${host.ip}"></label>
-            </td>
-            <td>
+            <form th:action="@{/atualizar}" th:method="POST" th:id="${host.nome}">
+                <td>
+                    <input th:class="inputConfig" th:name="nome" th:value="${host.nome}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="codigo" th:value="${host.codigo}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="velocidade" th:value="${host.velocidade}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="smokeID" th:value="${host.smokeID}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="cacti" th:value="${host.cacti}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="nagiosID" th:value="${host.nagiosID}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="intra" th:value="${host.intra}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="ip" th:value="${host.ip}" readonly></input>
+                </td>
+            </form>
+            <td style="display: flex; align-items: center;">
+                <button th:attr="data-id=${host.nome}" onclick="liberarEdicaoHost(this)">🖊</button>
+                <button th:id="${host.nome} + 'cancelar'" style="display: none;background-color: red" onclick="location.reload()">Cancelar</button>
             <form action="/apagarCidade" method="POST" th:data-host="${host.nome}"
                   onsubmit="return confirm('Tem certeza que quer deletar o host ' + this.getAttribute('data-host') + '?');">
                 <input class="inputPequeno" type="text" th:value="${host.nome}" id="nome2" name="nome" hidden="hidden">
