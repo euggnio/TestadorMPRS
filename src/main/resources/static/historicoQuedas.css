@@ -57,13 +57,14 @@
 .controleMes{
     display: none;
     padding: 20px 0;
-    margin: 20px auto 21px auto;
+    margin: 2em;
     column-gap: 7px;
     justify-content: center;
 }
 
 .controleDia{
     margin: 15px 0 25px 0;
+    display: grid;
 }
 
 #toggle-switch:checked ~ .controleDia {

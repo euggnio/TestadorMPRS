@@ -70,19 +70,14 @@ public class Queda {
             return "F/M";
         }
         Duration d = Duration.ofSeconds(this.uptime);
-
         long dias = d.toDays();
         long horas = d.toHoursPart();
         long minutos = d.toMinutesPart();
-
         StringBuilder sb = new StringBuilder();
-
         if (dias > 0) sb.append(dias).append(" dias ");
         if (horas > 0) sb.append(horas).append("h ");
         if (minutos > 0) sb.append(minutos).append("min");
-
         if (d.compareTo(Duration.ofMinutes(1)) < 0) sb.append(">1min");
-
         return sb.toString().trim();
     }
 

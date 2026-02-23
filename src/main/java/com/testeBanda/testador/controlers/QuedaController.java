@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,7 +19,6 @@ public class QuedaController {
 
     private final QuedaService quedaService;
     private final GlpiAPI glpiAPI;
-
     @Value("#{'${glpi.usuarios.nome}'.split(',')}")
     private List<String> responsaveis;
     @Value("#{'${glpi.usuarios.id}'.split(',')}")
@@ -52,7 +49,6 @@ public class QuedaController {
     public String historicoQuedasDia(Model model, @PathVariable String dataString) {
         List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
         List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-
         LocalDate data = LocalDate.parse(dataString);
         List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
         model.addAttribute("responsaveis", responsaveis);
@@ -67,16 +63,15 @@ public class QuedaController {
     public String historicoQuedasMes(Model model, @PathVariable int ano, @PathVariable String mesString) {
         List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
         List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-
         LocalDate data = LocalDate.now().withMonth(Integer.parseInt(mesString));
         List<Queda> quedasDoMes = quedaService.filterQuedasPorMes(todasQuedas, ano, data.getMonth());
-
         String tituloString = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR")));
         tituloString = tituloString.substring(0,1).toUpperCase() + tituloString.substring(1) + " " + ano;
 
         model.addAttribute("titulo", tituloString);
         model.addAttribute("quedas", quedasDoMes);
         model.addAttribute("datas", listaDeDatas);
+
         return "historicoQuedas";
     }
 
@@ -122,6 +117,5 @@ public class QuedaController {
         quedaService.atribuirResponsavel(id,data);
         return ResponseEntity.ok().body("Responsável adicionado com sucesso!");
     }
-
 
 }

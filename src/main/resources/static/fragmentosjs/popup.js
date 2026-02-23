@@ -12,7 +12,6 @@ function abrirModal(acionador) {
         }
         document.getElementById("modalValor").readOnly = true;
         document.getElementById("modalValor").style.display= "none";
-        alert(abrir)
     }
     else{
         document.getElementById("modalValor").readOnly = false;

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.net.InetAddress;
 import java.time.Year;
 import java.util.*;
@@ -22,7 +21,6 @@ public class CidadeController {
 
     @Value("${testador.versao}")
     private String versao;
-
     private final CidadeService cidadeService;
     private final Microtik microtik;
     private final GraficosService graficoService;
@@ -162,6 +160,5 @@ public class CidadeController {
         model.addAttribute("quedas", quedaService.findQuedasNoBanco());
         return "graficos2";
     }
-
 
 }

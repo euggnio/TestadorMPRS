@@ -1,15 +1,14 @@
 package com.testeBanda.testador.service;
 
-
 import com.testeBanda.testador.api.Microtik;
 import com.testeBanda.testador.utils.DataAboutTest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class TesterService {
-
-    //Classe com função de gerenciar o inicio do teste.
 
     private DataAboutTest dataAboutTest;
     private Microtik microtik;
@@ -21,21 +20,19 @@ public class TesterService {
     }
 
     public void iniciarTeste(String cidade) {
-        System.out.println("TESTE INICIANDO");
+        log.info("TESTE INICIADO");
         if ( dataAboutTest.isFlag()) {
             microtik.desligar = true;
             if (!microtik.desligar) {
                 dataAboutTest.setFlag(false);
             }
-            System.out.println(dataAboutTest.isFlag() ? "DESLIGANDO TESTE" : "TENTATIVA DE INICIAR NOVO TESTE BLOQUEADA, JÁ HÁ TESTES SENDO EFETUADOS " + dataAboutTest.isFlag());
+            log.info(dataAboutTest.isFlag() ? "DESLIGANDO TESTE" : "TENTATIVA DE INICIAR NOVO TESTE BLOQUEADA, JÁ HÁ TESTES SENDO EFETUADOS " + dataAboutTest.isFlag());
         } else {
-            System.out.println(" -- Teste inicializado -- ");
             dataAboutTest.setFlag(true);
             microtik.testar(cidade);
-            System.out.println("-- Teste finalizado, liberado testes -- ");
+            log.info("TESTE FINALIZADO");
             dataAboutTest.setFlag(false);
         }
-
     }
 
     public void ligarTesteFalhas(){

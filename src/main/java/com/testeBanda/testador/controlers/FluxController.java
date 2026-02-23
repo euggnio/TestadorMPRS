@@ -8,10 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
-
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -25,7 +23,6 @@ public class FluxController {
         this.dataAboutTest = dataAboutTest;
         this.quedaService = quedaService;
     }
-
 
     private record TestStatus(String nome, String velocidade, Boolean statusTeste) {}
 

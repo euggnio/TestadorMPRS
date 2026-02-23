@@ -21,48 +21,50 @@
             <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2/" title="description" style="border-radius: 10px; border-color: #11bc7a;"></iframe>
         </div>
         <div id="listaQuedas" class="flexItem">
-
-            <input type="checkbox" id="toggle-switch" hidden>
-            <label for="toggle-switch" class="toggle-label">
-                <span class="option-one">Dia</span>
-                <span class="option-two">Mês</span>
-                <span class="toggle-slider"></span>
-            </label>
-            <div class="controleDia">
-                <label for="calendario">Data:</label>
-                <input
-                        type="date"
-                        id="calendario"
-                        name="calendario"
-                        th:value="${datas.getFirst()}"
-                        th:min="${datas.getLast()}"
-                        th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
-                <div>
-                    <button onclick="diaHoje()">Hoje</button>
+            <div class="searcher">
+                <input type="checkbox" id="toggle-switch" hidden>
+                <label for="toggle-switch" class="toggle-label">
+                    <span class="option-one">Dia</span>
+                    <span class="option-two">Mês</span>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="controleDia">
+                    <label for="calendario">Data:</label>
+                    <input
+                            type="date"
+                            id="calendario"
+                            name="calendario"
+                            th:value="${datas.getFirst()}"
+                            th:min="${datas.getLast()}"
+                            th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <div class="tituloBox">
+                            <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
+                            <label th:text="${titulo}" id="titulo"></label>
+                            <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
+                        </div>
+                        <button onclick="diaHoje()">Hoje</button>
+                    </div>
                 </div>
-            </div>
-            <div class="controleMes">
-                <label for="dropAno" style="display: none">Ano:</label>
-                <select id="dropAno">
-                    <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
-                            th:value="${ano}"
-                            th:text="${ano}"></option>
-                </select>
+                <div class="controleMes">
+                    <label for="dropAno" style="display: none">Ano:</label>
+                    <select id="dropAno">
+                        <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
+                                th:value="${ano}"
+                                th:text="${ano}"></option>
+                    </select>
 
-                <label for="dropMes" style="display: none">Mes:</label>
-                <select id="dropMes">
-                    <option th:each="mes : ${#numbers.sequence(0, 11)}"
-                            th:value="${mes+1}"
-                            th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
+                    <label for="dropMes" style="display: none">Mes:</label>
+                    <select id="dropMes">
+                        <option th:each="mes : ${#numbers.sequence(0, 11)}"
+                                th:value="${mes+1}"
+                                th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
                                             #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
-                </select>
+                    </select>
+                </div>
+                <div id="count"></div>
             </div>
-            <div class="tituloBox">
-                <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
-                <label th:text="${titulo}" id="titulo"></label>
-                <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
-            </div>
-            <div id="count"></div>
+
 
             <table class="city" id="dataTable">
                 <thead>
@@ -154,7 +156,7 @@
                                     data-endpoint='/atribuirResponsavel',
                                     data-acao='Atribuir Responsavel ?',
                                     data-abrir='false',
-                                    data-dado='20446'"
+                                    data-dado=${responsavel}"
                                     onclick='abrirModal(this)'
                                     title="Atribuir">
                                 <span th:if="${responsavel == queda.responsavel}" >X</span>

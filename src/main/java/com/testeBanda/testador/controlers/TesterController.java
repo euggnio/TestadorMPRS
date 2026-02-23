@@ -1,6 +1,5 @@
 package com.testeBanda.testador.controlers;
 
-
 import com.testeBanda.testador.DTO.TesteBandaDTO;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.service.CidadeService;
@@ -21,7 +20,6 @@ public class TesterController {
         this.cidadeService = cidadeService;
     }
 
-
     @PostMapping("/testeBanda")
     @ResponseBody
     public String testeBanda(@RequestBody(required = false) String idCidade) {
@@ -41,6 +39,5 @@ public class TesterController {
         dto.check = c.checkTesteBanda;
         return ResponseEntity.ok(dto);
     }
-
 
 }
