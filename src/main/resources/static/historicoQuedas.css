@@ -5,7 +5,6 @@
 }
 
 .toggle-label {
-    margin-top: 20px;
     position: relative;
     display: inline-block;
     width: 120px;
@@ -15,6 +14,9 @@
     cursor: pointer;
     overflow: hidden;
     user-select: none;
+
+    margin-right: 3em;
+    margin-left: -3em;
 }
 
 .option-one,
@@ -50,21 +52,31 @@
     z-index: 0;
 }
 
-#toggle-switch:checked + .toggle-label .toggle-slider {
+#toggle-switch:checked ~ .toggle-label .toggle-slider {
     transform: translateX(100%);
 }
 
 .controleMes{
     display: none;
     padding: 20px 0;
-    margin: 2em;
+    /*margin: 2em;*/
     column-gap: 7px;
     justify-content: center;
+
+    margin-left: 3em;
+    margin-right: -10em;
 }
 
 .controleDia{
-    margin: 15px 0 25px 0;
-    display: grid;
+    margin: 1em;
+
+    margin-left: 3em;
+    margin-right: -10em;
+
+    #hoje{
+        width: 4em;
+        margin: 0 0.5em;
+    }
 }
 
 #toggle-switch:checked ~ .controleDia {
@@ -84,23 +96,20 @@
 }
 
 .flechas{
-    font-size: large;
+    font-size: 1.3em;
     padding: 0.5em;
+    /*padding-bottom: 0.7em !important;*/
+    font-family: "Courier-mono", sans-serif;
+    font-weight: bolder;
 }
 
 .nomeCidade{
     font-size: 1.1em;
     font-weight: bold;
     a{
+        padding: 0 0.3em;
         color: #11bc7a;
     }
-}
-
-.tituloBox{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    column-gap: 2px;
 }
 
 .down-label{
@@ -113,14 +122,23 @@
 }
 
 #calendario{
-    margin: 10px 0;
+    margin: 5px 0;
+    width: 12em;
 }
 
 #titulo{
     padding: 0.4em;
-    width: 9em;
-    font-size: larger;
+    display: inline-block;
+    color: #f1f1f1;
+
+    font-size: 1.4em;
     font-weight: bold;
+}
+
+#toggle-switch:checked ~ .tituloBox {
+    #titulo{
+        width: 10em;
+    }
 }
 
 #formFaltaDeLuz{
@@ -145,8 +163,8 @@
 }
 
 #count{
-    margin: 15px 0;
-    height:3em;
+    height:1.5em;
+    font-size: 0.9em;
 }
 
 #nagmap{
@@ -170,12 +188,37 @@
     white-space: nowrap;
 }
 
-@media only screen and (max-width: 1200px) {
+.iframeNagmap{
+    border-color: #11bc7a;
+    border-width: 0 2px 0 0;
+}
+
+.controleHistQuedas{
+    display: flex;
+    align-items: center;
+}
+
+.tituloBox{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    column-gap: 2px;
+
+    /*margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 1em;*/
+    margin: 1.5em auto;
+}
+
+@media only screen and (max-width: 1300px) {
   .flexContainer{
-    font-size: 0.8em;
+    font-size: 0.85em;
   }
-  a{
-    padding: 0.2em !important;
+  #dataTable{
+    a{
+        padding: 0.2em !important;
+    }
   }
   .quedasComMapa{
     width: 67%;
@@ -183,11 +226,33 @@
   .flexItem40{
     width: 33% !important;
   }
+
+  .toggle-label{
+    width: 90px;
+    height: 40px;
+
+    margin-right: 2em;
+    margin-left: -2em;
+  }
+
+  .controleDia, .controleMes{
+        margin-left: 2em;
+        margin-right: -6em;
+  }
+
 }
 
 @media only screen and (max-width: 1000px) {
     .btnGLPI{
         width: 1.3em;
+    }
+
+    .controleDia, .controleMes, .toggle-label{
+           margin: 0;
+    }
+
+    a{
+        padding: 0.2em !important;
     }
 
 }

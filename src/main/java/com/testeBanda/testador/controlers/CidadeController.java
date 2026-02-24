@@ -156,8 +156,11 @@ public class CidadeController {
 
     @GetMapping("/graficos2")
     public String graficos2(Model model){
+        List<Queda> quedas = quedaService.findQuedasNoBanco();
+        quedaService.sortQuedasPorData(quedas);
+        Collections.reverse(quedas);
 
-        model.addAttribute("quedas", quedaService.findQuedasNoBanco());
+        model.addAttribute("quedas", quedas);
         return "graficos2";
     }
 

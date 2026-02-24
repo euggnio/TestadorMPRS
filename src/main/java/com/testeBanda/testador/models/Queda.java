@@ -36,7 +36,7 @@ public class Queda {
         this.data = data;
         this.tempoFora = tempoFora;
         this.uptime = uptime;
-        faltaDeLuz = false;
+        this.faltaDeLuz = (uptime <= 660 && uptime > 0);
         this.protocolo = "";
         this.chamado = "";
     }

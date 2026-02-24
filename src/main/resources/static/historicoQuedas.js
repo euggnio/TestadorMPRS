@@ -83,7 +83,7 @@ function diaHoje(){
     let hoje = data.toISOString().substring(0,10);
 
     localStorage.setItem('dia', hoje);
-    window.location = '/historicoQuedas/dia/' + hoje;
+    window.location = '/historicoQuedas' // /dia/' + hoje;
 }
 
 function outraData(){

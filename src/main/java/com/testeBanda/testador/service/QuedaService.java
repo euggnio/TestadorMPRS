@@ -49,7 +49,7 @@ public class QuedaService{
         List<Queda> todasQuedas = quedaRepository.findAll();
         Collections.reverse(todasQuedas);
 
-        // traz quedas atuais para o topo da lista
+        // traz quedas atualmente DOWN para o topo da lista
         List<Queda> atuais = new ArrayList<>();
         for(Queda q : todasQuedas){
             if(q.getTempoFora() == Duration.ZERO){
@@ -132,7 +132,7 @@ public class QuedaService{
                     match = true;
 
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
-                    abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
+                    //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
                 }
             }
             if(!match){
@@ -162,7 +162,7 @@ public class QuedaService{
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             if(!quedaBanco.getChamado().isBlank()){
-                glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+                //glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
             }
             quedaRepository.save(quedaBanco);
         }
@@ -210,7 +210,7 @@ public class QuedaService{
         return quedas.stream().filter( queda -> queda.getData().isAfter(dataDeCorte)).toList();
     }
 
-    private void sortQuedasPorData(List<Queda> quedas){
+    public void sortQuedasPorData(List<Queda> quedas){
         quedas.sort((Queda a, Queda b) -> {
             if (a.getData().isAfter(b.getData())) {
                 return 1;
@@ -272,7 +272,6 @@ public class QuedaService{
             //quedas acontecendo no momento são adicionadas com duração zero
             for(Alerta alerta : pilha){
                 if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
-                    System.out.println(alerta.toString());
                     Duration duration = Duration.ZERO;
                     Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L);
                     todasQuedas.add(queda);
