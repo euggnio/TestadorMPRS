@@ -68,8 +68,14 @@
 
 <script>
 
+    function getLatest(quedas){
+        const datas = quedas.map(q => new Date(q.data).getTime())
+        return quedas.find(q => new Date(q.data).getTime() == Math.max(...datas))
+    }
+    const ultimaQueda = quedas[0]
+
     //  *** Tempo desde última queda com contador  ***
-    const ult = new Date(quedas[0].data)
+    const ult = new Date(ultimaQueda.data)
     const agr = new Date()
     let segundosT = Math.floor((agr - ult) / 1000)
 
@@ -83,12 +89,12 @@
         timer.innerText = `${pad(dur.hours)}:${pad(dur.minutes)}:${pad(dur.seconds)}`
     }
     let txtUlt = ""
-    let tempoUltima = segundosParaDuration(quedas[0].tempoFora)
-    if(quedas[0].tempoFora > 0){
-        txtUlt = '(' + quedas[0].nomeCidade + " por "
+    let tempoUltima = segundosParaDuration(ultimaQueda.tempoFora)
+    if(ultimaQueda.tempoFora > 0){
+        txtUlt = '(' + ultimaQueda.nomeCidade + " por "
                 + stringDeTempo(tempoUltima) + ')'
     }else{
-        txtUlt = '(' + quedas[0].nomeCidade + " atualmente DOWN)"
+        txtUlt = '(' + ultimaQueda.nomeCidade + " atualmente DOWN)"
     }
     document.getElementById("ultima").innerText = txtUlt
     timer()

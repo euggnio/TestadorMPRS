@@ -37,7 +37,7 @@ public class FluxController {
     public Flux<List<Queda>> streamQuedas() {
         return Flux.interval(Duration.ofSeconds(15))
                 .onBackpressureDrop()
-                .map(sequence -> quedaService.filterQuedasPorDia(quedaService.findQuedasNoBanco(), LocalDate.now()));
+                .map(sequence -> quedaService.findQuedasDoDia(LocalDate.now()));
     }
 
 }

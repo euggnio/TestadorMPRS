@@ -8,6 +8,7 @@ import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
 import com.testeBanda.testador.utils.Calculos;
+import com.testeBanda.testador.utils.QuedaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,22 +23,26 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class QuedaService{
+public class QuedaService {
 
     @Autowired
-    private QuedaRepository quedaRepository;
+    private final QuedaRepository quedaRepository;
     private final CidadeService cidadeService;
     private final NagiosAPI nagiosAPI;
-    private final GlpiAPI glpiAPI;
+    private final GlpiService glpiService;
+    private final QuedaUtils quedaUtils;
 
-    public QuedaService(NagiosAPI nagiosAPI, CidadeService cidadeService, GlpiAPI glpiAPI) {
+
+    public QuedaService(NagiosAPI nagiosAPI, CidadeService cidadeService, GlpiAPI glpiAPI, QuedaRepository quedaRepository, GlpiService glpiService, QuedaUtils quedaUtils) {
         this.nagiosAPI = nagiosAPI;
         this.cidadeService = cidadeService;
-        this.glpiAPI = glpiAPI;
+        this.quedaRepository = quedaRepository;
+        this.glpiService = glpiService;
+        this.quedaUtils = quedaUtils;
     }
 
-    public void editaFaltaDeLuz(long id, boolean novoValor){
-        if(quedaRepository.findById(id).isPresent()){
+    public void editaFaltaDeLuz(long id, boolean novoValor) {
+        if (quedaRepository.findById(id).isPresent()) {
             Queda queda = quedaRepository.findById(id).get();
             queda.setFaltaDeLuz(novoValor);
             log.info("Alterando energia na queda: {}", queda);
@@ -45,31 +50,40 @@ public class QuedaService{
         }
     }
 
-    public List<Queda> findQuedasNoBanco(){
+    public List<Queda> findQuedasNoBanco() {
         List<Queda> todasQuedas = quedaRepository.findAll();
         Collections.reverse(todasQuedas);
-
-        // traz quedas atualmente DOWN para o topo da lista
-        List<Queda> atuais = new ArrayList<>();
-        for(Queda q : todasQuedas){
-            if(q.getTempoFora() == Duration.ZERO){
-                atuais.add(q);
-            }
-        }
-        todasQuedas.removeAll(atuais);
-        todasQuedas.addAll(0, atuais);
 
         return todasQuedas;
     }
 
-    public void sincronizarNomesCidades(){
-        List<Queda> quedas = getQuedas();
+    public List<Queda> findQuedasDoDia(LocalDate data){
+        List<Queda> todasQuedas = findQuedasNoBanco();
+        quedaUtils.quedasEmAndamentoPrimeiro(todasQuedas);
+
+        return quedaUtils.filterQuedasPorDia(todasQuedas, data);
+    }
+
+    public List<Queda> findQuedasDoMes(int ano, Month mes){
+        List<Queda> todasQuedas = findQuedasNoBanco();
+        quedaUtils.quedasEmAndamentoPrimeiro(todasQuedas);
+
+        return quedaUtils.filterQuedasPorMes(todasQuedas, ano, mes);
+    }
+
+    public List<LocalDate> findListaDatas(){
+        List<Queda> todasQuedas = quedaRepository.findAll();
+
+        return quedaUtils.listaDeDatas(todasQuedas);
+    }
+
+    public void sincronizarNomesCidades(List<Queda> quedas) {
         List<Cidades> cidades = cidadeService.findAll();
         for (Cidades cidade : cidades) {
             Optional<Queda> primeiraQueda = quedas.stream()
                     .filter(queda -> Calculos.nomesIguais(cidade.nome, queda.getNomeCidade()))
                     .findFirst(); // <-- para no primeiro que encontrarprimeiraQueda
-            if(primeiraQueda.isPresent()){
+            if (primeiraQueda.isPresent()) {
                 cidade.nagiosID = primeiraQueda.get().getNomeCidade();
                 cidadeService.salvarCidade(cidade);
             }
@@ -77,169 +91,113 @@ public class QuedaService{
         }
     }
 
-    public void sincronizarQuedasComCidade(List<Queda> quedas){
+    public void sincronizarQuedasComCidade(List<Queda> quedas) {
         List<Cidades> cidades = cidadeService.findAll();
         for (Cidades cidade : cidades) {
-            for (Queda q : quedas){
-                if(q.getNomeCidade().equals(cidade.nagiosID)){
+            for (Queda q : quedas) {
+                if (q.getNomeCidade().equals(cidade.nagiosID)) {
                     q.setCidade(cidade);
                 }
             }
         }
     }
 
-    public void salvarQuedas(List<Queda> quedas){
-        List<Cidades> cidades = cidadeService.findAll();
-        for (Queda queda : quedas) {
-            for (Cidades cidade : cidades) {
-                if( Objects.equals(cidade.nagiosID, queda.getNomeCidade()) ){
-                    queda.setCidade(cidade);
-                }
-            }
-        }
-        quedaRepository.saveAll(quedas);
+    private void popularBancoVazio() {
+        log.info("Banco vazio, coletando todo histórico de quedas do nagios");
+        List<Queda> todasQuedasNoNagios = getQuedasDesde2023(); // se estiver vazio pega o historico completo do nagios
+
+        sincronizarNomesCidades(todasQuedasNoNagios);
+        sincronizarQuedasComCidade(todasQuedasNoNagios);
+
+        quedaRepository.saveAll(todasQuedasNoNagios);
     }
 
-    public void atualizaQuedas(){
+    /** Fecha quedas mais antigas que uma semana */
+    public void revisaTodasQuedas() {
         List<Queda> quedasNoBanco = quedaRepository.findAll();
-        //Verificação inicial, preenchendo o banco de dados. roda uma unica vez
-        //TODO criar um metodo para isso, metodos de
-        // configuração devem ser estaticos, rodar com verificações e proibir o sistema de rodar em caso de falha.
-        if(quedasNoBanco.isEmpty())
-        {
-            log.info("Banco vazio, coletando todo histórico de quedas do nagios");
-            List<Queda> todasQuedasNoNagios = getQuedasDesde2023(); // se estiver vazio pega o historico completo do nagios
-            sincronizarNomesCidades();
-            salvarQuedas(todasQuedasNoNagios);
-        }
-        else{
-            LocalDateTime dataUltimaQueda = quedasNoBanco.getLast().getData().minusWeeks(1);
+        List<Queda> quedasNoNagios = getQuedas();
 
-            List<Queda> quedasNoNagios = getQuedas();
-            List<Queda> quedasRecentes = filterQuedasAposData(quedasNoNagios, dataUltimaQueda);
-            sincronizarQuedasComCidade(quedasRecentes);
-            processaNovasQuedas(quedasRecentes, filterQuedasAposData(quedasNoBanco, dataUltimaQueda.minusMonths(1)));
+        sincronizarQuedasComCidade(quedasNoNagios);
+
+        processaNovasQuedas(quedasNoNagios, quedasNoBanco);
+    }
+
+    /** Roda a cada minuto para pegar quedas do nagios */
+    public void atualizaQuedas() {
+        List<Queda> quedasNoBanco = quedaRepository.findAll();
+
+        if (quedasNoBanco.isEmpty()) {
+            popularBancoVazio();
+            return;
         }
+        LocalDateTime dataDeCorte = quedasNoBanco.getLast().getData().minusWeeks(1);
+
+        List<Queda> quedasRecentes = quedaUtils.filterQuedasAposData(getQuedas(), dataDeCorte);
+        List<Queda> quedasDoBancoRecentes = quedaUtils.filterQuedasAposData(quedasNoBanco, dataDeCorte);
+
+        sincronizarQuedasComCidade(quedasRecentes);
+
+        processaNovasQuedas(quedasRecentes, quedasDoBancoRecentes);
     }
 
     /** Calcula tempo fora para quedas que estavam DOWN até a última atualização */
-    private void processaNovasQuedas(List<Queda> quedasRecentes, List<Queda> quedasNoBanco){
+    private void processaNovasQuedas(List<Queda> quedasRecentes, List<Queda> quedasNoBanco) {
         boolean match;
-        for(Queda quedaRecente : quedasRecentes){
+        for (Queda quedaRecente : quedasRecentes) {
             match = false;
-            for(Queda quedaBanco : quedasNoBanco){
-                if(comparaQuedas(quedaRecente, quedaBanco)){
+            for (Queda quedaBanco : quedasNoBanco) {
+                if (quedaUtils.comparaQuedas(quedaRecente, quedaBanco)) {
                     match = true;
 
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
                     //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
                 }
             }
-            if(!match){
+            if (!match) {
                 quedaRepository.save(quedaRecente);
                 log.info("Salvando nova queda no banco: {}", quedaRecente);
             }
         }
     }
 
-    private void abreGLPI(Queda quedaBanco, Queda quedaRecente){
-        if(quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()){
-            Duration tempoDaQueda = Duration.between( quedaBanco.getData(), LocalDateTime.now());
-            if ( tempoDaQueda.toSeconds() > 600 ){
-                String ticket = glpiAPI.createGlpiTicket(quedaBanco.getNomeCidade());
-                quedaBanco.setChamado(ticket);
-                if ( !ticket.isBlank() ){
-                    log.info("Incluindo chamado {} na queda: {}", ticket, quedaBanco);
-                    quedaRepository.save(quedaBanco);
-                }
+    private void abreGLPI(Queda quedaBanco, Queda quedaRecente) {
+        if (quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()) {
+            Duration tempoDaQueda = Duration.between(quedaBanco.getData(), LocalDateTime.now());
+            if (tempoDaQueda.toSeconds() > 600) {
+                //glpiService.abrirChamado(quedaBanco.getId());
             }
         }
     }
 
-    private void resolveQueda(Queda quedaBanco, Queda quedaRecente){
-        if(quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO) {
+    private void resolveQueda(Queda quedaBanco, Queda quedaRecente) {
+        if (quedaBanco.getTempoFora() == Duration.ZERO && quedaRecente.getTempoFora() != Duration.ZERO) {
             quedaBanco.setTempoFora(quedaRecente.getTempoFora());
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
-            if(!quedaBanco.getChamado().isBlank()){
-                //glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
+            if (!quedaBanco.getChamado().isBlank()) {
+                //glpiService.fecharChamado(quedaBanco.getId(), "");
             }
             quedaRepository.save(quedaBanco);
         }
     }
 
-    public List<LocalDate> listaDeDatas(List<Queda> quedas){
-        Set<LocalDate> setDeDatas = new HashSet<>();
-
-        for(Queda queda : quedas){
-            setDeDatas.add(queda.getData().toLocalDate());
-        }
-        List<LocalDate> ListaDeDatas = new ArrayList<>(setDeDatas);
-        ListaDeDatas.sort((LocalDate a, LocalDate b) -> -a.compareTo(b)); //ordem decrescente
-
-        return ListaDeDatas;
-    }
-
-    public List<Queda> filterQuedasPorMes(List<Queda> quedas, int ano, Month mes){
-        return quedas.stream().filter( queda -> queda.getData().getMonth().equals(mes) && queda.getData().getYear() == ano).toList();
-    }
-
-    public List<Queda> filterQuedasPorDia(List<Queda> quedas, LocalDate data){
-        return quedas.stream().filter( queda -> queda.getData().toLocalDate().equals(data)).toList();
-    }
-
-    private List<Queda> getQuedas(){
+    /** Pega quedas do ano atual no Nagios */
+    private List<Queda> getQuedas() {
         List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDoAno()));
-        sortQuedasPorData(todasQuedas);
+        quedaUtils.sortQuedasPorData(todasQuedas);
 
         return todasQuedas;
     }
 
-    private List<Queda> getQuedasDesde2023(){
+    private List<Queda> getQuedasDesde2023() {
         List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDesde2023()));
-        sortQuedasPorData(todasQuedas);
+        quedaUtils.sortQuedasPorData(todasQuedas);
 
         return todasQuedas;
     }
 
-    private boolean comparaQuedas(Queda a, Queda b){
-        return a.getNomeCidade().equals(b.getNomeCidade()) && a.getData().equals(b.getData());
-    }
-
-    public List<Queda> filterQuedasAposData(List<Queda> quedas, LocalDateTime dataDeCorte){
-        return quedas.stream().filter( queda -> queda.getData().isAfter(dataDeCorte)).toList();
-    }
-
-    public void sortQuedasPorData(List<Queda> quedas){
-        quedas.sort((Queda a, Queda b) -> {
-            if (a.getData().isAfter(b.getData())) {
-                return 1;
-            }if (a.getData().isBefore(b.getData())) {
-                return -1;
-            } else {
-                return 0;
-            }
-        });
-    }
-
-    private List<Integer> listaDeAnos(List<Queda> quedas){
-        Set<Integer> setQ = new HashSet<>();
-        for(Queda q : quedas){
-            setQ.add(q.getData().getYear());
-        }
-        return new ArrayList<>(setQ);
-    }
-
-    public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto, int ano) {
-        List<Queda> quedas = quedaRepository.findAll();
-        dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade(ano);
-        dto.quedas = quedas.stream().filter(q -> q.getData().getYear() == ano).toList();
-        dto.listaAnos = listaDeAnos(quedas);
-        return dto;
-    }
-
-    private Map<String, ArrayList<Alerta>> separaAlertasPorCidade(List<Alerta> alertas){
-        Map<String,ArrayList<Alerta>> mapaAlerta = new HashMap<>();
+    private Map<String, ArrayList<Alerta>> separaAlertasPorCidade(List<Alerta> alertas) {
+        Map<String, ArrayList<Alerta>> mapaAlerta = new HashMap<>();
         for (Alerta item : alertas) {
             String cidade = item.getNome();
             mapaAlerta.putIfAbsent(cidade, new ArrayList<>());
@@ -249,19 +207,19 @@ public class QuedaService{
         return mapaAlerta;
     }
 
-    private List<Queda> listaDeQuedas(Map<String,ArrayList<Alerta>> alertasPorCidades){
+    private List<Queda> listaDeQuedas(Map<String, ArrayList<Alerta>> alertasPorCidades) {
         List<Queda> todasQuedas = new ArrayList<>();
         Deque<Alerta> pilha = new ArrayDeque<>();
 
         for (ArrayList<Alerta> alertasDaCidade : alertasPorCidades.values()) {
             pilha.clear();
 
-            for(Alerta alerta : alertasDaCidade){
-                if(alerta.getTipo().contains("DOWN")){
+            for (Alerta alerta : alertasDaCidade) {
+                if (alerta.getTipo().contains("DOWN")) {
                     pilha.push(alerta);
                 }
-                if(alerta.getTipo().contains("UP")){
-                    if(!pilha.isEmpty()){
+                if (alerta.getTipo().contains("UP")) {
+                    if (!pilha.isEmpty()) {
                         Alerta down = pilha.pop();
                         Duration duration = Duration.between(down.getData(), alerta.getData());
                         Queda queda = new Queda(alerta.getNome(), down.getData(), duration, alerta.getUptime());
@@ -270,8 +228,8 @@ public class QuedaService{
                 }
             }
             //quedas acontecendo no momento são adicionadas com duração zero
-            for(Alerta alerta : pilha){
-                if(alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()){
+            for (Alerta alerta : pilha) {
+                if (alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()) {
                     Duration duration = Duration.ZERO;
                     Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L);
                     todasQuedas.add(queda);
@@ -281,75 +239,13 @@ public class QuedaService{
         return todasQuedas;
     }
 
-    public void editarProtocolo(long id, String protocolo) {
-        Queda queda = quedaRepository.findById(id).get();
-        queda.setProtocolo(protocolo);
-        quedaRepository.save(queda);
-        if (!queda.getChamado().isBlank()){
-            glpiAPI.insertFollowUpTicket(queda.getChamado(), "Protocolo ávato : " + protocolo);
-        }
+    /** Dados para a página de gráficos */
+    public DadosAlertaDTO PreencherDTO(DadosAlertaDTO dto, int ano) {
+        List<Queda> quedas = quedaRepository.findAll();
+        dto.mesDisponibilidades = nagiosAPI.relatorioDeDisponibilidade(ano);
+        dto.quedas = quedas.stream().filter(q -> q.getData().getYear() == ano).toList();
+        dto.listaAnos = quedaUtils.listaDeAnos(quedas);
+        return dto;
     }
 
-    public void adicionarFollowUp(long id, String texto) {
-        Queda queda = quedaRepository.findById(id).get();
-        log.info("Adicionando FollowUp do usuário à queda {}: '{}'", queda, texto);
-        if(queda.getChamado().isBlank()){
-            log.error("Erro ao adicionar FollowUp - Queda sem chamado");
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Erro ao adicionar FollowUp - Queda sem chamado");
-        }
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
-    }
-
-    public void fecharChamado(long id, String texto) {
-        Queda queda = quedaRepository.findById(id).get();
-        log.info("Fechando chamado referente a queda: {}", queda);
-        if(queda.getChamado().isBlank()){
-            log.info("Erro ao fechar chamado - Queda não foi encontrada");
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha no fechamento do chamado - Não há chamado");
-        }
-        String fechamento = """
-                    <p>Chamado fechado pelo testador<p>
-                    <p>Protocolo $s <p>
-                    <p>Chamado $s <p>
-                    <p>Tempo fora $s <p>
-                    <p>Queda de energia? $s <p>
-                    
-                """;
-        String fechamentoFormatado = String.format(
-                fechamento,
-                queda.getProtocolo(),
-                queda.getChamado(),
-                queda.getTempoFora(),
-                (queda.isFaltaDeLuz()? "Sim" : "nao"));
-
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), fechamentoFormatado);
-        if(!texto.isBlank()){
-            glpiAPI.insertFollowUpTicket(queda.getChamado(), texto);
-        }
-        glpiAPI.closeGlpiTicket(queda.getChamado());
-    }
-
-    public void abrirChamado(long id) {
-        Optional<Queda> queda = quedaRepository.findById(id);
-        if(queda.isEmpty()){
-            log.info("Erro ao abrir chamado - Queda não foi encontrada");
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
-        }
-        log.info("Abrir chamado referente a queda: {}", queda);
-        String ticket = glpiAPI.createGlpiTicket(queda.get().getCidade().getNome());
-        queda.get().setChamado(ticket);
-        quedaRepository.save(queda.get());
-    }
-
-    public void atribuirResponsavel(long id, String user) {
-        Optional<Queda> queda = quedaRepository.findById(id);
-        if(queda.isEmpty()){
-            log.info("Erro ao atribuir chamado - Queda não foi encontrada");
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
-        }
-        log.info("Atribuir Responsavel referente a queda: {}", queda);
-        glpiAPI.assignTicketToUser(queda.get().getChamado(), user);
-        queda.get().setResponsavel(user);
-        quedaRepository.save(queda.get());
-    }
 }

@@ -2,7 +2,9 @@ package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Queda;
+import com.testeBanda.testador.service.GlpiService;
 import com.testeBanda.testador.service.QuedaService;
+import com.testeBanda.testador.utils.QuedaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -18,25 +20,26 @@ import java.util.Locale;
 public class QuedaController {
 
     private final QuedaService quedaService;
-    private final GlpiAPI glpiAPI;
+    private final GlpiService glpiService;
+
     @Value("#{'${glpi.usuarios.nome}'.split(',')}")
     private List<String> responsaveis;
     @Value("#{'${glpi.usuarios.id}'.split(',')}")
     private List<String> responsaveisid;
 
     @Autowired
-    public QuedaController(QuedaService quedaService, GlpiAPI glpiAPI) {
+    public QuedaController(QuedaService quedaService, GlpiAPI glpiAPI, QuedaUtils quedaUtils, GlpiService glpiService) {
         this.quedaService = quedaService;
-        this.glpiAPI = glpiAPI;
+        this.glpiService = glpiService;
     }
 
     @GetMapping("/historicoQuedas")
     public String historicoQuedas(Model model) {
-        List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
-        List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-
         LocalDate data = LocalDate.now();
-        List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
+
+        List<LocalDate> listaDeDatas = quedaService.findListaDatas();
+        List<Queda> quedasDoDia = quedaService.findQuedasDoDia(data);
+
         model.addAttribute("responsaveis", responsaveis);
         model.addAttribute("responsaveisid", responsaveisid);
         model.addAttribute("titulo", data);
@@ -47,10 +50,11 @@ public class QuedaController {
 
     @GetMapping("/historicoQuedas/dia/{dataString}")
     public String historicoQuedasDia(Model model, @PathVariable String dataString) {
-        List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
-        List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
         LocalDate data = LocalDate.parse(dataString);
-        List<Queda> quedasDoDia = quedaService.filterQuedasPorDia(todasQuedas, data);
+
+        List<LocalDate> listaDeDatas = quedaService.findListaDatas();
+        List<Queda> quedasDoDia = quedaService.findQuedasDoDia(data);
+
         model.addAttribute("responsaveis", responsaveis);
         model.addAttribute("responsaveisid", responsaveisid);
         model.addAttribute("titulo", data);
@@ -59,15 +63,18 @@ public class QuedaController {
         return "historicoQuedas";
     }
 
-    @GetMapping("/historicoQuedas/mes/{ano}/{mesString}")
-    public String historicoQuedasMes(Model model, @PathVariable int ano, @PathVariable String mesString) {
-        List<Queda> todasQuedas = quedaService.findQuedasNoBanco();
-        List<LocalDate> listaDeDatas = quedaService.listaDeDatas(todasQuedas);
-        LocalDate data = LocalDate.now().withMonth(Integer.parseInt(mesString));
-        List<Queda> quedasDoMes = quedaService.filterQuedasPorMes(todasQuedas, ano, data.getMonth());
-        String tituloString = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR")));
-        tituloString = tituloString.substring(0,1).toUpperCase() + tituloString.substring(1) + " " + ano;
+    @GetMapping("/historicoQuedas/mes/{ano}/{mes}")
+    public String historicoQuedasMes(Model model, @PathVariable int ano, @PathVariable String mes) {
+        LocalDate data = LocalDate.now().withMonth(Integer.parseInt(mes)).withYear(ano);
 
+        List<LocalDate> listaDeDatas = quedaService.findListaDatas();
+        List<Queda> quedasDoMes = quedaService.findQuedasDoMes(ano, data.getMonth());
+
+        String mesPTBR = data.format(DateTimeFormatter.ofPattern("MMMM", new Locale("pt", "BR")));
+        String tituloString = mesPTBR.substring(0,1).toUpperCase() + mesPTBR.substring(1) + " " + ano;
+
+        model.addAttribute("responsaveis", responsaveis);
+        model.addAttribute("responsaveisid", responsaveisid);
         model.addAttribute("titulo", tituloString);
         model.addAttribute("quedas", quedasDoMes);
         model.addAttribute("datas", listaDeDatas);
@@ -90,31 +97,31 @@ public class QuedaController {
             System.out.println(data);
             return ResponseEntity.badRequest().body("Data não pode ser maior que 10 caracteres");
         }
-        quedaService.editarProtocolo(id, data);
+        glpiService.editarProtocolo(id, data);
         return ResponseEntity.ok().body("Protocolo editado com sucesso!");
     }
 
     @PostMapping("/adicionarFollowUp/{id}")
     public ResponseEntity<String> editarTicketGlpi(@PathVariable long id, @RequestBody String data){
-        quedaService.adicionarFollowUp(id, data);
+        glpiService.adicionarFollowUp(id, data);
         return ResponseEntity.ok().body("FollowUp adicionado com sucesso!");
     }
 
     @PostMapping("/fecharChamado/{id}")
     public ResponseEntity<String> fecharChamado(@PathVariable long id, @RequestBody(required = false) String data){
-        quedaService.fecharChamado(id, data);
+        glpiService.fecharChamado(id, data);
         return ResponseEntity.ok().body("Chamado fechado com sucesso!");
     }
 
     @PostMapping("/abrirChamado/{id}")
     public ResponseEntity<String> abrirChamado(@PathVariable long id){
-        quedaService.abrirChamado(id);
+        glpiService.abrirChamado(id);
         return ResponseEntity.ok().body("Chamado criado com sucesso!");
     }
 
     @PostMapping("/atribuirResponsavel/{id}")
     public ResponseEntity<String> atribuirResponsavel(@PathVariable long id, @RequestBody String data){
-        quedaService.atribuirResponsavel(id,data);
+        glpiService.atribuirResponsavel(id,data);
         return ResponseEntity.ok().body("Responsável adicionado com sucesso!");
     }
 
