@@ -150,7 +150,7 @@ public class QuedaService {
                     match = true;
 
                     resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
-                    //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
+                    abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
                 }
             }
             if (!match) {
@@ -175,7 +175,7 @@ public class QuedaService {
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             if (!quedaBanco.getChamado().isBlank()) {
-                //glpiService.fecharChamado(quedaBanco.getId(), "");
+                glpiService.fecharChamado(quedaBanco.getId(), "");
             }
             quedaRepository.save(quedaBanco);
         }

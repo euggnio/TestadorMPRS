@@ -16,6 +16,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 @Slf4j
@@ -61,13 +63,13 @@ public class GlpiAPI {
 
     private boolean isTokenValido() {
         String url = "http://glpi.mp.rs.gov.br/apirest.php/getMyEntities";
-        HttpResponse<String> response = sendHttp(url, "", true, true);
+        HttpResponse<String> response = sendHttp(url, "", "post", true);
         return response.statusCode() == 200;
     }
 
     public String createGlpiTicket(String unidade) {
         log.info("Criando chamado GLPI referente à unidade: {}", unidade);
-        HttpResponse<String> response = sendHttp(TicketUrl, createGlpiJson(unidade), true, false);
+        HttpResponse<String> response = sendHttp(TicketUrl, createGlpiJson(unidade), "post", false);
         if ( response.statusCode() != 201 ) {
             log.error("Chamado não foi criado");
             return "ERRO";
@@ -90,7 +92,7 @@ public class GlpiAPI {
     public void insertFollowUpTicket(String ticket, String content) {
         log.info("Inserindo FollowUp ao chamado {} : {}", ticket, content);
         String uri = TicketUrl + "/" + ticket + "/ITILFollowup";
-        HttpResponse<String> response = sendHttp(uri, addFollowUpJson(ticket, content), true, false);
+        HttpResponse<String> response = sendHttp(uri, addFollowUpJson(ticket, content), "post", false);
         if ( response.statusCode() == 201 ) {
             log.info("FollowUp foi adicionado ao chamado {} com sucesso", ticket);
         } else {
@@ -104,7 +106,7 @@ public class GlpiAPI {
         String uri = TicketUrl + "/" + ticket;
         JsonNode json;
         try {
-            HttpResponse<String> response = sendHttp(uri, closeTicketJson(), false, false);
+            HttpResponse<String> response = sendHttp(uri, closeTicketJson(), "put", false);
             if ( response.statusCode() != 200 ) {
                 log.error("Falha no fechamento do ticket {}", ticket);
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha no fechamento do ticket - PERMISSÃO");
@@ -126,7 +128,7 @@ public class GlpiAPI {
         }
     }
 
-    private HttpResponse<String> sendHttp(String url, String json, boolean isPost, boolean passValidationToken) {
+    private HttpResponse<String> sendHttp(String url, String json, String type, boolean passValidationToken) {
         try {
             if ( !passValidationToken ) {
                 getSessionToken();
@@ -136,10 +138,18 @@ public class GlpiAPI {
                     .header("App-Token", appToken)
                     .header("session-token", tokenInUse)
                     .header("Content-Type", "application/json");
-            if ( isPost ) {
-                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(json));
-            } else {
-                requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(json));
+            switch (type.toLowerCase()){
+                    case "post":
+                    requestBuilder.POST(HttpRequest.BodyPublishers.ofString(json));
+                    break;
+                    case "get":
+                    requestBuilder.header("Content-Type", "application/json");
+                    break;
+                    case "put":
+                    requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(json));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Método HTTP não suportado: " + type);
             }
             HttpRequest request = requestBuilder.build();
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -151,7 +161,7 @@ public class GlpiAPI {
 
     public void assignTicketToUser(String ticket, String user) {
         String uri = TicketUrl + "/" + ticket;
-        HttpResponse<String> response = sendHttp(uri, assignUserToTicketJson(user), false, false);
+        HttpResponse<String> response = sendHttp(uri, assignUserToTicketJson(user), "put", false);
         if ( response.statusCode() != 200 ) {
             log.error("Falha na atribuição do ticket {} - ERRO:  {}", ticket, response.statusCode());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Falha na atribuição do ticket");
@@ -168,6 +178,28 @@ public class GlpiAPI {
         }
 
         log.info("Usuario {} foi assignado com sucesso", user);
+    }
+
+    public ArrayList<String> getTicketFollowups(String ticket) {
+        String uri = TicketUrl + "/" + ticket +"/ITILFollowup";
+        HttpResponse<String> response = sendHttp(uri,"", "GET", false);
+        ArrayList<String> followups = new ArrayList<>();
+        if( response.statusCode() != 200 ) {
+            log.error("Falha na captura de followups do ticket {}", ticket);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falha na captura de followups");
+        }
+        try {
+            JsonNode json = new ObjectMapper().readTree(response.body());
+            if ( json.isArray() ) {
+                for (JsonNode followup : json) {
+                    followups.add(
+                            followup.path("date") + " | " +followup.path("content").asText());
+                }
+            }
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha na captura de followups " + e.getMessage());
+        }
+        return followups;
     }
 
     public String assignUserToTicketJson(String user) {
@@ -187,7 +219,6 @@ public class GlpiAPI {
                           "input": {
                             "status": 6,
                             "solution": "<p>Chamado finallizado</p>",
-                            "content": "<p>Chamado finallizado</p>",
                             "solutiontypes_id": 1,
                             "solutiontemplates_id": 5
                           }

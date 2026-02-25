@@ -2,7 +2,9 @@ package com.testeBanda.testador.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -24,13 +26,14 @@ public class GraficosService {
                 .GET()
                 .build();
         try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            //System.out.println("Resposta da URL: " + response.statusCode());
+            client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Erro ao executar SMOKE";
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Erro ao enviar uma URL " + url, e);
         }
-        return "SMOKE OK";
+        long timestamp = System.currentTimeMillis();
+        return "http://linux61.mp.rs.gov.br/smokeping/images/" +
+                cidade.charAt(0) + "/" +
+                cidade + "_last_10800.png?" + timestamp;
     }
 
     public String cacti(String id) {

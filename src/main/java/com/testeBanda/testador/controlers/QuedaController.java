@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -123,6 +124,11 @@ public class QuedaController {
     public ResponseEntity<String> atribuirResponsavel(@PathVariable long id, @RequestBody String data){
         glpiService.atribuirResponsavel(id,data);
         return ResponseEntity.ok().body("Responsável adicionado com sucesso!");
+    }
+
+    @GetMapping("/getTicketFollowups/{id}")
+    public ResponseEntity<List<String>> getTicketFollowups(@PathVariable long id){
+        return ResponseEntity.ok(quedaService.getFollowUpTicket(id));
     }
 
 }
