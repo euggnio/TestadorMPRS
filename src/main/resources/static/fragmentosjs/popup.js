@@ -20,8 +20,9 @@ function abrirModal(acionador) {
     }
     const modal = document.getElementById('inputModal')
     document.getElementById('titleModal').innerHTML = acionador.dataset.acao;
+    document.getElementById('titleModal').style.color = "black";
     modal.style.display = "flex";
-
+    modal.onclick = (e) => { if(e.target === modal) fecharModal(); };
 }
 
 function fecharModal() {
@@ -56,8 +57,12 @@ function enviarModal() {
                 showPopup("Erro", data.message || data.error || "Erro desconhecido");
                 return;
             }
-            showPopup("Sucesso", data.message || data);
-            setTimeout(() => window.location.reload(), 2000);
+            if (Array.isArray(data)) {
+                let mensagemFormatada = data.join('<br>');
+                showPopup("Lista de acompanhamentos: ", mensagemFormatada);
+            } else {
+                showPopup("Sucesso", data.message || data);
+            }
         })
         .catch(error => {
             showPopup("Erro de conexão", error.message);
@@ -88,7 +93,8 @@ function showPopup(title, message) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: "9999"
+        zIndex: "9999",
+        color: "black"
     });
 
     const content = popup.querySelector(".popup-content");
@@ -108,11 +114,12 @@ function showPopup(title, message) {
     const closePopup = () => {
         if (popup) popup.remove();
         document.removeEventListener("click", closePopup);
+        window.location.reload();
     };
 
     setTimeout(() => {
         document.addEventListener("click", closePopup);
     }, 50);
 
-    setTimeout(closePopup, 4000);
+    setTimeout(closePopup, 12000);
 }

@@ -7,6 +7,7 @@ import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +58,11 @@ public class CidadeController {
         model.addAttribute("cacti", cacti);
         model.addAttribute("cidade", cidade);
         return "unidade";
+    }
+
+    @GetMapping("/pegarGraficoSmoke/{id}")
+    public ResponseEntity<String> pegarGraficoSmoke(@PathVariable String id) {
+        return ResponseEntity.ok(graficoService.pegarUnidadeSmoke(id));
     }
 
     //TODO Isso é utilizado?

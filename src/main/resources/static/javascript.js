@@ -46,6 +46,21 @@ document.addEventListener("click", function (event) {
 });
 
 
+function getGraficoSmoke(smokeid) {
+    const container = document.getElementById(smokeid.dataset.cidade);
+    // Adicione a barra inicial para garantir que comece da raiz do contexto
+    container.src = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif"
+    fetch(`/pegarGraficoSmoke/` + smokeid.dataset.cidade)
+        .then(response => {
+            if (!response.ok) throw new Error("Erro na requisição: " + response.status)
+            return response.text();
+        })
+        .then(url => {
+            container.src = url;
+        })
+        .catch(error => console.error('Erro ao buscar gráfico:', error));
+}
+
 
 async function contatosIntra(info) {
     var cidadeIntra = info.id;

@@ -162,6 +162,22 @@ public class QuedaService{
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             if(!quedaBanco.getChamado().isBlank()){
+                String fechamento = """
+                    <p>Chamado fechado pelo testador<p>
+                    <p>Protocolo $s <p>
+                    <p>Chamado $s <p>
+                    <p>Tempo fora $s <p>
+                    <p>Queda de energia? $s <p>
+                    
+                """;
+                String fechamentoFormatado = String.format(
+                        fechamento,
+                        quedaBanco.getProtocolo(),
+                        quedaBanco.getChamado(),
+                        quedaBanco.getTempoFora(),
+                        (quedaBanco.isFaltaDeLuz()? "Sim" : "nao"));
+
+                glpiAPI.addFollowUpJson(quedaBanco.getNomeCidade(), fechamentoFormatado);
                 glpiAPI.closeGlpiTicket(quedaBanco.getChamado());
             }
             quedaRepository.save(quedaBanco);
@@ -352,5 +368,14 @@ public class QuedaService{
         glpiAPI.assignTicketToUser(queda.get().getChamado(), user);
         queda.get().setResponsavel(user);
         quedaRepository.save(queda.get());
+    }
+
+    public ArrayList<String> getFollowUpTicket(long id) {
+        Optional<Queda> queda = quedaRepository.findById(id);
+        if(queda.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
+        }
+        log.info("Get FollowUpTicket referente a queda: {}", queda);
+        return glpiAPI.getTicketFollowups(queda.get().getChamado());
     }
 }
