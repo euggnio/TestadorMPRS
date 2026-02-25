@@ -15,6 +15,9 @@
     cursor: pointer;
     overflow: hidden;
     user-select: none;
+
+    margin-right: 3em;
+    margin-left: -3em;
 }
 
 .option-one,
@@ -50,7 +53,7 @@
     z-index: 0;
 }
 
-#toggle-switch:checked + .toggle-label .toggle-slider {
+#toggle-switch:checked ~ .toggle-label .toggle-slider {
     transform: translateX(100%);
 }
 
@@ -63,8 +66,15 @@
 }
 
 .controleDia{
-    margin: 15px 0 25px 0;
-    display: grid;
+   margin: 1em;
+
+   margin-left: 3em;
+   margin-right: -10em;
+
+   #hoje{
+       width: 4em;
+       margin: 0 0.5em;
+   }
 }
 
 #toggle-switch:checked ~ .controleDia {
@@ -84,14 +94,17 @@
 }
 
 .flechas{
-    font-size: large;
+    font-size: 1.3em;
     padding: 0.5em;
-}
+
+    font-family: "Courier-mono", sans-serif;
+}   font-weight: bolder;
 
 .nomeCidade{
     font-size: 1.1em;
     font-weight: bold;
     a{
+        padding: 0 0.3em;
         color: #11bc7a;
     }
 }
@@ -113,14 +126,23 @@
 }
 
 #calendario{
-    margin: 10px 0;
+    margin: 5px 0;
+    width: 12em;
 }
 
 #titulo{
     padding: 0.4em;
-    width: 9em;
-    font-size: larger;
+    display: inline-block;
+    color: #f1f1f1;
+
+    font-size: 1.4em;
     font-weight: bold;
+}
+
+#toggle-switch:checked ~ .tituloBox {
+    #titulo{
+        width: 10em;
+    }
 }
 
 #formFaltaDeLuz{
@@ -145,8 +167,8 @@
 }
 
 #count{
-    margin: 15px 0;
-    height:3em;
+    height:1.5em;
+    font-size: 0.9em;
 }
 
 #nagmap{
@@ -170,19 +192,67 @@
     white-space: nowrap;
 }
 
+.iframeNagmap{
+    border-color: #11bc7a;
+    border-width: 0 2px 0 0;
+}
+
+.controleHistQuedas{
+    display: flex;
+    align-items: center;
+}
+
+.tituloBox{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    column-gap: 2px;
+
+    /*margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 1em;*/
+    margin: 1.5em auto;
+}
+
 @media only screen and (max-width: 1200px) {
-  .flexContainer{
-    font-size: 0.8em;
-  }
-  a{
-    padding: 0.2em !important;
-  }
-  .quedasComMapa{
-    width: 67%;
-  }
-  .flexItem40{
-    width: 33% !important;
-  }
+    .flexContainer{
+        font-size: 0.85em;
+    }
+
+    #dataTable{
+        a{
+            padding: 0.2em !important;
+        }
+    }
+    .quedasComMapa{
+        width: 67%;
+    }
+    .flexItem40{
+        width: 33% !important;
+    }
+
+    .toggle-label{
+        width: 90px;
+        height: 40px;
+
+        margin-right: 2em;
+        margin-left: -2em;
+    }
+
+    .controleDia, .controleMes{
+          margin-left: 2em;
+          margin-right: -6em;
+    }
+
+    .controleDia, .controleMes, .toggle-label{
+           margin: 0;
+    }
+
+    a{
+        padding: 0.2em !important;
+    }
+
 }
 
 @media only screen and (max-width: 1000px) {

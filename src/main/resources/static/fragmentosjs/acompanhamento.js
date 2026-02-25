@@ -40,7 +40,7 @@ async function abrirAcompanhamento(dados) {
         texts.forEach((item, index) => {
             const p = document.createElement("p");
             p.style.cssText = "margin: 0; padding: 10px; border-bottom: 1px dashed #ddd; font-size: 1em";
-            p.innerHTML = `<span style="color: #666; font-weight: bold">${index + 1}</span> ${item}`;
+            p.innerHTML = ` ${item}`;
             listaContainer.appendChild(p);
         });
     } else {

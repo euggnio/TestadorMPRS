@@ -19,16 +19,14 @@
     <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
     <div class="flexContainer">
         <div id="nagmap" class="flexItem40" style="display:none;">
-            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2.1/" title="description" style="border-radius: 10px; border-color: #11bc7a;"></iframe>
+            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2.1/" title="description" class="iframeNagmap"></iframe>
         </div>
         <div id="listaQuedas" class="flexItem">
-            <div class="searcher">
+
+            <div class="controleHistQuedas">
+
                 <input type="checkbox" id="toggle-switch" hidden>
-                <label for="toggle-switch" class="toggle-label">
-                    <span class="option-one">Dia</span>
-                    <span class="option-two">Mês</span>
-                    <span class="toggle-slider"></span>
-                </label>
+
                 <div class="controleDia">
                     <label for="calendario">Data:</label>
                     <input
@@ -38,15 +36,9 @@
                             th:value="${datas.getFirst()}"
                             th:min="${datas.getLast()}"
                             th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
-                    <div style="display: flex; align-items: center; justify-content: center;">
-                        <div class="tituloBox">
-                            <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
-                            <label th:text="${titulo}" id="titulo"></label>
-                            <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
-                        </div>
-                        <button onclick="diaHoje()">Hoje</button>
-                    </div>
+                    <button id="hoje" onclick="diaHoje()">Hoje</button>
                 </div>
+
                 <div class="controleMes">
                     <label for="dropAno" style="display: none">Ano:</label>
                     <select id="dropAno">
@@ -60,10 +52,27 @@
                         <option th:each="mes : ${#numbers.sequence(0, 11)}"
                                 th:value="${mes+1}"
                                 th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
-                                            #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
+                                        #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
                     </select>
                 </div>
-                <div id="count"></div>
+
+                <div class="tituloBox">
+                    <div>
+                        <button id="diaAntes" class="flechas" onclick="setasData(-1)">&lt;</button>
+                        <label th:text="${titulo}" id="titulo"></label>
+                        <button id="diaDepois" class="flechas" onclick="setasData(1)">&gt;</button>
+                    </div>
+                    <div id="count"></div>
+                </div>
+
+
+
+                <label for="toggle-switch" class="toggle-label">
+                    <span class="option-one">Dia</span>
+                    <span class="option-two">Mês</span>
+                    <span class="toggle-slider"></span>
+                </label>
+
             </div>
 
 
@@ -145,13 +154,13 @@
                         </a>
                         <label th:if="${#strings.isEmpty(queda.chamado)}"> N/A</label>
                     </td>
-                    <!--Com chamado-->
-                    <!--Com chamado-->
-                    <td th:if="${!#strings.isEmpty(queda.chamado) && queda.getUptime() == 0}" class="controleGLPI">
+
+                    <!-- Fora com chamado -->
+                    <td th:if="${!#strings.isEmpty(queda.chamado) && queda.tempoFora.toSeconds() == 0}" class="controleGLPI">
                         <button type="submit" style="background-color: #e10000;"
                                 th:attr="data-id=${queda.id},
                                 data-endpoint='/fecharChamado',
-                                data-acao='Fechamaento de chamado'"
+                                data-acao='Fechamento de chamado'"
                                 onclick="abrirModal(this)"
                                 title="Fechar">
                             <img class="btnGLPI" th:src="@{\close.png}" alt="Fechar">
@@ -169,7 +178,7 @@
                                     data-dado=${responsavel}"
                                     onclick='abrirModal(this)'
                                     title="Atribuir">
-                                <span th:if="${responsavel == queda.responsavel}" >X</span>
+                                <span th:if="${responsavel == queda.responsavel}" >>&nbsp;</span>
                                 <span th:text="${responsaveis[i.index]}"></span>
                             </button>
                         </div>
@@ -177,9 +186,9 @@
                             <img class="btnGLPI" th:src="@{\attrib.png}" alt="Atribuir" >
                         </button>
                     </td>
-                    <!--Fora sem chamado-->
-                    <!--Fora sem chamado-->
-                    <td th:if="${#strings.isEmpty(queda.chamado) && queda.tempoFora == 0}">
+
+                    <!-- Fora sem chamado -->
+                    <td th:if="${#strings.isEmpty(queda.chamado) && queda.tempoFora.toSeconds() == 0}">
                         <button type="submit"
                                 th:attr="data-id=${queda.id},
                                 data-endpoint='/abrirChamado',
@@ -189,15 +198,15 @@
                                 title="Acompanhamento">
                             Abrir chamado</button>
                     </td>
-                    <!--Subiu-->
-                    <td th:if="${ queda.tempoFora.toSeconds > 0 || (queda.tempoFora.toSeconds() <= 0)}">
+                    <!-- Queda Resolvida -->
+                    <td th:if="${queda.tempoFora.toSeconds() > 0}">
                         <button onclick="abrirAcompanhamento(this)"
                                 th:attr="data-id=${queda.id}"
                                 th:if="${!#strings.isEmpty(queda.chamado)}"
                         style="background-color: #0d8156;">
                             <img class="btnGLPI" th:src="@{\comment.png}" alt="Acompanhamento">
                         </button>
-                        <small th:if="${#strings.isEmpty(queda.chamado)}">__</small>
+                        <small th:if="${#strings.isEmpty(queda.chamado)}">_</small>
                     </td>
                 </tr>
                 </tbody>

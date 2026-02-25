@@ -1,10 +1,8 @@
 package com.testeBanda.testador.controlers;
 
-import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.service.GlpiService;
 import com.testeBanda.testador.service.QuedaService;
-import com.testeBanda.testador.utils.QuedaUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,7 +26,7 @@ public class QuedaController {
     private List<String> responsaveisid;
 
     @Autowired
-    public QuedaController(QuedaService quedaService, GlpiAPI glpiAPI, QuedaUtils quedaUtils, GlpiService glpiService) {
+    public QuedaController(QuedaService quedaService, GlpiService glpiService) {
         this.quedaService = quedaService;
         this.glpiService = glpiService;
     }
@@ -128,7 +125,7 @@ public class QuedaController {
 
     @GetMapping("/getTicketFollowups/{id}")
     public ResponseEntity<List<String>> getTicketFollowups(@PathVariable long id){
-        return ResponseEntity.ok(quedaService.getFollowUpTicket(id));
+        return ResponseEntity.ok(glpiService.getFollowUpTicket(id));
     }
 
 }

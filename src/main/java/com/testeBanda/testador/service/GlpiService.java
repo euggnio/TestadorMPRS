@@ -8,14 +8,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Slf4j
 @Service
 public class GlpiService {
 
-    private QuedaRepository quedaRepository;
-    private GlpiAPI glpiAPI;
+    private final QuedaRepository quedaRepository;
+    private final GlpiAPI glpiAPI;
+
+    public GlpiService(QuedaRepository quedaRepository, GlpiAPI glpiAPI) {
+        this.quedaRepository = quedaRepository;
+        this.glpiAPI = glpiAPI;
+    }
 
     public void editarProtocolo(long id, String protocolo) {
         Queda queda = quedaRepository.findById(id).get();
@@ -34,6 +40,16 @@ public class GlpiService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Erro ao adicionar FollowUp - Queda sem chamado");
         }
         glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
+    }
+
+    public ArrayList<String> getFollowUpTicket(long id) {
+        Optional<Queda> queda = quedaRepository.findById(id);
+        if(queda.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
+        }
+        log.info("Get FollowUpTicket referente a queda: {}", queda);
+
+        return glpiAPI.getTicketFollowups(queda.get().getChamado());
     }
 
     public void fecharChamado(long id, String texto) {
