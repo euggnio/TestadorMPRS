@@ -33,5 +33,11 @@ public class SchedulerService {
         quedaService.atualizaQuedas();
     }
 
+    @Scheduled(cron = "0 0 0,22 * * ?")
+    public void revisaTodasQuedas() {
+        log.info("Revisando todas as quedas do banco com o Nagios");
+        quedaService.revisaTodasQuedas();
+    }
+
 
 }

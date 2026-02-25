@@ -162,7 +162,7 @@ public class CidadeController {
 
     @GetMapping("/graficos2")
     public String graficos2(Model model){
-
+      
         model.addAttribute("quedas", quedaService.findQuedasNoBanco());
         return "graficos2";
     }
