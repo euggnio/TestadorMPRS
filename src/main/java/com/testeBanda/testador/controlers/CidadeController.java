@@ -109,6 +109,8 @@ public class CidadeController {
     public String cidades(Model model) {
         List<Cidades> cidades = cidadeService.findAll();
         List<Contato> contatos = cidadeService.findAllContatos();
+
+        model.addAttribute("quedas", quedaService.findQuedasNoBanco());
         model.addAttribute("contatos", contatos);
         model.addAttribute("cidades", cidades);
         return "cidades";

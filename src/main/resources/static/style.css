@@ -506,7 +506,7 @@ iframe{
 }
 #graficoSmoke{
     img{
-        border-radius: 15px;
+        border-radius: 8px;
         background-color: #f3f3f3;
         padding-top: 15px;
     }
@@ -605,6 +605,21 @@ iframe{
     border-color: white transparent transparent transparent;
 }
 
+.smokeUnidades{
+    position: relative;
+    img{
+        border-radius: 8px;
+        padding-top: 15px;
+        background-color: #999;
+        filter: opacity(0.4) grayscale(0.6);
+    }
+    button{
+        position: absolute;
+        top:  40%;
+        left: 40%;
+    }
+}
+
 
 @media only screen and (max-width: 1200px) {
     .menu{
@@ -636,6 +651,7 @@ iframe{
             }
         }
     }
+}
 
 /*
   --color-primary: #5192ED;
