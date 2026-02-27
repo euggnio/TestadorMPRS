@@ -69,19 +69,10 @@ public class GlpiService {
     }
 
     private static String getStringDeFechamento(Queda queda) {
-        String fechamento = """
-                    <p>Chamado fechado pelo testador<p>
-                    <p>Protocolo $s <p>
-                    <p>Chamado $s <p>
-                    <p>Tempo fora $s <p>
-                    <p>Queda de energia? $s <p>
-                """;
-        return String.format(
-                fechamento,
-                queda.getProtocolo(),
-                queda.getChamado(),
-                queda.getTempoFora(),
-                (queda.isFaltaDeLuz()? "Sim" : "nao"));
+        return "<p>Chamado fechado pelo testador<p><p>Protocolo"
+                + queda.getProtocolo()+ " <p><p>Chamado "
+                + queda.getChamado()+" <p><p>Tempo fora "
+                + queda.getTempoFora()+" <p><p>Queda de energia? "+ queda.isFaltaDeLuz() +" <p> ";
     }
 
     public void abrirChamado(long id) {

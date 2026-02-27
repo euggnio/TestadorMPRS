@@ -164,7 +164,7 @@ public class QuedaService {
         if (quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()) {
             Duration tempoDaQueda = Duration.between(quedaBanco.getData(), LocalDateTime.now());
             if (tempoDaQueda.toSeconds() > 600) {
-                //glpiService.abrirChamado(quedaBanco.getId());
+                glpiService.abrirChamado(quedaBanco.getId());
             }
         }
     }
@@ -175,7 +175,7 @@ public class QuedaService {
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             if (!quedaBanco.getChamado().isBlank()) {
-                //glpiService.fecharChamado(quedaBanco.getId(), "");
+                glpiService.fecharChamado(quedaBanco.getId(), "");
             }
             quedaRepository.save(quedaBanco);
         }

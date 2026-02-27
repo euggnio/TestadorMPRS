@@ -46,7 +46,7 @@
             </td>
 
             <td class="smokeUnidades" th:value="${cidade.smokeID}">
-                <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
+                <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${!#strings.isEmpty(cidade.smokeID) ? cidade.smokeID.charAt(0) : ''}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
                      alt="Gráfico Smoke" style="width: 25vw;">
                 <button th:attr="onclick=|reloadSmoke('${cidade.smokeID}')|" >Atualizar</button>
             </td>

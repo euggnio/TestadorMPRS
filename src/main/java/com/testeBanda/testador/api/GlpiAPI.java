@@ -97,7 +97,7 @@ public class GlpiAPI {
             log.info("FollowUp foi adicionado ao chamado {} com sucesso", ticket);
         } else {
             log.error("FollowUp não foi adicionado ao chamado {}", ticket);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao adicionar FollowUp ao chamado " + ticket);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao adicionar FollowUp ao chamado " + response);
         }
     }
 
