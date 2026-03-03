@@ -548,42 +548,40 @@ iframe{
 }
 
 .trigger-grafico {
+    color: #0056b3;
+    font-size: 0.8em;
     cursor: help;
     position: relative;
-    float: left;
     margin-left: 8px;
+    font-weight: bold;
+    display: inline-block;
+    float: left;
 }
 
-/* Container do Popup Ampliado */
 .img-popup {
     opacity: 0;
     visibility: hidden;
     position: absolute;
-    bottom: 140%; /* Um pouco mais alto para dar respiro */
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    left: 110%;
+    transform: translateY(-50%) translateX(10px);
     z-index: 1000;
-
     background: white;
-    padding: 15px; /* Mais respiro no fundo branco */
+    padding: 15px;
     border-radius: 10px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     border: 1px solid #ccc;
 
-    /* LARGURA AUMENTADA */
-    width: 650px;
-    max-width: 80vw; /* Não ultrapassa 90% da largura da tela */
-
-    /* Transição Suave */
-    transition: opacity 0.5s ease-in-out, visibility 0.5s, transform 0.5s ease-out;
+    width: 700px;
+    max-width: 80vw;
+    transition: opacity 0.4s ease-in-out, visibility 0.4s, transform 0.4s ease-out;
     pointer-events: none;
 }
 
-/* Ajuste do transform no hover para um leve efeito de subida */
 .trigger-grafico:hover .img-popup {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(-5px);
+    transform: translateY(-50%) translateX(20px);
 }
 
 .img-popup img {
@@ -593,16 +591,16 @@ iframe{
     border: 1px solid #f0f0f0;
 }
 
-/* Seta ajustada para a largura maior */
+/* Seta Lateral (Apontando para a esquerda) */
 .img-popup::after {
     content: "";
     position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -12px;
+    top: 50%;
+    right: 100%; /* Posiciona na borda esquerda do popup */
+    margin-top: -12px;
     border-width: 12px;
     border-style: solid;
-    border-color: white transparent transparent transparent;
+    border-color: transparent white transparent transparent; /* Seta branca apontando para esquerda */
 }
 
 .smokeUnidades{
@@ -652,6 +650,12 @@ iframe{
         }
     }
 }
+#lista-items{
+    p{
+        margin-left: 5em;
+    }
+}
+
 
 /*
   --color-primary: #5192ED;

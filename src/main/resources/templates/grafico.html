@@ -17,8 +17,9 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 <body>
 <div th:replace="~{header :: header}"></div>
 
-
+<span>Barras de quedas de energia serão validas apenas de março em diante, desconsiderar janeiro e fevereiro</span>
 <div class="botoes">
+
     <button  class="btMes" onclick="atualizarMes('todos') ">
         Todos
     </button>
@@ -274,7 +275,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
             const data = new Date(a.data);
             const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
             const dia = data.getDate();
-            return {mes, nomeCidade: a.nomeCidade, dia: dia};
+            return {mes, nomeCidade: a.nomeCidade, dia: dia, energia: a.faltaDeLuz};
         });
 
         const filtrados = nomeFiltro && nomeFiltro.trim() !== ""
@@ -282,17 +283,24 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
             : alertasProcessados;
         let meses;
         let totaisPorMes;
+        let totalEnergiaPorMes;
         if (mes === "todos") {
             meses = [...new Set(filtrados.map(a => a.mes))];
             totaisPorMes = meses.map(mes =>
                 filtrados.filter(a => a.mes === mes).length);
         }
+
         else{
             meses = [...new Set(filtrados.filter(a => a.mes === mes.slice(0,3)).map(a => a.dia))];
             totaisPorMes = meses.map(dia =>
                 filtrados.filter(a => a.mes === mes.slice(0,3) && a.dia === dia).length
             );
+
+
         }
+
+        totalEnergiaPorMes = meses.map(mes =>
+            filtrados.filter(a => a.mes === mes && a.energia).length);
         const cidades = [...new Set(filtrados.map(a => a.nomeCidade))];
 
         const series = cidades.map(cidade => {
@@ -300,6 +308,7 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 name: cidade,
                 type: 'bar',
                 stack: 'alertas',
+                barWidth: '30%',
                 emphasis: { focus: 'series' },
                 data: meses.map(m => {
                     if (mes === "todos") {
@@ -316,11 +325,8 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         series.push({
             name: 'Total',
             type: 'bar',
-            stack: null, // não empilha
-            barGap: '-100%', // sobrepõe
-            itemStyle: {
-                color: 'rgba(0,0,0,0)' // cinza se < 5, invisível caso contrário
-            },
+            stack: 'alertas',
+            itemStyle: { color: 'transparent' }, // Invisível
             label: {
                 show: true,
                 position: 'top',
@@ -329,7 +335,23 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                 color: '#000',
                 fontWeight: 'bold'
             },
-            data: totaisPorMes
+            data: meses.map(() => 0)
+        });
+
+        series.push({
+            name: 'Quedas de Energia',
+            type: 'bar',
+            stack: 'energia',
+            itemStyle: { color: '#ffc400' },
+            label: {
+                show: true,
+                position: 'top',
+                formatter: params => `⚡${[totalEnergiaPorMes[params.dataIndex]]}`,
+                fontSize: 12,
+                color: '#000',
+                fontWeight: 'bold'
+            },
+            data: totalEnergiaPorMes
         });
 
         const option = {
@@ -421,10 +443,8 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 
         const cidadesTotais = cidades.map((cidade, i) => ({ cidade, total: totais[i] }));
         cidadesTotais.sort((a, b) => b.total - a.total);
-        console.log(cidadesTotais);
         const cidadesOrdenadas = cidadesTotais.map(obj => obj.cidade);
         const totaisOrdenados = cidadesTotais.map(obj => obj.total);
-        console.log(cidadesOrdenadas)
         var chartDom = document.getElementById('chart-quedasCidades');
         var myChart = echarts.init(chartDom);
 
@@ -515,9 +535,5 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 
 
 </script>
-
-
-
-
 </body>
 </html>

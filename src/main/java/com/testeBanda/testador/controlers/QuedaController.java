@@ -1,6 +1,7 @@
 package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.models.Queda;
+import com.testeBanda.testador.repository.QuedaRepository;
 import com.testeBanda.testador.service.GlpiService;
 import com.testeBanda.testador.service.QuedaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Controller
 public class QuedaController {
 
     private final QuedaService quedaService;
     private final GlpiService glpiService;
+    private final QuedaRepository quedaRepository;
 
     @Value("#{'${glpi.usuarios.nome}'.split(',')}")
     private List<String> responsaveis;
@@ -26,9 +29,10 @@ public class QuedaController {
     private List<String> responsaveisid;
 
     @Autowired
-    public QuedaController(QuedaService quedaService, GlpiService glpiService) {
+    public QuedaController(QuedaService quedaService, GlpiService glpiService, QuedaRepository quedaRepository) {
         this.quedaService = quedaService;
         this.glpiService = glpiService;
+        this.quedaRepository = quedaRepository;
     }
 
     @GetMapping("/historicoQuedas")
@@ -90,7 +94,6 @@ public class QuedaController {
 
     @PostMapping("/editarProtocolo/{id}")
     public ResponseEntity<String> editarProtocolo(@PathVariable long id, @RequestBody String data){
-        System.out.println("Teste");
         if ( data.length() > 10 ){
             System.out.println(data);
             return ResponseEntity.badRequest().body("Data não pode ser maior que 10 caracteres");
@@ -128,4 +131,12 @@ public class QuedaController {
         return ResponseEntity.ok(glpiService.getFollowUpTicket(id));
     }
 
+    @GetMapping("/testarOnline")
+    @ResponseBody
+    public void testarOnline(){
+        Optional<Queda> queda = quedaRepository.findById(56163L);
+        Queda queda1 = queda.get();
+        System.out.println(queda1);
+        System.out.println(queda1.getTempoFora());
+    }
 }

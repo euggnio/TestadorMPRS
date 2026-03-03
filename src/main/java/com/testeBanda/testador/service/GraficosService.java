@@ -18,15 +18,20 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class GraficosService {
 
+    private final HttpClient httpClient;
+
+    public GraficosService(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
     public String pegarUnidadeSmoke(String cidade){
         String url = "http://linux61.mp.rs.gov.br/smokeping/?target="+ cidade.charAt(0) +"." +cidade;
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .GET()
                 .build();
         try {
-            client.send(request, HttpResponse.BodyHandlers.ofString());
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Erro ao enviar uma URL " + url, e);
         }
@@ -49,10 +54,8 @@ public class GraficosService {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
-
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(conn.getInputStream());
-            //System.out.println(rootNode);
 
             String base64Image = rootNode.path("image").asText();
 

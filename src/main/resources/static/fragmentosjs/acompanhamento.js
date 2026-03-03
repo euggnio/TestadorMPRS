@@ -34,14 +34,20 @@ async function abrirAcompanhamento(dados) {
     popup.appendChild(content);
     document.body.appendChild(popup);
 
-    // 3. Preencher a lista de textos
     const listaContainer = content.querySelector("#lista-items");
     if (texts && texts.length > 0) {
-        texts.forEach((item, index) => {
-            const p = document.createElement("p");
-            p.style.cssText = "margin: 0; padding: 10px; border-bottom: 1px dashed #ddd; font-size: 1em";
-            p.innerHTML = ` ${item}`;
-            listaContainer.appendChild(p);
+        listaContainer.innerHTML = "";
+
+        texts.forEach((item) => {
+            const linha = document.createElement("div");
+            linha.style.cssText = "margin-left:0; padding: 10px; border-bottom: 1px dashed #ddd; font-size: 0.95em; color: #333;";
+            const txt = document.createElement("textarea");
+            txt.innerHTML = item;
+            const decodedItem = txt.value;
+
+            linha.innerHTML = decodedItem;
+
+            listaContainer.appendChild(linha);
         });
     } else {
         listaContainer.innerHTML = "<p style='text-align:center; color:#999'>Nenhum acompanhamento encontrado.</p>";

@@ -3,6 +3,7 @@ package com.testeBanda.testador.service;
 import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,13 +24,15 @@ public class GlpiService {
         this.glpiAPI = glpiAPI;
     }
 
+    @Transactional
     public void editarProtocolo(long id, String protocolo) {
         Queda queda = quedaRepository.findById(id).get();
         queda.setProtocolo(protocolo);
         quedaRepository.save(queda);
-        if (!queda.getChamado().isBlank()){
-            glpiAPI.insertFollowUpTicket(queda.getChamado(), "Protocolo ávato : " + protocolo);
+        if (queda.getChamado().isBlank()){
+            this.abrirChamado(id);
         }
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "<p>Protocolo da ávato : " + protocolo + "</p>");
     }
 
     public void adicionarFollowUp(long id, String texto) {
@@ -39,7 +42,7 @@ public class GlpiService {
             log.error("Erro ao adicionar FollowUp - Queda sem chamado");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Erro ao adicionar FollowUp - Queda sem chamado");
         }
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), "From testador: " + texto);
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "<p>Testador: " + texto + "</p>");
     }
 
     public ArrayList<String> getFollowUpTicket(long id) {
@@ -69,10 +72,14 @@ public class GlpiService {
     }
 
     private static String getStringDeFechamento(Queda queda) {
-        return "<p>Chamado fechado pelo testador<p><p>Protocolo"
-                + queda.getProtocolo()+ " <p><p>Chamado "
-                + queda.getChamado()+" <p><p>Tempo fora "
-                + queda.getTempoFora()+" <p><p>Queda de energia? "+ queda.isFaltaDeLuz() +" <p> ";
+        return "<div>" +
+                "<p>Chamado fechado pelo testador</p>" +
+                "<p>Protocolo da operadora: "+ queda.getProtocolo()+ " </p>" +
+                "<p>Chamado do GLPI: "+ queda.getChamado()+" </p>" +
+                "<p>Tempo fora: "+ queda.getTempoFora().toMinutes()+" minutos. </p>" +
+                "<p>Tempo de uptime: "+ queda.getUptime()+" segundos. </p>" +
+                "<p>Foi queda de energia? "+ (queda.isFaltaDeLuz() ? "Sim": "Não")+" </p> " +
+                "</div>";
     }
 
     public void abrirChamado(long id) {

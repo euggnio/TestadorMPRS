@@ -150,7 +150,8 @@
                     <td>
                         <a th:if="${!#strings.isEmpty(queda.chamado)}"
                            th:href="'https://glpi.mp.rs.gov.br/front/ticket.form.php?id=' + ${queda.chamado}"
-                           th:text="${queda.chamado + '⤴'}">
+                           th:text="${queda.chamado + '⤴'}"
+                            target="_blank">
                         </a>
                         <label th:if="${#strings.isEmpty(queda.chamado)}"> N/A</label>
                     </td>

@@ -1,7 +1,6 @@
 package com.testeBanda.testador.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -10,14 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 
 @Slf4j
@@ -193,7 +190,7 @@ public class GlpiAPI {
             if ( json.isArray() ) {
                 for (JsonNode followup : json) {
                     followups.add(
-                            followup.path("date") + " | " +followup.path("content").asText());
+                            " Em: " + followup.path("date") + " <br> " +followup.path("content").asText());
                 }
             }
         } catch (JsonProcessingException e) {

@@ -96,9 +96,9 @@
 .flechas{
     font-size: 1.3em;
     padding: 0.5em;
-
+    font-weight: bolder;
     font-family: "Courier-mono", sans-serif;
-}   font-weight: bolder;
+}
 
 .nomeCidade{
     font-size: 1.1em;

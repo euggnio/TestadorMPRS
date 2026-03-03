@@ -109,7 +109,7 @@
                                 <thead>
                                     <tr>
                                         <th>Nome</th>
-                                        <th>Idade</th>
+                                        <th>Dados</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -139,7 +139,7 @@
                                     </tr>
                                     <tr>
                                         <td>Smoke</td>
-                                        <td th:text="${smoke}"></td>
+                                        <td th:text="${cidade.smokeID}"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -159,7 +159,7 @@
                             <div id="chartQuedasPorCidade" style="width: 95%; height: 215px; margin:auto; margin-bottom: 30px"></div>
                         </td>
                         <td id="graficoSmoke">
-                            <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${cidade.smokeID.charAt(0)}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
+                            <img th:src="${smoke}"
                              width="100%" alt="Gráfico Smoke">
                         </td>
                     </tr>
