@@ -3,10 +3,7 @@ package com.testeBanda.testador.utils;
 import com.testeBanda.testador.models.Queda;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +72,19 @@ public class QuedaUtils {
         ListaDeDatas.sort((LocalDate a, LocalDate b) -> -a.compareTo(b)); //ordem decrescente
 
         return ListaDeDatas;
+    }
+
+    public boolean horarioDeAbrirGlpi() {
+        LocalDateTime agora = LocalDateTime.now();
+        DayOfWeek dia = agora.getDayOfWeek();
+        LocalTime hora = agora.toLocalTime();
+
+        if (dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY) {
+            return false;
+        }
+        LocalTime inicio = LocalTime.of(8, 0);
+        LocalTime fim = LocalTime.of(22, 0);
+        return !hora.isBefore(inicio) && hora.isBefore(fim);
     }
 
 }

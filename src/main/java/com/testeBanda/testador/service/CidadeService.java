@@ -1,14 +1,10 @@
 package com.testeBanda.testador.service;
 
-import ch.qos.logback.classic.boolex.MarkerList;
 import com.testeBanda.testador.models.Cidades;
-import com.testeBanda.testador.models.Contato;
 import com.testeBanda.testador.repository.CidadesRepository;
-import com.testeBanda.testador.repository.ContatoRepository;
 import com.testeBanda.testador.repository.ResultadosRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,16 +12,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 @Slf4j
 @Service
 public class CidadeService {
 
     @Autowired
     private CidadesRepository cidadesRepository;
-
-    @Autowired
-    private ContatoRepository contatoRepository;
 
     @Autowired
     private ResultadosRepository resultadosRepository;
@@ -49,10 +41,6 @@ public class CidadeService {
 
     public Cidades findById(String id) {
         return  cidadesRepository.findById(id).get();
-    }
-
-    public List<Contato> findAllContatos() {
-        return contatoRepository.findAll();
     }
 
     public void salvarCidade(Cidades cidade) {

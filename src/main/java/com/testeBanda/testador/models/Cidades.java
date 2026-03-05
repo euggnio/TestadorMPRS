@@ -32,16 +32,10 @@ public class Cidades {
     public String smokeID;
     public String cacti;
     public String nagiosID;
-    public String checkMKid;
-
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Resultados> resultados;
-
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
-    public List<Contato> contatos;
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false, mappedBy = "cidade")

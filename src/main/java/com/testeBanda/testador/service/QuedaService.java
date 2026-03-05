@@ -163,7 +163,7 @@ public class QuedaService {
     private void abreGLPI(Queda quedaBanco, Queda quedaRecente) {
         if (quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()) {
             Duration tempoDaQueda = Duration.between(quedaBanco.getData(), LocalDateTime.now());
-            if (tempoDaQueda.toSeconds() > 600) {
+            if (tempoDaQueda.toSeconds() > 600 && quedaUtils.horarioDeAbrirGlpi()) {
              //   glpiService.abrirChamado(quedaBanco.getId());
             }
         }
