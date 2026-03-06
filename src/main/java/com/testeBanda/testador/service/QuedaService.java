@@ -55,6 +55,24 @@ public class QuedaService {
         return todasQuedas;
     }
 
+    public List<Queda> findQuedasDoDiaAtual(LocalDate data){
+        List<Queda> todasQuedas = findQuedasNoBanco();
+        List<Queda> atuais = quedaUtils.listaQuedasEmAndamento(todasQuedas);
+
+        List<Queda> quedasDoDia = new ArrayList<>(quedaUtils.filterQuedasPorDia(todasQuedas, data));
+
+        for(Queda a :  atuais){
+            if(!quedasDoDia.contains(a)){
+                quedasDoDia.addFirst(a);
+            }else{
+                quedasDoDia.remove(a); //quedas realmente do dia ficam em primeiro
+                quedasDoDia.addFirst(a);
+            }
+        }
+
+        return quedasDoDia;
+    }
+
     public List<Queda> findQuedasDoDia(LocalDate data){
         List<Queda> todasQuedas = findQuedasNoBanco();
         quedaUtils.quedasEmAndamentoPrimeiro(todasQuedas);
@@ -162,7 +180,7 @@ public class QuedaService {
         if (quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()) {
             Duration tempoDaQueda = Duration.between(quedaBanco.getData(), LocalDateTime.now());
             if (tempoDaQueda.toSeconds() > 600 && quedaUtils.horarioDeAbrirGlpi()) {
-             //   glpiService.abrirChamado(quedaBanco.getId());
+                //glpiService.abrirChamado(quedaBanco.getId());
             }
         }
     }
@@ -174,7 +192,7 @@ public class QuedaService {
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             quedaRepository.saveAndFlush(quedaBanco);
             if (!quedaBanco.getChamado().isBlank()) {
-                glpiService.fecharChamado(quedaBanco.getId(), "");
+                //glpiService.fecharChamado(quedaBanco.getId(), "");
             }
         }
     }

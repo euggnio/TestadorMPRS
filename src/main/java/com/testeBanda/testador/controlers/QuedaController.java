@@ -40,7 +40,7 @@ public class QuedaController {
         LocalDate data = LocalDate.now();
 
         List<LocalDate> listaDeDatas = quedaService.findListaDatas();
-        List<Queda> quedasDoDia = quedaService.findQuedasDoDia(data);
+        List<Queda> quedasDoDia = quedaService.findQuedasDoDiaAtual(data);
 
         model.addAttribute("responsaveis", responsaveis);
         model.addAttribute("responsaveisid", responsaveisid);

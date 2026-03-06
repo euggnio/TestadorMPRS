@@ -571,6 +571,7 @@ iframe{
     color: #c3c3c3;
     font-weight: 700;
     border: none !important;
+    text-align: center;
 }
 
 .inputConfig2{

@@ -4,10 +4,7 @@ import com.testeBanda.testador.models.Queda;
 import org.springframework.stereotype.Component;
 
 import java.time.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class QuedaUtils {
@@ -31,14 +28,22 @@ public class QuedaUtils {
 
     public void quedasEmAndamentoPrimeiro(List<Queda> quedas){
         // traz quedas atualmente DOWN para o topo da lista
+        List<Queda> atuais = listaQuedasEmAndamento(quedas);
+
+        quedas.removeAll(atuais);
+        quedas.addAll(0, atuais);
+    }
+
+    public List<Queda> listaQuedasEmAndamento(List<Queda> quedas){
         List<Queda> atuais = new ArrayList<>();
         for (Queda q : quedas) {
             if (q.getTempoFora() == Duration.ZERO) {
                 atuais.add(q);
             }
         }
-        quedas.removeAll(atuais);
-        quedas.addAll(0, atuais);
+        Collections.reverse(atuais); //mais antigas primeiro, serve pra mostra na ordem certa na página
+
+        return atuais;
     }
 
     public void sortQuedasPorData(List<Queda> quedas) {

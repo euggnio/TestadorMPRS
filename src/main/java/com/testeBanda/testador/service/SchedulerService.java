@@ -27,16 +27,16 @@ public class SchedulerService {
         testerService.iniciarTeste("");
     }
 
-    @Scheduled(fixedDelay = 60000)
-    public void schedulerQuedas(){
-        log.debug("ATUALIZANDO QUEDAS");
-        quedaService.atualizaQuedas();
-    }
-
     @Scheduled(cron = "0 0 0,22 * * ?")
     public void revisaTodasQuedas() {
         log.info("Revisando todas as quedas do banco com o Nagios");
         quedaService.revisaTodasQuedas();
+    }
+
+    @Scheduled(fixedDelay = 60000)
+    public void schedulerQuedas(){
+        log.debug("ATUALIZANDO QUEDAS");
+        quedaService.atualizaQuedas();
     }
 
 

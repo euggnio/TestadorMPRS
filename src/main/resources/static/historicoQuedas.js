@@ -83,12 +83,18 @@ function diaHoje(){
     let hoje = data.toISOString().substring(0,10);
 
     localStorage.setItem('dia', hoje);
-    window.location = '/historicoQuedas/dia/' + hoje;
+    window.location = '/historicoQuedas';
 }
 
 function outraData(){
+    const hoje = new Date();
     localStorage.setItem('dia', calendario.value);
-    window.location = '/historicoQuedas/dia/' + calendario.value;
+
+    if(calendario.value == hoje.toISOString().substring(0, 10)){
+        window.location = '/historicoQuedas'
+    }else{
+        window.location = '/historicoQuedas/dia/' + calendario.value;
+    }
 }
 calendario.addEventListener('change', outraData)
 
@@ -113,7 +119,7 @@ function setasData(valor){
             mes = 12;
             ano = ano - 1;
         }
-        if(mes == 13){
+        if(mes == 13){  //quebra se valor for maior que 1 ou menor q -1, mas não é prioridade
             mes = 1;
             ano = ano + 1;
         }
@@ -129,12 +135,16 @@ function setasData(valor){
         }
     }else{
         let titulo = document.getElementById("titulo");
-        let date = new Date(titulo.innerText + "T00:00:00.000Z");
+        let date = new Date(titulo.innerText + "T00:00:00.000-03:00");
         date.setDate(date.getDate() + valor);
+        let novaData = date.toISOString().substring(0, 10)
 
-        if(date <= hoje){
-            localStorage.setItem('dia', date.toISOString().substring(0, 10));
-            window.location = '/historicoQuedas/dia/' + date.toISOString().substring(0, 10);
+        localStorage.setItem('dia', novaData);
+
+        if(date.toDateString() == hoje.toDateString()){
+            window.location = '/historicoQuedas'
+        }else if(date < hoje){
+            window.location = '/historicoQuedas/dia/' + novaData;
         }
     }
 
@@ -154,36 +164,11 @@ function countLines(){
                        + "<br>Queda de Luz: " + newArr.length
 }
 
-/*
-
-// Não necessário se tiver o NagMap
-function tempoForaDownAtual(){
-    let x  = document.getElementsByClassName("linha")
-
-    for(let i=1; i < x.length; i++){
-        let dia = x[i].childNodes[3].childNodes[1].innerHTML
-        let hora = x[i].childNodes[3].childNodes[4].innerHTML
-        let tempoForaStr = x[i].childNodes[5].children[0].innerHTML
-
-        if(tempoForaStr == "DOWN"){
-            let now = new Date();
-            let queda = new Date(dia + 'T' + hora)
-
-            let dif = (now - queda) / 60000
-            let labelTempo = x[i].getElementsByClassName("tempoForaEnquantoDown")[0]
-
-            labelTempo.innerHTML = '(' + Math.floor(dif) + " min)"
-        }
-    }
-}
-setInterval(tempoForaDownAtual, 60000)
-*/
-
 function isToday(){
     let d = new Date()
     const loc = window.location.pathname.slice(-10)
 
-    return loc == d.toISOString().slice(0,10) || loc == "ricoQuedas"
+    return loc == d.toISOString().slice(0,10) || loc == "ricoQuedas" //10 ultimas letras da URL
 }
 
 function isoToSeconds(isoDuration) {
@@ -198,10 +183,10 @@ function isoToSeconds(isoDuration) {
 }
 
 function quedasIguais(q, e){
-    const msmData = q.data == e.data
-    const msmUptime = (q.uptime == e.uptime) || (q.uptime <= 0 && e.uptime <= 0)
-    const msmTempoFora = q.tempoFora == isoToSeconds(e.tempoFora)
-    const msmChamado = q.chamado == e.chamado
+    const msmData       = q.data == e.data
+    const msmUptime     = (q.uptime == e.uptime) || (q.uptime <= 0 && e.uptime <= 0)
+    const msmTempoFora  = q.tempoFora == isoToSeconds(e.tempoFora)
+    const msmChamado    = q.chamado == e.chamado
 
     return msmData && msmUptime && msmTempoFora && msmChamado
 }
