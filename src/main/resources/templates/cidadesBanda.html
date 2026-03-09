@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Testador</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <script src="/javascript.js"></script>
     <script th:src="@{/javascript.js}"></script>
+    <script th:src="@{/fragmentosjs/info.js}"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
@@ -16,6 +16,7 @@
 <body>
 
 <div th:replace="~{header :: header}"></div>
+<img th:src="@{\info.png}" alt="info" class="infoBtn" onclick="showInfo('banda')">
 <main>
     <div class="searcher">
         <div>
@@ -23,7 +24,7 @@
                 <span id="statusTeste">Iniciar teste</span>
             </button>
             <button th:attr="onclick='mostrarHistorico()'" >
-                <span>Historico</span>
+                <span>Histórico</span>
             </button>
             <button   >
                 <span onclick="

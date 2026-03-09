@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
     <script th:src="@{/javascript.js}"></script>
     <script th:src="@{/fragmentosjs/popup.js}"></script>
+    <script th:src="@{/fragmentosjs/info.js}"></script>
     <script th:src="@{/fragmentosjs/acompanhamento.js}"></script>
 
     <link rel="icon" type="image/x-icon" href="/ico.png">
@@ -17,6 +18,9 @@
 <main>
     <div th:replace="~{header :: header}"></div>
     <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
+
+    <img th:src="@{\info.png}" alt="info" class="infoBtn" onclick="showInfo('quedas')">
+
     <div class="flexContainer">
         <div id="nagmap" class="flexItem40" style="display:none;">
             <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2.1/" title="description" class="iframeNagmap"></iframe>
@@ -116,9 +120,16 @@
                     </td>
 
                     <td th:if="${queda.tempoFora.toSeconds() != 0}">
-                        <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>
-                        <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>
+                        <label th:if="${queda.tempoFora.toMinutesPart() == 0}" th:text="${queda.tempoFora.toHours()} + 'h '"></label>
+                        <label th:if="${queda.tempoFora.toHours() == 0}"       th:text="${queda.tempoFora.toMinutesPart()} + 'min'"></label>
+
+                        <label th:if="${queda.tempoFora.toHours() != 0 && queda.tempoFora.toMinutesPart() != 0}"
+                               th:text="${queda.tempoFora.toHours() + 'h ' + queda.tempoFora.toMinutesPart() + 'min'}"></label>
+
+<!--                        <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>-->
+<!--                        <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>-->
                     </td>
+
                     <td th:if="${queda.tempoFora.toSeconds() == 0}">
                         <label class="down-label">DOWN</label><br>
                         <label class="tempoForaEnquantoDown"></label>

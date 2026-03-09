@@ -283,10 +283,6 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
               }
           },
           tooltip: {
-
-            textStyle: {
-                color: 'white'
-            },
             formatter: function (params) {
                            const data = params.value[0];
 
@@ -300,8 +296,7 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
                            let str = params.value[1] == 0 ? '0 min' : brFormatter.format(value)
 
                            return '<a class="tooltip" href=/historicoQuedas/dia/'
-                                  + data + ' target="_blank">' + data + '</a>'
-                                  + '<br>' + str;
+                                  + data + ' target="_blank">' + data + '</a><br>' + str;
                            },
             position: (point) => [point[0]-2, point[1]-60],
             triggerOn: 'click',
