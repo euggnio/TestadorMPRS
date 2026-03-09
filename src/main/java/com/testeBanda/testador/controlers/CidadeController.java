@@ -91,7 +91,7 @@ public class CidadeController {
         return cidades.stream().map(Cidades::getNome).collect(Collectors.toList());
     }
 
-    @GetMapping("/cidadesBanda")
+    @GetMapping({"/cidadesBanda", "/"})
     public String cidadesBanda(Model model) {
         List<Cidades> cidades = cidadeService.findAll();
         model.addAttribute("cidades", cidades);

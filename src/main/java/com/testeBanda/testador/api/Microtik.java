@@ -18,6 +18,8 @@ public class Microtik {
 
     @Value("${testador.ip}")
     public String ip;
+    @Value("#{'${testador.notTest}'.split(',')}")
+    private List<String> notTest;
     @Value("${testador.senha}")
     public String senha;
     @Value("${testador.usuario}")
@@ -52,6 +54,13 @@ public class Microtik {
                     dataAboutTest.setCidadeEmTeste("@END");
                     desligar = false;
                     break;
+                }
+
+                else if(notTest.contains(hostEmTeste.ip)){
+                    System.out.println("Host bloqueado para teste");
+                    hostEmTeste.checkTesteBanda = true;
+                    hostEmTeste.ultimoTesteBanda = "BLOCKED";
+                    cidadeService.salvarDadosHost(hostEmTeste);
                 }
                 //inicia processo de teste
                 else {
