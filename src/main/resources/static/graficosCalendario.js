@@ -26,7 +26,11 @@ function listaCidades(){
     return Array.from(setCid).sort()
 }
 
-function cidadeAleatoria(){return listaCidades()[Math.floor(Math.random() * 181)]}
+function cidadeAleatoria(){
+    const lista = listaCidades()
+
+    return lista[Math.floor(Math.random() * lista.length)]
+}
 
 function listaTempos(quedas, cidade){
     let quedasCidade = filtraCidade(quedas, cidade)

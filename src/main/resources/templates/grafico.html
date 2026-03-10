@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Testador</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <script src="/javascript.js"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/graficos2.css}">
+
     <script th:src="@{/javascript.js}"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
     <script th:src="@{/graficosjs/graficos.js}"></script>
-    <script src="
-https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
-"></script>
-    <link rel="icon" type="image/x-icon" href="/ico.png">
+    <script th:src="@{/graficosCalendario.js}"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script src="https://unpkg.com/simple-statistics@7.8.8/dist/simple-statistics.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
 </head>
 <body>
@@ -34,10 +36,8 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
 
     <div class="nav-container">
         <nav class="navbar">
-            <div>
                 <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >
-            </div>
-            <div>
+
                 <label for="dropAno" style="display:none;">Ano: </label>
                 <select id="dropAno">
                     <option value="" selected disabled hidden>Ano</option>
@@ -45,27 +45,57 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
                             th:value="${ano}"
                             th:text="${ano}" ></option>
                 </select>
-            </div>
 
             <a href="#1">Disponibilidade</a>
-            <a href="#2">Cidades e energia</a>
+            <a href="#2">Cidades e Energia</a>
             <a href="#3">Mensal</a>
+            <a href="#4">Calendário Ano</a>
+            <a href="#5">Calendário Cidades</a>
         </nav>
 
     </div>
     <div class="content-container">
+
         <div class="centralizar" id="1">
-            <div id="chart-indisponibilidade" style="width: 50%; height: 750px"></div>
-            <div id="chart-porcentagem" style="width: 50%; height: 750px"></div>
+            <div id="chart-indisponibilidade" class="chart"></div>
+            <div id="chart-porcentagem" class="chart"></div>
         </div>
+
         <div class="centralizar" id="2">
-            <div id="chart-quedasCidades" style="width: 50%; height: 750px"></div>
-            <div id="chart-quedasCidadesEnergia" style="width: 50%; height: 750px"></div>
+            <div id="chart-quedasCidades" class="chart"></div>
+            <div id="chart-quedasCidadesEnergia" class="chart"></div>
 
         </div>
+
         <div class="centralizar" id="3">
-            <div id="chart-quedas" style="width: 100%; height: 750px"></div>
+            <div id="chart-quedas" class="chart" style="width: 100%"></div>
         </div>
+
+        <div class="centralizar chartCalendario" id="4">
+            <div id="chartQuedasPorDia" class="graficoCaledario" style="width: 80%; height: 15vw; margin-bottom:0;"></div>
+            <label id="total"></label>
+            <div class="graficosBarra">
+                <div id="tempos" class="qntQuedasBarras"></div>
+                <div id="stats" class="statsBarras"></div>
+            </div>
+        </div>
+
+        <div class="centralizar chartCalendario" id="5">
+            <div class="controle-cidade">
+                <button id="aleatoria">Aleatória</button>
+                <label for="seletorCidade">Cidade:</label>
+                <select name="cidade" id="seletorCidade"></select>
+            </div>
+
+            <div id="chartTempoPorCidade" class="graficoCaledario"></div>
+            <div id="chartQuedasPorCidade" class="graficoCaledario"></div>
+
+            <div class="graficosBarra">
+                <div id="temposCid" class="qntQuedasBarras"></div>
+                <div id="statsCid" class="statsBarras"></div>
+            </div>
+        </div>
+
     </div>
 
 </div>
@@ -81,5 +111,51 @@ https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js
         window.location.pathname = "/grafico/" + dropAno.value
     })
 </script>
+
+<script>
+
+    //  ***  Dropdown de seleção de cidades  ***
+    function fazDropCidades(){
+        let select = document.getElementById("seletorCidade")
+        const lista = listaCidades()
+
+        lista.forEach(cid => {
+            let elem = document.createElement('option')
+            elem.value = elem.innerText = cid
+            select.appendChild(elem)
+        })
+    }
+    window.addEventListener('load', fazDropCidades)
+
+    // ***  Gráficos Calendário  ***
+
+    const aleatoria = document.getElementById("aleatoria")
+    const inputCidade = document.getElementById("seletorCidade")
+    const dropAno = document.getElementById("dropAno");
+    const total = document.getElementById("total")
+
+    const anoStr = parseInt(window.location.pathname.slice(-4))
+    let anoAtual = new Date().getFullYear()
+
+    if(!Number.isNaN(anoStr)){anoAtual = anoStr}
+
+    total.innerText = "Total de quedas no ano: " + quedas.filter(q => q.data.substring(0,4) == anoAtual).length
+
+    fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, anoAtual)
+    fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
+    fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
+
+    window.addEventListener('load', () => novaCidade(cidadeAleatoria(), anoAtual))
+
+    inputCidade.addEventListener('change', () => {
+        let input = document.getElementById("seletorCidade")
+        novaCidade(input.value, anoAtual)
+    })
+
+    aleatoria.addEventListener('click', () => {
+        novaCidade(cidadeAleatoria(), anoAtual)
+    })
+</script>
+
 </body>
 </html>

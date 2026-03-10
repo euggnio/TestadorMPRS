@@ -456,9 +456,23 @@ iframe{
     background-color: white;
     margin-left: 1% ;
     height: 86vh;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
 }
 
+.chart{
+    width: 50%;
+    height: 750px;
+    margin-top: 20px;
+}
+.chartCalendario{
+    flex-direction: column;
+    background-color: #2c333c;
+}
+.controle-cidade{
+    margin: 15px 0 -10px 3em;
+    float: left;
+    width: 30em;
+}
 
 .main-container{
     display: flex;
@@ -466,22 +480,32 @@ iframe{
     padding-left: 0.5%;
     padding-right: 0.5%;
     width: 100%;
+    margin-top: 3vh;
+    scroll-margin-top: 3vh;
+    height: 100%;
+    overflow: hidden;
+
     .nav-container{
         width: 15%;
         height: 86vh;
         background-color: #222831;
+
         .navbar{
             display: grid;
             grid-template-rows: repeat(14, 1fr) ;
             gap: 1rem;
-            input{
-                width: 100% !important;
-                border-radius: 0px;
-                height: 2rem;
+            a{
+                padding-top:0.8em;
             }
-            #dropAno{
+            input, #dropAno{
+                width: 90% !important;
+                border-radius: 5px;
                 height: 2rem;
-                width: 100%;
+                margin: auto;
+                border: 1px solid #2c333c;
+            }
+            input{
+                margin-top: 1em;
             }
         }
     }
@@ -497,6 +521,10 @@ iframe{
     display: flex;
     grid-template-rows: repeat(13, 1fr) ;
     width: 99%;
+    position: fixed;
+    top: 9vh;
+    z-index: 999;
+
     .btMes{
         width: 100% !important;
         button{
@@ -511,7 +539,6 @@ iframe{
         }
     }
 }
-
 .flexContainer{
     display: flex;
     width: 100%;
