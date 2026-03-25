@@ -22,9 +22,16 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers(
+                                "/",
+                                "/grafico",
+                                "/grafico/**",
+                                "/error",
+                                "/snmpWan",
+                                "/versao"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/configuracao").permitAll()
-                        .requestMatchers("/", "/grafico", "/error").permitAll()
-                                .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .permitAll()
@@ -53,6 +60,22 @@ public class WebSecurityConfig {
 
     @Bean
     WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().requestMatchers("/style.css","/static/**","/img.png","/backgroundLogin1.jpg"));
+        return (web -> web.ignoring()
+                .requestMatchers(
+                        "/style.css"
+                        ,"/static/**"
+                        ,"/img.png"
+                        ,"/backgroundLogin1.jpg"
+                        ,"/grafico"
+                        ,"/versao"
+                        ,"/grafico/**"
+                        ,"/snmpWan",
+                        "/",
+                        "/javascript.js",
+                        "/graficosjs/**",
+                        "/graficosCalendario.js",
+                        "/graficos2.css",
+                        "/favicon.ico"
+                ));
     }
 }

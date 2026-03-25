@@ -11,6 +11,7 @@ import com.testeBanda.testador.utils.Calculos;
 import com.testeBanda.testador.utils.QuedaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -29,7 +30,8 @@ public class QuedaService {
     private final NagiosAPI nagiosAPI;
     private final GlpiService glpiService;
     private final QuedaUtils quedaUtils;
-
+    @Value("${glpi.glpiBlockAbertura}")
+    private boolean glpiBloqueado;
 
     public QuedaService(NagiosAPI nagiosAPI, CidadeService cidadeService, GlpiAPI glpiAPI, QuedaRepository quedaRepository, GlpiService glpiService, QuedaUtils quedaUtils) {
         this.nagiosAPI = nagiosAPI;
@@ -165,8 +167,10 @@ public class QuedaService {
                 if (quedaUtils.comparaQuedas(quedaRecente, quedaBanco)) {
                     match = true;
 
-                    resolveQueda(quedaBanco, quedaRecente); // quedas que estavam sem UP, recebem tempo de duração
-                    //abreGLPI(quedaBanco, quedaRecente);   // abre GLPI para quedas em andamento com mais de 10min
+                    resolveQueda(quedaBanco, quedaRecente);
+                    if(!glpiBloqueado) {
+                        abreGLPI(quedaBanco, quedaRecente);
+                    }
                 }
             }
             if (!match) {
@@ -180,7 +184,7 @@ public class QuedaService {
         if (quedaBanco.getTempoFora() == Duration.ZERO && quedaBanco.getChamado().isBlank()) {
             Duration tempoDaQueda = Duration.between(quedaBanco.getData(), LocalDateTime.now());
             if (tempoDaQueda.toSeconds() > 600 && quedaUtils.horarioDeAbrirGlpi()) {
-                //glpiService.abrirChamado(quedaBanco.getId());
+                glpiService.abrirChamado(quedaBanco.getId());
             }
         }
     }
@@ -192,7 +196,7 @@ public class QuedaService {
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             quedaRepository.saveAndFlush(quedaBanco);
             if (!quedaBanco.getChamado().isBlank()) {
-                //glpiService.fecharChamado(quedaBanco.getId(), "");
+                glpiService.fecharChamado(quedaBanco.getId(), "");
             }
         }
     }

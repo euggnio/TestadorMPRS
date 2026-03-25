@@ -546,9 +546,9 @@ iframe{
     height: 80rem;
     justify-content: center;
     .flexItem{
-        width: 85%;
+        width: 50%;
         height: 90vh;
-        margin: 0 1em;
+        transition: 1s;
         max-height:100%;
         .city{
             width: 100% !important;
@@ -558,8 +558,9 @@ iframe{
         }
 
     }
-    .flexItem40{
-        width: 75%;
+    .flexItem100{
+        width: 100%;
+        transition: 1s;
         height: 91vh;
     }
     .protocolo{

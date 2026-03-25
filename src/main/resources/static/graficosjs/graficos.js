@@ -238,6 +238,7 @@ function graficoDeAlertasPorCidadeEMes() {
     }
 
     totalEnergiaGeral = totalEnergiaPorMes.reduce((acc, curr) => acc + curr, 0);
+    const quedasTotais = totaisDeQuedasPorMes.reduce((a, b) => a + b, 0);
 
     const series = cidades.map(cidade => {
         return {
@@ -339,12 +340,17 @@ function graficoDeAlertasPorCidadeEMes() {
     //criamos um objeto com nome e total, filtrando quantas vezes aparece a cidade no filtrados.
     const cidadesOrdenadasObj = cidades.map(cidade => ({
         cidade,
-        total: quedasFiltrados.filter(q => q.nomeCidade === cidade).length
-    }))
-        .sort((a, b) => b.total - a.total);
+        total: quedasFiltrados.filter(a =>
+            a.nomeCidade === cidade &&
+            (mes === "todos" || a.mes === mes.slice(0, 3))
+        ).length
+    })).sort((a, b) => b.total - a.total);
     //separamos com base nos dados do objeto
     const cidadesOrdenadas = cidadesOrdenadasObj.map(obj => obj.cidade);
     const totaisOrdenados = cidadesOrdenadasObj.map(obj => obj.total);
+    console.log(cidadesOrdenadasObj);
+    console.log(quedasFiltrados);
+    console.log(mes);
 
     var chartDom2 = document.getElementById('chart-quedasCidades');
     var myChart2 = echarts.init(chartDom2);
@@ -436,12 +442,11 @@ function graficoDeAlertasPorCidadeEMes() {
                     position: 'inside',
                     formatter: '{b}\n{d}%',
                     fontSize: 15,       // Tamanho do texto maior
-                    fontWeight: 'bold', // Negrito
-                    color: '#fff'       // Cor branca para destacar sobre o colorido
+                    fontWeight: 'bold', // Negrito              color: '#fff'       // Cor branca para destacar sobre o colorido
                 },
                 data: [
                     {value: totalEnergiaGeral, name: 'Energia'},
-                    {value: 11}
+                    {value:  quedasTotais - totalEnergiaGeral},
                 ]
             }
         ]

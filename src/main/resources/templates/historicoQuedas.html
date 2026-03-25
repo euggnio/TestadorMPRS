@@ -22,7 +22,28 @@
     <img th:src="@{\info.png}" alt="info" class="infoBtn" onclick="showInfo('quedas')">
 
     <div class="flexContainer">
-        <div id="nagmap" class="flexItem40" style="display:none;">
+        <div id="nagmap" class="flexItem" style="display:none;">
+            <script th:inline="javascript">
+                function expandirMapa(){
+                    var map = document.getElementById('nagmap');
+                    var lista = document.getElementById('listaQuedas');
+
+                    if(lista.style.width === '1%'){
+                        lista.style.width = '50%';
+                        lista.style.visibility = '';
+                        map.className = 'flexItem';
+                    }else{
+                        lista.style.width = '1%';
+                        lista.style.visibility = 'hidden';
+                        map.className = "flexItem100";
+                    }
+                }
+            </script>
+            <button style="height: 32px;background-color: #9900ff;position: absolute;left: 50%;top:1%;transform: translate(-50%,-50%);"
+            onclick="expandirMapa()">
+                <span>Expandir</span>
+
+            </button>
             <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2.1/" title="description" class="iframeNagmap"></iframe>
         </div>
         <div id="listaQuedas" class="flexItem">
