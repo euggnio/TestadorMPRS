@@ -43,13 +43,13 @@ public class CidadeController {
 
     @GetMapping("/unidade/{city}")
     public String unidade(@PathVariable String city, Model model) {
-        Cidades cidade = cidadeService.findById(city);
+        Cidades cidade = cidadeService.findByNagios(city);
 
+        System.out.println(cidade);
         if ( cidade == null) {
-            cidade = new Cidades();
-            cidade.nome = "Canoas";
-            cidade.smokeID = "Canoas";
+            cidade = cidadeService.findById(city);
         }
+
         String cacti = graficoService.cacti(cidade.cacti);
         String smoke = graficoService.pegarUnidadeSmoke(cidade.smokeID);
 

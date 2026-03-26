@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @Service
 public class CidadeService {
@@ -41,6 +43,19 @@ public class CidadeService {
 
     public Cidades findById(String id) {
         return  cidadesRepository.findById(id).get();
+    }
+
+    public Cidades findByNagios(String nagiosId) {
+        Optional<Cidades> cid = cidadesRepository.findByNagiosIDEqualsIgnoreCase(nagiosId);
+
+        System.out.println(cid);
+
+        if(cid.isPresent()){
+            return cid.get();
+        }else{
+            return null;
+        }
+
     }
 
     public void salvarCidade(Cidades cidade) {
