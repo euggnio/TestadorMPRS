@@ -181,7 +181,7 @@ public class GlpiAPI {
         String uri = TicketUrl + "/" + ticket +"/ITILFollowup";
         HttpResponse<String> response = sendHttp(uri,"", "GET", false);
         ArrayList<String> followups = new ArrayList<>();
-        if( response.statusCode() != 200 ) {
+        if( response.statusCode() != 200 && response.statusCode() != 206) {
             log.error("Falha na captura de followups do ticket {}", ticket);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falha na captura de followups");
         }

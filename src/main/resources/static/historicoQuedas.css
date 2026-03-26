@@ -185,8 +185,12 @@
 }
 
 .quedasComMapa{
-    width: 60%;
+    width: 55% !important;
+    margin: 0 10px;
   }
+.quedasSemMapa{
+    width: 75% !important;
+}
 
 .controleGLPI{
     white-space: nowrap;
@@ -213,6 +217,28 @@
     margin-left: auto;
     margin-bottom: 1em;*/
     margin: 1.5em auto;
+}
+
+.expandirMapa{
+    height: 32px;
+    background-color: #b647ff;
+    position: absolute;
+    left: 50%;
+    top:1%;
+    transform: translate(-50%,-50%);
+    filter: opacity(0.7);
+}
+.expandirMapa:hover{
+    filter: opacity(1);
+    background-color: #b647ff !important;
+}
+
+#diaDaSemana{
+    font-size: 0.9em;
+    color: #c3c3c3;
+    width: 12em;
+    text-align: left;
+    margin: auto;
 }
 
 @media only screen and (max-width: 1200px) {

@@ -17,8 +17,8 @@ window.onload = async function() {
     carregarResultados()
 };
 
-function atribuir() {
-    const at = document.getElementById("atribuidor");
+function atribuir(elem) {
+    const at = document.getElementById("atribuidor" + elem.dataset.id);
     if (!at) return;
 
     const isHidden = window.getComputedStyle(at).display === "none";
@@ -47,7 +47,7 @@ document.addEventListener("click", function (event) {
 
 
 function getGraficoSmoke(smokeid) {
-    const container = document.getElementById(smokeid.dataset.cidade);
+    const container = document.getElementById(smokeid.dataset.cidade + smokeid.dataset.id);
     // Adicione a barra inicial para garantir que comece da raiz do contexto
     container.src = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif"
     fetch(`/pegarGraficoSmoke/` + smokeid.dataset.cidade)

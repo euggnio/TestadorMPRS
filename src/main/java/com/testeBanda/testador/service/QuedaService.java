@@ -195,7 +195,7 @@ public class QuedaService {
             quedaBanco.setUptime(quedaRecente.getUptime());
             log.info("Resolvendo queda com TempoFora e Uptime: {}", quedaBanco);
             quedaRepository.saveAndFlush(quedaBanco);
-            if (!quedaBanco.getChamado().isBlank()) {
+            if (!quedaBanco.getChamado().isBlank() && !glpiBloqueado) {
                 glpiService.fecharChamado(quedaBanco.getId(), "");
             }
         }

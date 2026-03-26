@@ -3,32 +3,45 @@ let url = '';
 function abrirModal(acionador) {
     url = acionador.dataset.endpoint + '/' + acionador.dataset.id;
     abrir = acionador.dataset.abrir;
+    let modalValor = document.getElementById("modalValor")
     if(abrir === "false"){
         if (acionador.dataset.dado !== undefined){
-            document.getElementById("modalValor").value = acionador.dataset.dado;
+            modalValor.value = acionador.dataset.dado;
         }else{
-            document.getElementById("modalValor").value = acionador.dataset.id;
-
+            modalValor.value = acionador.dataset.id;
         }
-        document.getElementById("modalValor").readOnly = true;
-        document.getElementById("modalValor").style.display= "none";
+        modalValor.readOnly = true;
+        modalValor.style.display= "none";
     }
     else{
-        document.getElementById("modalValor").readOnly = false;
-        document.getElementById("modalValor").style.display= "flex";
-        document.getElementById("modalValor").value = "";
+        modalValor.readOnly = false;
+        modalValor.style.display= "flex";
+        modalValor.value = "";
+
     }
     const modal = document.getElementById('inputModal')
     document.getElementById('titleModal').innerHTML = acionador.dataset.acao;
     document.getElementById('titleModal').style.color = "black";
     modal.style.display = "flex";
-    modal.onclick = (e) => { if(e.target === modal) fecharModal(); };
+
+    modalValor.focus()
+    document.addEventListener('keyup', enterEnvia, false);
+    modal.onclick = (e) => { if(e.target === modal && e.code !== 'Enter') fecharModal();};
+}
+
+function enterEnvia(e) {
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+        enviarModal();
+    }
+    e.preventDefault();
+    return false;
 }
 
 function fecharModal() {
     const modal = document.getElementById("inputModal");
     modal.style.display = "none";
     url = '';
+    document.removeEventListener('keyup', enterEnvia, false);
 }
 
 function enviarModal() {
@@ -111,6 +124,8 @@ function showPopup(title, message) {
 
     document.body.appendChild(popup);
 
+    document.removeEventListener('keyup', enterEnvia, false);
+
     const closePopup = () => {
         if (popup) popup.remove();
         document.removeEventListener("click", closePopup);
@@ -119,7 +134,8 @@ function showPopup(title, message) {
 
     setTimeout(() => {
         document.addEventListener("click", closePopup);
+        document.addEventListener("keyup", closePopup);
     }, 50);
 
-    setTimeout(closePopup, 12000);
+    setTimeout(closePopup, 4000);
 }

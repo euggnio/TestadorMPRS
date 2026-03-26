@@ -4,6 +4,7 @@ body {
     background-color: rgb(44, 51, 60) !important;
     margin: 0px;
     color: #c3c3c3;
+    overflow-x: hidden;
     a {
         text-decoration: none;
         color: #f1f1f1;
@@ -547,7 +548,7 @@ iframe{
     justify-content: center;
     .flexItem{
         width: 50%;
-        height: 90vh;
+        height: 91vh;
         transition: 1s;
         max-height:100%;
         .city{
@@ -610,7 +611,7 @@ iframe{
     border: none !important;
 }
 
-#atribuidor{
+.atribuidor{
     position: absolute;
     display: none;
     width: 200px;
@@ -703,14 +704,15 @@ iframe{
     position: fixed;
     top:   1vw;
     right: 1vw;
-    width: 35px;
+    width: 40px;
     z-index: 999;
-    transition: transform 2s;
+    transition: transform 0.5s;
+    filter: drop-shadow(1px 1px 3px rgba(0, 173, 181));
 }
 
 .infoBtn:hover{
     cursor: pointer;
-    transform: scale(120%);
+    transform: scale(130%);
 }
 
 .popup-content{

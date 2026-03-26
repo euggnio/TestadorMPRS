@@ -160,7 +160,17 @@ function countLines(){
     let newArr = []
     newArr = arr.filter(e => {return e.getElementsByClassName("checkFaltaDeLuz")[0].getAttribute("value") == "true"})
 
-    count.innerHTML = "Total de Quedas: " + (arr.length)
+    let diaLabel = document.getElementById("diaDaSemana");
+    let dia = new Date(calendario.value);
+    let diaDaSemana = dia.toLocaleString("pt-BR", {weekday: "long"});
+    if(!window.location.pathname.includes("mes")){
+        diaLabel.innerHTML = " " + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1)
+    }
+    if(dia.getDay() == 0 || dia.getDay() == 6){ // sabado e domingo fica azul
+        diaLabel.style.color = "rgb(91, 191, 215)"
+    }
+
+    count.innerHTML += "Total de Quedas: " + (arr.length)
                        + "<br>Queda de Luz: " + newArr.length
 }
 
@@ -218,8 +228,48 @@ function showMap(){
 
         let lista = document.getElementById("listaQuedas")
         lista.classList.add("quedasComMapa")
+        lista.classList.remove("quedasSemMapa")
     }
 }
+
+function expandirMapa(){
+    let map = document.getElementById('nagmap');
+    let lista = document.getElementById('listaQuedas');
+    let btntxt = document.getElementById('expandirTexto')
+
+    if(lista.style.width === '1%'){
+        lista.style.width = '50%';
+        lista.style.filter = 'opacity(1)';
+        lista.style.visibility = '';
+        map.className = 'flexItem';
+        btntxt.innerHTML = 'Expandir'
+    }else{
+        lista.setAttribute('style', 'width: 1% !important');
+        lista.style.filter = 'opacity(0)';
+        lista.style.visibility = 'hidden';
+        map.className = "flexItem100";
+        btntxt.innerHTML = 'Recolher'
+    }
+}
+
+function setasTeclado(e) {
+    if( e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA" ) return;
+    if( e.target.isContentEditable ) return;
+
+    if(e.code === 'ArrowRight'){
+        setasData(1);
+    }
+    if(e.code === 'ArrowLeft'){
+        setasData(-1);
+    }
+    if(e.code === 'Home'){
+        diaHoje();
+    }
+    if(e.code === 'KeyX'){
+        expandirMapa();
+    }
+}
+document.addEventListener('keyup', setasTeclado);
 
 window.addEventListener('DOMContentLoaded', dadosSalvos);
 
