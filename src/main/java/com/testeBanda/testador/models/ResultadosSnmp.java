@@ -13,8 +13,11 @@ public class ResultadosSnmp {
     private Stack<double[]> dados = new Stack<>();
     private double rx;
     private double tx;
+    private double loss;
+    private String smokeID;
 
-    public ResultadosSnmp(String ip, int velocidade) {
+    public ResultadosSnmp(String ip, int velocidade, String smokeID) {
+        this.smokeID = smokeID;
         this.ip = ip;
         this.velocidade = velocidade;
     }
@@ -22,6 +25,10 @@ public class ResultadosSnmp {
     public void adicionaDados(double[] valores) {
         this.dados.add(valores);
 
+    }
+
+    public void adicionarLoss(double loss ){
+        this.loss = loss;
     }
 
     public void somarDados() {

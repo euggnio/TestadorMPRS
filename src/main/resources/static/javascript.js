@@ -1,5 +1,23 @@
 
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM pronto");
+});
 
+window.addEventListener("load", () => {
+    const loader = document.getElementById("loader");
+
+    // fade out
+    loader.classList.add("hidden");
+
+    // remove do DOM depois da animação
+    setTimeout(() => {
+        loader.remove();
+    }, 500);
+});
+
+document.onreadystatechange = () => {
+    console.log("Estado:", document.readyState);
+};
 
 window.onload = async function() {
     await document.querySelectorAll(".conteudo-container").forEach(td => {

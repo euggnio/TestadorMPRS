@@ -816,6 +816,46 @@ iframe{
     }
 }
 
+/* Tela de carregamento */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: #0f172a; /* fundo escuro moderno */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+/* Spinner */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(255,255,255,0.2);
+    border-top: 6px solid #38bdf8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Animação */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Esconder com fade */
+#loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 
 
 /*

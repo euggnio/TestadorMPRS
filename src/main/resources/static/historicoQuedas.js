@@ -5,6 +5,7 @@ let dropMes = document.getElementById("dropMes");
 let calendario = document.getElementById("calendario");
 let switcher = document.getElementById("toggle-switch");
 
+
 function dadosSalvos() {
     const hoje = new Date();
 
@@ -161,7 +162,7 @@ function countLines(){
     newArr = arr.filter(e => {return e.getElementsByClassName("checkFaltaDeLuz")[0].getAttribute("value") == "true"})
 
     let diaLabel = document.getElementById("diaDaSemana");
-    let dia = new Date(calendario.value);
+    let dia = new Date(calendario.value + "T00:00:00.000-03:00");
     let diaDaSemana = dia.toLocaleString("pt-BR", {weekday: "long"});
     if(!window.location.pathname.includes("mes")){
         diaLabel.innerHTML = " " + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1)

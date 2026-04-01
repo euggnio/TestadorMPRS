@@ -4,6 +4,7 @@ import ch.qos.logback.core.util.FixedDelay;
 import com.testeBanda.testador.api.SnmpWanMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class SchedulerService {
     @Autowired
     private TesterService testerService;
-
     @Autowired
     private QuedaService quedaService;
-
     @Autowired
     private SnmpWanMonitor monitor;
 
@@ -46,9 +45,10 @@ public class SchedulerService {
         quedaService.atualizaQuedas();
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${snmp.tempoCiclo}")
     private void rodarSnmp(){
         log.debug(" == ATUALIZANDO SNMP == ");
+        monitor.setHostLoss();
         monitor.run();
     }
 

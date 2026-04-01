@@ -1,9 +1,12 @@
 package com.testeBanda.testador.api;
 
-import com.sun.management.OperatingSystemMXBean;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.ResultadosSnmp;
 import com.testeBanda.testador.service.CidadeService;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
@@ -11,10 +14,13 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,9 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SnmpWanMonitor {
 
+    private final HttpClient httpClient;
     private static final String COMMUNITY = "public";
-    private static final int TIMEOUT = 3000;
-    private final int recheckWanIndexCacheCicles = 10000;
+
+    @Value("${snmp.timeout}")
+    private int TIMEOUT;
+    @Value("${snmp.recheckWanCicles}")
+    private int recheckWanIndexCacheCicles;
     private int recheckCounter;
 
     private static final OID OID_IF_NAME = new OID("1.3.6.1.2.1.31.1.1.1.1");
@@ -35,22 +45,24 @@ public class SnmpWanMonitor {
 
     // cache ip -> ifIndex WAN
     //Utilizamos o cache para n ficar identificando a interface, diminuindo o numero de requisiçoes
-    private Map<String,Integer> wanIndexCache = new ConcurrentHashMap<>();
+    private final Map<String,Integer> wanIndexCache = new ConcurrentHashMap<>();
 
     // cache ultima leitura
-    private Map<String,Long> lastRx = new ConcurrentHashMap<>();
-    private Map<String,Long> lastTx = new ConcurrentHashMap<>();
-    private Map<String,Long> lastTime = new ConcurrentHashMap<>();
+    private final Map<String,Long> lastRx = new ConcurrentHashMap<>();
+    private final Map<String,Long> lastTx = new ConcurrentHashMap<>();
+    private final Map<String,Long> lastTime = new ConcurrentHashMap<>();
 
     //Incrivel contador para a média de tráfego.
-    private final int maxCiclos = 12;
+    @Value("${snmp.ciclos}")
+    private int maxCiclos;
 
     public List<ResultadosSnmp> resultados = new ArrayList<>();
     @Autowired
-    public SnmpWanMonitor(CidadeService cidadeService) {;
+    public SnmpWanMonitor(CidadeService cidadeService, HttpClient httpClient) {
+        this.httpClient = httpClient;
         List<Cidades> cidades = cidadeService.findAll();
         for (Cidades cidade : cidades) {
-            resultados.add(new ResultadosSnmp(cidade.getIp(), cidade.getVelocidadeInteger()));
+            resultados.add(new ResultadosSnmp(cidade.getIp(), cidade.getVelocidadeInteger(),cidade.getSmokeID()));
         }
         this.recheckCounter = this.recheckWanIndexCacheCicles;
         this.init();
@@ -68,9 +80,8 @@ public class SnmpWanMonitor {
     }
 
     //aqui geramos a requisição snmp para o ip x.
-    private CommunityTarget createTarget(String ip){
-        CommunityTarget target = new CommunityTarget();
-
+    private CommunityTarget<Address> createTarget(String ip){
+        CommunityTarget<Address> target = new CommunityTarget<>();
         target.setCommunity(new OctetString(COMMUNITY));
         target.setAddress(GenericAddress.parse("udp:"+ip+"/161"));
         target.setTimeout(TIMEOUT);
@@ -98,17 +109,15 @@ public class SnmpWanMonitor {
         pdu.setMaxRepetitions(20);
         pdu.setNonRepeaters(0);
         //criamos a requisição para a rb x que precisamos descobrir a interface wan
-        CommunityTarget target = createTarget(ip);
+        CommunityTarget<Address> target = createTarget(ip);
 
         while(true){
 
-            ResponseEvent event = snmp.send(pdu,target);
+            ResponseEvent<Address> event = snmp.send(pdu,target);
 
             if(event.getResponse()==null) {
-
                 System.out.println("Timeout WALK "+ip);
                 return null;
-
             }
 
             PDU response = event.getResponse();
@@ -144,18 +153,16 @@ public class SnmpWanMonitor {
     // ------------------------
 
     private void getTraffic(ResultadosSnmp data, int index) throws Exception {
-
         OID in = new OID(OID_IN).append(index);
         OID out = new OID(OID_OUT).append(index);
 
         PDU pdu = new PDU();
-
         pdu.add(new VariableBinding(in));
         pdu.add(new VariableBinding(out));
 
         pdu.setType(PDU.GET);
 
-        ResponseEvent event = snmp.send(pdu,createTarget(data.getIp()));
+        ResponseEvent<Address> event = snmp.send(pdu,createTarget(data.getIp()));
 
         if(event.getResponse()==null){
 
@@ -183,15 +190,10 @@ public class SnmpWanMonitor {
             double rxMbps = (deltaRx*8.0)/(deltaTime*1000);
             double txMbps = (deltaTx*8.0)/(deltaTime*1000);
 
-
-
-
-
-
-            if ( data.getDados().size() >= maxCiclos ){
+            if ( data.getDados().size() > maxCiclos ){
                 data.removerDados();
-                data.somarDados();
             }
+                data.somarDados();
                 data.adicionaDados(new double[]{rxMbps,txMbps});
 
             }
@@ -205,7 +207,6 @@ public class SnmpWanMonitor {
     // ------------------------
     // LOOP
     // ------------------------
-
     public void run(){
         recheckCounter--;
         //verificar se o cache está vazio
@@ -218,10 +219,7 @@ public class SnmpWanMonitor {
                 } catch (Exception e) {
                     log.debug("ERRO ao gerar cache de WAN : " + e.getMessage());
                 }
-                //caso o index não for nulo ele irá sobrescrever o -1.
-                wanIndexCache.put(ip.getIp(), -1);
-                if(index!=null)
-                    wanIndexCache.put(ip.getIp(),index);
+                wanIndexCache.put(ip.getIp(), Objects.requireNonNullElse(index, -1));
             }
 
             System.out.println("\nCache WAN:");
@@ -229,10 +227,6 @@ public class SnmpWanMonitor {
             System.out.println("Resetando recheck WAN IndexCache");
             recheckCounter = recheckWanIndexCacheCicles;
         }
-
-        System.out.println("\nIniciando monitoramento...\n");
-        System.out.println("Dados " + resultados.getFirst().getDados().size());
-            long start = System.currentTimeMillis();
 
             resultados.parallelStream().forEach((resultado)->{
                 try {
@@ -246,57 +240,48 @@ public class SnmpWanMonitor {
                     log.error("ERRO ao pegar trafego de IP {}: {}", resultado.getIp(), e.getMessage());
                 }
             });
-
-            long end = System.currentTimeMillis();
-            double seconds = (end - start) / 1000.0;
-
-            System.out.printf("\nTempo do loop: %.3f segundos\n", seconds);
-            printSystemStats();
-            System.out.println("Aguardando monitoramento... 5s\n");
-            System.out.println("Tempo até recheck: " + recheckCounter + " ciclos\n");
-
     }
 
-    private void printSystemStats(){
-
-        Runtime runtime = Runtime.getRuntime();
-
-        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-        long usedMB = usedMemory / (1024*1024);
-
-        OperatingSystemMXBean osBean =
-                (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-
-        double cpu = osBean.getProcessCpuLoad()*100;
-
-        System.out.printf(
-                "CPU: %.2f%% | RAM: %d MB\n",
-                cpu,
-                usedMB
-        );
-    }
-
+    @PreDestroy
     public void close() throws IOException {
         snmp.close();
     }
 
+    private String lastModifiedDate = null;
+    public  void setHostLoss(){
+        URI url = URI.create("http://zeus.mp.rs.gov.br/loss.json");
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(url)
+                .header("If-Modified-Since", lastModifiedDate != null ? lastModifiedDate : "")
+                .GET()
+                .build();
+        HttpResponse<String> response = null;
+        Map<String,Double> hosts;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 304) {
+                return;
+            }
+            response.headers().firstValue("Last-Modified").ifPresent(date -> lastModifiedDate = date);
+            JsonNode json = new ObjectMapper().readTree(response.body());
+            JsonNode node = json.get("hosts");
+            ObjectMapper mapper = new ObjectMapper();
+            hosts = mapper.convertValue(node, new TypeReference<Map<String,Double>>(){});
+        } catch (IOException | InterruptedException e) {
+            log.error("ERRO ao pegar dados de LOSS: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+        resultados.forEach(resultado->{
+            double loss = hosts.get(resultado.getSmokeID());
+            resultado.adicionarLoss(loss);
+        });
+    }
 
-    public static void main(String[] args) {
 
-        Stack<Integer> pilha = new Stack<>();
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-        pilha.push(1);
-        pilha.add(2);
-        pilha.add(3);
-        pilha.add(4);
-        pilha.add(5);
-        pilha.add(6);
 
-        System.out.println("Pilha inicial: " + pilha);
 
-        int removido = pilha.removeFirst();
-
-        System.out.println("Elemento removido com pop(): " + removido);
-        System.out.println("Pilha após pop(): " + pilha);
     }
 }

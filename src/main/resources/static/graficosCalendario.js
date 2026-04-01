@@ -1,10 +1,4 @@
 
-// const quedas -> deve ser definido em tag inline do template html assim:
-//
-//  <script type="text/javascript" th:inline="javascript">
-//      const quedas = /*[[${quedas}]]*/ null;
-//  </script>
-
 function mapaDeQuedasNum(quedas){
     let mapa = new Map()
     quedas.forEach((queda) => {
@@ -14,6 +8,8 @@ function mapaDeQuedasNum(quedas){
 
     return mapa
 }
+
+
 
 function filtraCidade(quedas, cidade){
     return quedas.filter((queda) => queda.nomeCidade == cidade)

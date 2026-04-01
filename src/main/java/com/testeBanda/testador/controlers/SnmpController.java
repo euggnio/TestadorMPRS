@@ -23,7 +23,6 @@ public class SnmpController {
     @GetMapping("/snmpWan")
     @ResponseBody
     public List<ResultadosSnmp> getSnmpList2(){
-        System.out.println("getSnmpList2");
         return monitor.resultados;
     }
 

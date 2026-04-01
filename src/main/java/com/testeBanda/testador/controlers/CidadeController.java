@@ -45,7 +45,6 @@ public class CidadeController {
     public String unidade(@PathVariable String city, Model model) {
         Cidades cidade = cidadeService.findByNagios(city);
 
-        System.out.println(cidade);
         if ( cidade == null) {
             cidade = cidadeService.findById(city);
         }
