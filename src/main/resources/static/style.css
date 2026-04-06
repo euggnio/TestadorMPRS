@@ -123,7 +123,7 @@ table {
     list-style: none;
     display: none;
     position: absolute;
-    background-color: #00ADB5;
+    background-color: #11bc7a;
 }
 
 .dadosAtual{
@@ -136,8 +136,8 @@ th, td {
 
 
 .centro{
-    width: 75%;
-    margin-left: 25%;
+    width: 70%;
+    margin-left: 30%;
     display: flex;
     justify-content: space-around;
 }
@@ -576,14 +576,16 @@ iframe{
 
 #graficoCacti{
     img{
-        border-radius: 15px;
+        border-radius: 10px;
+        width: 90%;
     }
 }
 #graficoSmoke{
     img{
-        border-radius: 8px;
+        border-radius: 10px;
         background-color: #f3f3f3;
         padding-top: 15px;
+        width: 90%;
     }
 }
 
@@ -773,9 +775,81 @@ iframe{
     a{
        padding: 0;
        color: #11bc7a;
-       text-weight: bold;
+       font-weight: bold;
     }
 }
+
+#btnListaSW{
+    width: 10em;
+}
+
+.listaSwitches{
+    position: relative;
+    text-align: center;
+}
+
+.dadosUnidade{
+    tr{
+        border-bottom: 1px solid #393e46;
+    }
+
+    tr:last-child{
+        border: none;
+    }
+}
+
+.listOfSwitches{
+    margin: auto;
+    width: 400px;
+    /*display: none;*/
+    position: absolute;
+    z-index: 9999;
+    border-radius: 5px;
+
+    .switchName{
+        font-size: 0.8em;
+    }
+
+    tr{
+        border: 1px solid #222831 !important;
+        background-color: #393e46;
+        border-radius: 5px;
+    }
+
+    tr td:nth-child(1) {
+        width: 7em;
+    }
+    tr td:nth-child(2) {
+        width: auto;
+        padding: 6px;
+        min-width: 20em;
+    }
+}
+
+.hideList{
+    display: none;
+}
+
+.tooltip{
+    color: #00adb5;
+    font-weight: bold;
+    text-decoration: underline !important;
+    padding: 2px;
+}
+#chartQuedasPorCidade, .calendarioUnidades{
+    /* tooltip calendario */
+    div:last-child{
+        padding: 10px 18px !important;
+    }
+}
+
+.calendarioUnidades{
+    width: 35vw;
+    height: 215px;
+    margin:auto;
+    margin-bottom: 30px;
+}
+
 
 @media only screen and (max-width: 1200px) {
     .menu{

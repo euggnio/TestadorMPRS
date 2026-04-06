@@ -21,14 +21,13 @@
             text-decoration: none;
             color: #00adb5;
         }
-        .tooltip{
-            color: #00adb5;
-            font-weight: bold;
-            text-decoration: underline !important;
-        }
         #filtroCidade{
             margin-top: 20px;
             border: solid 2px gray;
+        }
+        h2{
+            margin-top: 23px;
+            margin-bottom: 3px;
         }
     </style>
 </head>
@@ -39,7 +38,7 @@
 
 
     <div class="centro">
-        <h2>🌐 DADOS CIDADE DE <span th:text="${cidade.nome}"></span></h2>
+        <h2>🌐 DADOS <span th:text="${cidade.nome}"></span></h2>
         <div style="white-space: nowrap;">
             <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
             <ul id="listaCidades" class="listaCidades">
@@ -53,7 +52,7 @@
                 const lista = document.getElementById("listaCidades");
                 busca = input.value.toLowerCase();
                 if (busca.length > 0) {
-                    const filtradas = nomeCidades.filter(c => c.toLowerCase().includes(busca));
+                    const filtradas = nomeCidades.filter(c => limpaAcentos(c.toLowerCase()).includes(busca));
                     atualizarLista(filtradas);
                     lista.style.display = "block"; // mostra a lista
                 } else {
@@ -96,7 +95,7 @@
             <table class="city-auto" id="dataTable">
                 <thead>
                     <tr>
-                        <th>CIDADE</th>
+                        <th>DADOS CIDADE</th>
                         <th> CACTI - BANDA &nbsp;
                             <a class="links" target="_blank" th:href=" 'http://linux61.mp.rs.gov.br/cacti/graph.php?local_graph_id=' + ${cidade.cacti} + '&rra_id=0' ">[link]</a>
                         </th>
@@ -106,13 +105,7 @@
                     <tr>
                         <td>
                             <table>
-                                <thead>
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>Dados</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                                <tbody class="dadosUnidade">
                                     <tr>
                                         <td>Cidade</td>
                                         <td th:text="${cidade.nome}"></td>
@@ -130,16 +123,23 @@
                                         <td th:text="${cidade.ip}"></td>
                                     </tr>
                                     <tr>
-                                        <td>SIGLA</td>
+                                        <td>Sigla</td>
                                         <td th:text="${cidade.codigo}"></td>
                                     </tr>
                                     <tr>
-                                        <td>INTRA</td>
-                                        <td><a th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"><span th:text="${cidade.intra}"></span></a> </td>
+                                        <td>Intra</td>
+                                        <td><a target="_blank" th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"><span th:text="${cidade.intra + '⤴'}"></span></a> </td>
                                     </tr>
                                     <tr>
-                                        <td>Smoke</td>
-                                        <td th:text="${cidade.smokeID}"></td>
+                                        <td>Teste de Banda</td>
+                                        <td><a target="_blank" th:href="@{/cidadesBanda?cidade={nome}(nome=${cidade.nome})}">TESTAR⤴</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Switches</td>
+                                        <td id="listaSwitches">
+                                            <label th:if="${cidade.intra == '96'}">N/A</label>
+                                            <button th:if="${cidade.intra != '96'}" id="btnListaSW" onclick="abreListaSW()">Abrir Lista ˅</button>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -155,12 +155,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>
-                            <div id="chartQuedasPorCidade" style="width: 95%; height: 215px; margin:auto; margin-bottom: 30px"></div>
+<!--                            <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>-->
+                            <div id="chartQuedasPorCidade" style="width: 100%; height: 300px; margin:auto;margin-left: 1.3em;"></div>
                         </td>
                         <td id="graficoSmoke">
-                            <img th:src="${smoke}"
-                             width="100%" alt="Gráfico Smoke">
+                            <img th:src="${smoke}" alt="Gráfico Smoke">
                         </td>
                     </tr>
                 </tbody>
@@ -169,41 +168,18 @@
     <script type="text/javascript" th:inline="javascript">
         const quedas = /*[[${quedas}]]*/ null;
         const nomeCidade = /*[[${cidade.nagiosID}]]*/ null;
+        const intraCidade = /*[[${cidade.intra}]]*/ null;
     </script>
     <script th:src="@{/graficosCalendario.js}"></script>
     <script>
         //  ***  Graficos de Calendario  ***
         let anoAtual = new Date().getFullYear()
-        fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, nomeCidade, anoAtual)
+        //fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, nomeCidade, anoAtual)
         fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, nomeCidade, anoAtual)
-    </script>
 
-    <script>
-        function filterTable() {
-            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
-            let input = document.getElementById("search");
-            let filter = input.value.toLowerCase();
-            // pegamos a tabela as linhas
-            let table = document.getElementById("dataTable");
-            let tr = table.getElementsByTagName("tr");
-            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
-            for (let i = 2; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td");
-                let match = false;
-                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        let textValue = td[j].textContent || td[j].innerText;
-                        if (textValue.toLowerCase().indexOf(filter) > -1) {
-                            match = true;
-                            break;
-                        }
-                    }
-                }
-                //esconde ou mostra linhas da tabela com base no match.
-                tr[i].style.display = match ? "" : "none";
-            }
-        }
+        window.addEventListener('load', () => {
+            getSwitchesDaUnidade(intraCidade)
+        });
     </script>
 
 </main>

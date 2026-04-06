@@ -11,13 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 </head>
 <body>
-
+<div id="loader">
+    <div class="spinner"></div>
+</div>
 <div th:replace="~{header :: header}"></div>
 <main>
     <div class="searcher">
         <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
     </div>
-    <table class="city" id="dataTable" style="border-collapse: separate;">
+    <table class="city" id="dataTable" style="border-collapse: separate; width:95% !important; border:none;">
         <thead>
             <tr class="linha">
                 <th>Unidade</th>
@@ -41,13 +43,13 @@
                 <div id="ctc" style="font-size: 0.8em !important;"></div>
             </td>
 
-            <td class="calendarioUnidades" th:value="${cidade.nagiosID}">
-                <div style="width: 30vw; height: 215px; margin:auto; margin-bottom: 30px"></div>
+            <td>
+                <div class="calendarioUnidades" th:value="${cidade.nagiosID}"></div>
             </td>
 
             <td class="smokeUnidades" th:value="${cidade.smokeID}">
                 <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${!#strings.isEmpty(cidade.smokeID) ? cidade.smokeID.charAt(0) : ''}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
-                     alt="Gráfico Smoke" style="width: 25vw;">
+                     alt="Gráfico Smoke" style="width: 28vw; max-height: 215px; object-fit: cover;">
                 <button th:attr="onclick=|reloadSmoke('${cidade.smokeID}')|" >Atualizar</button>
             </td>
 
@@ -65,7 +67,7 @@
         const anoAtual = new Date().getFullYear()
 
         Array.from(graficos).forEach(elem =>{
-            fazGraficoQntQuedasCidade(elem.children[0], quedas, elem.getAttribute("value"), anoAtual)
+            fazGraficoQntQuedasCidade(elem, quedas, elem.getAttribute("value"), anoAtual)
         })
 
         function reloadSmoke(smokeid){
@@ -94,33 +96,6 @@
 
         }
 
-    </script>
-    <script>
-        function filterTable() {
-            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
-            let input = document.getElementById("search");
-            let filter = input.value.toLowerCase();
-            // pegamos a tabela as linhas
-            let table = document.getElementById("dataTable");
-            let tr = table.getElementsByTagName("tr");
-            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
-            for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td");
-                let match = false;
-                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        let textValue = td[j].textContent || td[j].innerText;
-                        if (textValue.toLowerCase().indexOf(filter) > -1) {
-                            match = true;
-                            break;
-                        }
-                    }
-                }
-                //esconte ou mostra linhas da tabela com base no match.
-                tr[i].style.display = match ? "" : "none";
-            }
-        }
     </script>
 
 </main>

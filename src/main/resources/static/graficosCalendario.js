@@ -194,7 +194,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
           title: {
             top: 30,
             left: 'center',
-            text: "Quantidade de Quedas em " + cidade + " (" + ano + ')',
+            text: "Quedas em " + cidade + " (" + ano + ')',
               textStyle: {
                   color: 'white'
               }
@@ -204,11 +204,28 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
                                 const data = params.value[0];
                                 const value = params.value[1];
 
+                                const quedasDia = quedas.filter((queda) => queda.nomeCidade == cidade && queda.data.slice(0,10) == data)
+                                let listaQuedas = ""
+                                if(quedasDia.length > 0){
+                                    quedasDia.reverse().forEach(q =>{
+                                        let hora = new Date(q.data)
+                                        let tempoFora = Math.floor(q.tempoFora / 60);
+                                        let newLinha = pad(hora.getHours()) + ':' + pad(hora.getMinutes()) + " por ";
+                                        newLinha += tempoFora == 0 ? "DOWN <br>" : pad(tempoFora) + "min <br>"
+                                        if(tempoFora > 120 || tempoFora == 0){
+                                            newLinha = "<span style='color:#222;'>" + newLinha + "</span>"
+                                        }
+                                        listaQuedas += newLinha;
+                                    })
+                                }
+
+                                let quedatxt = value == 1 ? " queda" : " quedas"
                                 return '<a class="tooltip" href=/historicoQuedas/dia/'
-                                       + data + ' target="_blank">' + data + '</a>'
-                                       + '<br>' + value + ' quedas';
+                                       + data + ' target="_blank">' + data + '</a>'+ '<br>'
+                                       + "<b>" + value + quedatxt + "</b><br>"
+                                       + listaQuedas;
                             },
-            position: (point) => [point[0]-2, point[1]-60],
+            position: (point) => [point[0]-2, point[1]-80],
             triggerOn: 'click',
             enterable: true
           },
@@ -494,6 +511,8 @@ function novaCidade(cidade, ano){
     fazGraficoQntPorTempo(document.getElementById("temposCid"), filtraCidade(quedas, cidade), ano)
 }
 
+function pad(num){return num <= 9 ? "0" + num : "" + num;}
+
 function segundosParaDuration(s){
     s = Math.floor(s)
     let horas = Math.floor(s / 3600);
@@ -506,10 +525,10 @@ function segundosParaDuration(s){
 function stringDeTempo(jsonTempo){
     let str = "";
 
-    if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " horas"
+    if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " h"
     if (jsonTempo.minutes > 0) {
         if(str != "") str += " e "
-        str +=  jsonTempo.minutes + " minutos"
+        str +=  jsonTempo.minutes + " min"
     }
 
     return str

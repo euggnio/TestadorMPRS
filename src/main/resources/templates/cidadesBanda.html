@@ -109,6 +109,22 @@
     </table>
 
     <script>
+        function selectCity(){
+            const params = new URLSearchParams(window.location.search);
+            if(params.size == 0) return
+
+            const cidadeFiltrar = params.get('cidade');
+            const pesquisa = document.getElementById("search")
+
+            pesquisa.value = cidadeFiltrar
+            filterTable()
+        }
+        window.addEventListener('load', selectCity);
+
+
+    </script>
+
+    <script>
         function iniciarTeste(idCidade) {
             fetch(`/testeBanda`, {
                 method: "POST",
@@ -204,33 +220,6 @@
             document.getElementById("velocidadeAtual").innerHTML = linha.velocidade;
         }
 
-    </script>
-    <script>
-        function filterTable() {
-            //pega o elemento search, que é a barra de pesquisa, passamos tudo para lower case para evitar erros.
-            let input = document.getElementById("search");
-            let filter = input.value.toLowerCase();
-            // pegamos a tabela as linhas
-            let table = document.getElementById("dataTable");
-            let tr = table.getElementsByTagName("tr");
-            // iteramos as linhas e adicionamos uma variavel de match para caso encontre o que o usuário esta digitando.
-            for (let i = 2; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName("td");
-                let match = false;
-                //iteramos as colunas a procura do texto do filter que o usuário digitou. caso encontre retorna true no match.
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        let textValue = td[j].textContent || td[j].innerText;
-                        if (textValue.toLowerCase().indexOf(filter) > -1) {
-                            match = true;
-                            break;
-                        }
-                    }
-                }
-                //esconte ou mostra linhas da tabela com base no match.
-                tr[i].style.display = match ? "" : "none";
-            }
-        }
     </script>
 
 </main>
