@@ -175,10 +175,11 @@
         //  ***  Graficos de Calendario  ***
         let anoAtual = new Date().getFullYear()
         //fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, nomeCidade, anoAtual)
-        fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, nomeCidade, anoAtual)
+
 
         window.addEventListener('load', () => {
             getSwitchesDaUnidade(intraCidade)
+            fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, nomeCidade, anoAtual)
         });
     </script>
 

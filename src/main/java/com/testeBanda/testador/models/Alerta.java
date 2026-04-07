@@ -37,7 +37,7 @@ public class Alerta  {
     }
 
     private long coletaUptimeDoAlerta(String str){
-        if(str.contains("Uptime")){
+        if(str.contains("Uptime") && !str.contains("N/A")){
             String valor_str = str.split(":")[1].trim().replace("s", "");
 
             return Long.parseLong(valor_str);

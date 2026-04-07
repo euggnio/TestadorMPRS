@@ -811,8 +811,8 @@ iframe{
     }
 
     tr{
-        border: 1px solid #222831 !important;
-        background-color: #393e46;
+        border: 1px solid #393e46 !important;
+        background-color: #222831;
         border-radius: 5px;
     }
 
@@ -837,15 +837,17 @@ iframe{
     padding: 2px;
 }
 #chartQuedasPorCidade, .calendarioUnidades{
+    font-family:"Nunito" !important;
     /* tooltip calendario */
     div:last-child{
         padding: 10px 18px !important;
+        font: 14px / 21px "Nunito" !important;
     }
 }
 
 .calendarioUnidades{
     width: 35vw;
-    height: 215px;
+    height: 230px;
     margin:auto;
     margin-bottom: 30px;
 }

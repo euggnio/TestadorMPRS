@@ -18,6 +18,7 @@
 <main>
     <div class="searcher">
         <input type="text" id="search" placeholder="Digite nome/ramal/sigla da cidade para filtrar..." onkeyup="filterTable()">
+        <button onclick="AtualizaTodos()">Atualizar Gráficos (+5min)</button>
     </div>
     <table class="city" id="dataTable" style="border-collapse: separate; width:95% !important; border:none;">
         <thead>
@@ -49,7 +50,7 @@
 
             <td class="smokeUnidades" th:value="${cidade.smokeID}">
                 <img th:src="'http://linux61.mp.rs.gov.br/smokeping/images/'+${!#strings.isEmpty(cidade.smokeID) ? cidade.smokeID.charAt(0) : ''}+'/'+ ${cidade.smokeID} +'_last_10800.png?'+${#dates.createNow().getTime()}"
-                     alt="Gráfico Smoke" style="width: 28vw; max-height: 215px; object-fit: cover;">
+                     alt="Gráfico Smoke" style="width: 28vw; max-height: 240px; object-fit: cover;">
                 <button th:attr="onclick=|reloadSmoke('${cidade.smokeID}')|" >Atualizar</button>
             </td>
 
@@ -66,9 +67,12 @@
         const graficos = document.getElementsByClassName('calendarioUnidades')
         const anoAtual = new Date().getFullYear()
 
-        Array.from(graficos).forEach(elem =>{
-            fazGraficoQntQuedasCidade(elem, quedas, elem.getAttribute("value"), anoAtual)
-        })
+        // espera load para carregar a fonte correta
+        window.addEventListener('load', () => {
+            Array.from(graficos).forEach(elem =>{
+                fazGraficoQntQuedasCidade(elem, quedas, elem.getAttribute("value"), anoAtual)
+            })
+        });
 
         function reloadSmoke(smokeid){
             console.log(smokeid)
@@ -95,6 +99,18 @@
             .catch(error => console.error('Erro ao buscar gráfico:', error));
 
         }
+
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        async function AtualizaTodos(){
+            btns = document.getElementsByClassName("smokeUnidades")
+
+            for(let i = 0; i < btns.length; i++){
+                btns[i].getElementsByTagName("button")[0].click()
+                await sleep(2000)
+            }
+        }
+
 
     </script>
 

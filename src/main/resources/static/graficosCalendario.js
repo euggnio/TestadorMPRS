@@ -1,4 +1,21 @@
 
+// 1. Define the font face
+const myFont = new FontFace('Nunito', 'url(https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap)');
+
+// 2. Add the font to the document's FontFaceSet
+document.fonts.add(myFont);
+
+// 3. Force the download and wait for it to complete
+myFont.load().then(() => {
+    console.log('Font loaded successfully!');
+    // Now safe to use the font, e.g., in a canvas or by adding a class
+    document.body.classList.add('fonts-loaded');
+}).catch((error) => {
+    console.error('Font loading failed:', error);
+});
+
+
+
 function mapaDeQuedasNum(quedas){
     let mapa = new Map()
     quedas.forEach((queda) => {
@@ -100,12 +117,16 @@ function fazGraficoQntQuedasTodas(elem, quedas, ano){
 
     option = {
       gradientColor: ['#cddede', '#00adb5', '#00588b', '#003333'],
+      textStyle: {
+        fontFamily: 'Nunito, Microsoft YaHei, sans-serif',
+      },
       title: {
         top: 30,
         left: 'center',
         text: 'Quedas por dia (' + ano + ')',
           textStyle: {
-              color: 'white'
+              color: 'white',
+              fontSize: "1.5em"
           }
       },
       tooltip: {
@@ -191,12 +212,16 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
 
     let option = {
           gradientColor: ['#dedede', '#00adb5', '#00588b', '#000000'],
+          textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+          },
           title: {
             top: 30,
             left: 'center',
             text: "Quedas em " + cidade + " (" + ano + ')',
               textStyle: {
-                  color: 'white'
+                  color: 'white',
+                  fontSize: "1.2em"
               }
           },
           tooltip: {
@@ -209,10 +234,10 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
                                 if(quedasDia.length > 0){
                                     quedasDia.reverse().forEach(q =>{
                                         let hora = new Date(q.data)
-                                        let tempoFora = Math.floor(q.tempoFora / 60);
+                                        let tempoFora = segundosParaDuration(q.tempoFora)
                                         let newLinha = pad(hora.getHours()) + ':' + pad(hora.getMinutes()) + " por ";
-                                        newLinha += tempoFora == 0 ? "DOWN <br>" : pad(tempoFora) + "min <br>"
-                                        if(tempoFora > 120 || tempoFora == 0){
+                                        newLinha += q.tempoFora == 0 ? "DOWN <br>" : tempoCompacto(tempoFora) + "<br>"
+                                        if( tempoFora.hours >= 1 || q.tempoFora == 0 ){
                                             newLinha = "<span style='color:#222;'>" + newLinha + "</span>"
                                         }
                                         listaQuedas += newLinha;
@@ -291,12 +316,16 @@ function fazGraficoTempoQuedasCidade(elem, quedas, cidade, ano){
 
     let option = {
           gradientColor: ['#dedede', '#abdede', '#00adb5', '#00588b'],
+          textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+          },
           title: {
             top: 30,
             left: 'center',
             text: "Tempo Fora em " + cidade + " (" + ano + ')',
               textStyle: {
-                  color: 'white'
+                  color: 'white',
+                  fontSize: "1.2em"
               }
           },
           tooltip: {
@@ -389,6 +418,9 @@ function fazGraficoEstatisticas(elem, quedas, ano){
 
     let option = {
       color: '#00adb5',
+      textStyle: {
+        fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+      },
       title: {
         top: 30,
         left: 'center',
@@ -460,6 +492,9 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
 
     let option = {
       color: '#00adb5',
+      textStyle: {
+        fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+      },
       title: {
         top: 10,
         left: 'center',
@@ -523,7 +558,7 @@ function segundosParaDuration(s){
 }
 
 function stringDeTempo(jsonTempo){
-    let str = "";
+    let str = ""
 
     if (jsonTempo.hours > 0) str +=  jsonTempo.hours + " h"
     if (jsonTempo.minutes > 0) {
@@ -531,6 +566,15 @@ function stringDeTempo(jsonTempo){
         str +=  jsonTempo.minutes + " min"
     }
 
+    return str
+}
+
+function tempoCompacto(jsonTempo){
+    let str = ""
+    if (jsonTempo.hours > 0) str += jsonTempo.hours + "h"
+    if (jsonTempo.minutes > 0) {
+         str +=  pad(jsonTempo.minutes) + "min"
+    }
     return str
 }
 
