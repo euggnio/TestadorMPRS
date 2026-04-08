@@ -37,6 +37,9 @@ public class SnmpWanMonitor {
     private int recheckWanIndexCacheCicles;
     private int recheckCounter;
 
+    @Value("${testador.notDoSnmp}")
+    private boolean notDoSnmp;
+
     private static final OID OID_IF_NAME = new OID("1.3.6.1.2.1.31.1.1.1.1");
     private static final OID OID_IN = new OID("1.3.6.1.2.1.31.1.1.1.6");
     private static final OID OID_OUT = new OID("1.3.6.1.2.1.31.1.1.1.10");
@@ -69,6 +72,9 @@ public class SnmpWanMonitor {
     }
 
     public void init(){
+        if(notDoSnmp){
+            return;
+        }
         TransportMapping<UdpAddress> transport = null;
         try {
             transport = new DefaultUdpTransportMapping();
@@ -208,6 +214,9 @@ public class SnmpWanMonitor {
     // LOOP
     // ------------------------
     public void run(){
+        if(notDoSnmp){
+            return;
+        }
         recheckCounter--;
         //verificar se o cache está vazio
         if(wanIndexCache.isEmpty() || recheckCounter <= 0){

@@ -2,6 +2,7 @@ package com.testeBanda.testador.controlers;
 
 import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.Microtik;
+import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.*;
 import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
 import java.net.InetAddress;
 import java.time.Year;
 import java.util.*;
@@ -26,13 +29,15 @@ public class CidadeController {
     private final Microtik microtik;
     private final GraficosService graficoService;
     private final QuedaService quedaService;
+    private final NagiosAPI nagiosAPI;
 
     @Autowired
-    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService) {
+    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI) {
         this.cidadeService = cidadeService;
         this.microtik = microtik;
         this.graficoService = graficosService;
         this.quedaService = quedaService;
+        this.nagiosAPI = nagiosAPI;
     }
 
     @GetMapping("/versao")
@@ -57,6 +62,13 @@ public class CidadeController {
         model.addAttribute("cacti", cacti);
         model.addAttribute("cidade", cidade);
         return "unidade";
+    }
+
+    @GetMapping("/testes")
+    public String testes(Model model) throws IOException, InterruptedException {
+        List<Cidades> cidades = cidadeService.findAll();
+        nagiosAPI.preencherCoordenadas(cidades);
+        return "historicoQuedas";
     }
 
     @GetMapping("/pegarGraficoSmoke/{id}")

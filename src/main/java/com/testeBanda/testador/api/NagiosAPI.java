@@ -3,8 +3,10 @@ package com.testeBanda.testador.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.testeBanda.testador.models.Alerta;
+import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Disponibilidade;
 import com.testeBanda.testador.models.Mes;
+import com.testeBanda.testador.repository.CidadesRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.net.URI;
@@ -17,8 +19,13 @@ import java.util.*;
 @Service
 public class NagiosAPI {
 
+    private final CidadesRepository cidadesRepository;
     @Value("${testador.nagios}")
     private String nagios;
+
+    public NagiosAPI(CidadesRepository cidadesRepository) {
+        this.cidadesRepository = cidadesRepository;
+    }
 
     public List<Alerta> todosAlertasDoAno(){
         String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&" +
@@ -124,6 +131,21 @@ public class NagiosAPI {
         dateLimits[0] = startTimesmap;
         dateLimits[1] = endTimestamp;
         return dateLimits;
+    }
+
+
+    //função de uso unico
+    public void preencherCoordenadas(List<Cidades> cidades){
+        String url = "http://nagiosmpls.mp.rs.gov.br/nagios/cgi-bin/objectjson.cgi?query=host&hostname=";
+        List<JsonNode> nodes = new ArrayList<>();
+        for (Cidades cidade : cidades) {
+            String urlCidade = url + cidade.getNagiosID();
+            JsonNode node = sendRequest(urlCidade, "host");
+            String json = node.path("notes").asText().replace("<latlng>", "").replace("</latlng>", "");
+            System.out.println(json);
+            cidade.coordenadas = json;
+            cidadesRepository.save(cidade);
+        }
     }
 
     @Value("${nagios.password}")

@@ -278,9 +278,6 @@ async function teste(teste) {
 
             // Adiciona as primeiras 5 linhas (ou menos, se não houver 5)
             for (let i = 2; i < linhas.length; i++) {
-                if(linhas[i].innerHTML.includes("Descrição")){
-                    break;
-                }
                 let buttonNew = document.createElement("button")
                 buttonNew.innerHTML = "VERIFICAR";
                 buttonNew.id = "t"+linhas[i].cells[2].innerHTML;

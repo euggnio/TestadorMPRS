@@ -203,9 +203,9 @@ function graficoDeAlertasPorCidadeEMes() {
             cidades.push(a.nomeCidade);
         }
         const dia = data.getDate();
-        return {mes, nomeCidade: a.nomeCidade, dia, energia: a.faltaDeLuz};
-    });
 
+        return {mes, nomeCidade: a.nomeCidade, dia, energia: a.faltaDeLuz, coordenada : a.coordenadas};
+    });
 
     //vamos verificar se está sendo esperado filtro ou não
     const quedasFiltrados = nomeFiltro !== ""
@@ -236,6 +236,7 @@ function graficoDeAlertasPorCidadeEMes() {
             quedasDoMes.filter(a => a.dia === dia && a.energia).length
         );
     }
+    graficoMapa(quedasFiltrados, mes);
 
     totalEnergiaGeral = totalEnergiaPorMes.reduce((acc, curr) => acc + curr, 0);
     const quedasTotais = totaisDeQuedasPorMes.reduce((a, b) => a + b, 0);
@@ -456,6 +457,78 @@ function graficoDeAlertasPorCidadeEMes() {
     myChartEnergia.setOption(optionEnergia);
 
 }
+
+function graficoMapa(dados) {
+    var chart = echarts.init(document.getElementById('chart'));
+
+    const transformarParaMapa = (dados) => {
+        const agrupado = {};
+        dados.forEach(item => {
+            if (!item.coordenada) return;
+
+            if (!agrupado[item.nomeCidade]) {
+                const partes = item.coordenada.split(',');
+                agrupado[item.nomeCidade] = {
+                    // ECharts + Leaflet: Geralmente [Longitude, Latitude]
+                    lng: parseFloat(partes[1]),
+                    lat: parseFloat(partes[0]),
+                    count: 0,
+                    nome: item.nomeCidade
+                };
+            }
+            agrupado[item.nomeCidade].count += 1;
+        });
+
+        return Object.values(agrupado).map(c => [c.lng, c.lat, c.count, c.nome]);
+    };
+
+    const dadosFormatados = transformarParaMapa(dados);
+
+    var option = {
+        leaflet: {
+            center: [-53, -30.2317], // [Longitude, Latitude]
+            zoom: 7,
+            roam: true,
+            tiles: [{
+                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            }]
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: function (params) {
+                // params.data[3] é o nome, [2] é a quantidade
+                return `<b>${params.data[3]}</b><br/>Quedas: ${params.data[2]}`;
+            }
+        },
+        visualMap: {
+            type: 'continuous',
+            min: 0,
+            max: 20, // Ajustei de 100.000 para 20 (senão as bolinhas ficam minúsculas)
+            dimension: 2, // Usa o 'count' para o cálculo
+            calculable: true,
+            inRange: {
+                symbolSize: [10, 50], // Tamanho da bola (mínimo 10px, máximo 50px)
+                color: ['#67ff00', '#ffa500', '#ff0000'] // Azul -> Laranja -> Vermelho
+            }
+        },
+        series: [
+            {
+                type: 'scatter',
+                coordinateSystem: 'leaflet',
+                // AQUI ESTAVA O ERRO: Removido os colchetes extras
+                data: dadosFormatados,
+                itemStyle: {
+                    opacity: 0.8,
+                    shadowBlur: 10,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }
+        ]
+    };
+
+    chart.setOption(option);
+}
+
 
 
 function atualizarNome(nome) {

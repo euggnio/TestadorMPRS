@@ -33,6 +33,8 @@ public class Cidades {
     public String cacti;
     public String nagiosID;
 
+    public String coordenadas;
+
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Resultados> resultados;

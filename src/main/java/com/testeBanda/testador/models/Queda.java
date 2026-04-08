@@ -61,6 +61,13 @@ public class Queda {
         this.faltaDeLuz = (uptime <= 660 && uptime > 0);
     }
 
+    public String getCoordenadas(){
+        if(cidade != null){
+            return (this.cidade.coordenadas != null ? this.cidade.coordenadas : "");
+        }
+        return "";
+    }
+
     @JsonIgnore
     public String getUptimeFormatado() {
         if(this.uptime == 0){
