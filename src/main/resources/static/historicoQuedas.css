@@ -128,6 +128,7 @@
 #calendario{
     margin: 5px 0;
     width: 12em;
+    font-family:revert;
 }
 
 #titulo{
