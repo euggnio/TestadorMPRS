@@ -215,6 +215,10 @@ a{
     background-color: rgb(38, 47, 56);
 }
 
+select, option{
+    font-family: 'Nunito', sans-serif;
+}
+
 input {
     background-color: white;
     padding: 0.3em;
@@ -226,6 +230,7 @@ input {
     max-width: 400px;
     font-size: 1em;
     transition: padding 0.3s 0.2s ease;
+    font-family: 'Nunito', sans-serif;
 }
 .searcher{
     width: 100%;
@@ -297,11 +302,12 @@ button{
     z-index: 3;
     background-color: #11bc7a;
     color: white;
-    padding: 0.8em;
+    padding: 0.7em;
     border-radius: 5px;
     font-weight: bold;
     transition: 1s;
     margin: 0 2px;
+    font-family: 'Nunito', sans-serif;
 }
 button:hover{
     background-color: #008550;
@@ -530,13 +536,12 @@ iframe{
         width: 100% !important;
         button{
             width: 100% !important;
-            height: 2vh;
+            height: 3vh;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
             border-radius: 0px;
-
         }
     }
 }
@@ -852,6 +857,10 @@ iframe{
     margin-bottom: 30px;
 }
 
+
+#global-popup{
+    font-family: 'Nunito', sans-serif !important;
+}
 
 @media only screen and (max-width: 1200px) {
     .menu{
