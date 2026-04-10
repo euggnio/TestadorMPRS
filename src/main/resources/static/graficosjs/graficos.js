@@ -19,11 +19,12 @@ window.onload = () => {
     processarQuedas()
     filtrarQuedas()
     console.log("carregando gráficos")
+    graficoMapa();
     atualizarGraficoIndisponibilidade()
     graficoAlertasCidades();
     graficoRelacaoQuedasEnergia();
     graficoDeQuedasMesDia();
-    graficoMapa();
+
 
 }
 function processarQuedas(){
@@ -504,7 +505,8 @@ function graficoDeQuedasMesDia() {
 
 function graficoMapa() {
     var chart = echarts.init(document.getElementById('chart'));
-    dados = quedasFiltradas
+    var dados = quedasFiltradas;
+
     const transformarParaMapa = (dados) => {
         const agrupado = {};
         dados.forEach(item => {
@@ -513,7 +515,6 @@ function graficoMapa() {
             if (!agrupado[item.nomeCidade]) {
                 const partes = item.coordenada.split(',');
                 agrupado[item.nomeCidade] = {
-                    // ECharts + Leaflet: Geralmente [Longitude, Latitude]
                     lng: parseFloat(partes[1]),
                     lat: parseFloat(partes[0]),
                     count: 0,
@@ -528,9 +529,17 @@ function graficoMapa() {
 
     const dadosFormatados = transformarParaMapa(dados);
 
+    // --- CÁLCULO DO MÁXIMO DINÂMICO ---
+    // Pegamos todos os counts e achamos o maior valor presente nos dados atuais
+    const apenasCounts = dadosFormatados.map(d => d[2]);
+    const maxLocal = apenasCounts.length > 0 ? Math.max(...apenasCounts) : 10;
+
+    // Se o máximo for muito baixo (ex: 1), definimos um piso para o gráfico não ficar estranho
+    const valorMaximoGrafico = maxLocal > 0 ? maxLocal : 10;
+
     var option = {
         leaflet: {
-            center: [-53, -30.2317], // [Longitude, Latitude]
+            center: [-53, -30.2317],
             zoom: 7,
             roam: true,
             tiles: [{
@@ -540,27 +549,32 @@ function graficoMapa() {
         tooltip: {
             trigger: 'item',
             formatter: function (params) {
-                // params.data[3] é o nome, [2] é a quantidade
                 return `<b>${params.data[3]}</b><br/>Quedas: ${params.data[2]}`;
             }
         },
         visualMap: {
             type: 'continuous',
             min: 0,
-            max: 20, // Ajustei de 100.000 para 20 (senão as bolinhas ficam minúsculas)
-            dimension: 2, // Usa o 'count' para o cálculo
+            max: valorMaximoGrafico, // <--- AGORA É DINÂMICO
+            dimension: 2,
             calculable: true,
+            realtime: false, // Melhora performance ao arrastar
             inRange: {
-                symbolSize: [10, 50], // Tamanho da bola (mínimo 10px, máximo 50px)
-                color: ['#67ff00', '#ffa500', '#ff0000'] // Azul -> Laranja -> Vermelho
+                symbolSize: [10, 60], // Aumentei um pouco o máximo para destacar bem
+                color: ['#67ff00', '#ffa500', '#ff0000']
+            },
+            textStyle: {
+                color: '#fff'
             }
         },
         series: [
             {
                 type: 'scatter',
                 coordinateSystem: 'leaflet',
-                // AQUI ESTAVA O ERRO: Removido os colchetes extras
                 data: dadosFormatados,
+                encode: {
+                    value: 2 // Indica explicitamente que o valor visual vem do count (index 2)
+                },
                 itemStyle: {
                     opacity: 0.8,
                     shadowBlur: 10,
@@ -569,11 +583,8 @@ function graficoMapa() {
             }
         ]
     };
-
     chart.setOption(option);
 }
-
-
 
 function atualizarNome(nome) {
     nomeFiltro = nome;
@@ -585,7 +596,6 @@ function atualizarNome(nome) {
     graficoDeQuedasMesDia()
     graficoMapa()
 }
-
 
 let mesAnterior = 'x';
 function atualizarMes(mesNovo) {
