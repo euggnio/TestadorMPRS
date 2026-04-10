@@ -120,10 +120,6 @@
 <script type="text/javascript" th:inline="javascript">
     quedas = [[${alertas.getQuedas()}]];
     dados = [[${alertas.mesDisponibilidades}]]
-    document.addEventListener("DOMContentLoaded", function () {
-        graficoDeAlertasPorCidadeEMes();
-        atualizarGraficoIndisponibilidade();
-    });
     dropAno.addEventListener('change', () => {
         window.location.pathname = "/grafico/" + dropAno.value
     })

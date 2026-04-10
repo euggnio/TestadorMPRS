@@ -2,6 +2,211 @@ let nomeFiltro = "";
 let mes = 'todos';
 let quedas;
 let dados;
+//variaveis fixas
+let quedasProcessadas = [];
+let mesesUnicos = [];
+let cidades = [];
+
+//variaveis usadas nos filtros
+let quedasFiltradas = [];
+let meses = [];
+let diasUnicos = [];
+let cidadesOrdenadasObj = [];
+
+
+window.onload = () => {
+    console.log("Iniciando processo dos gráficos");
+    processarQuedas()
+    filtrarQuedas()
+    console.log("carregando gráficos")
+    atualizarGraficoIndisponibilidade()
+    graficoAlertasCidades();
+    graficoRelacaoQuedasEnergia();
+    graficoDeQuedasMesDia();
+    graficoMapa();
+
+}
+function processarQuedas(){
+    console.log("\n\n======Processando quedas ======");
+    //variaveis para mapear os meses e cidades da lista de quedas.
+    //Devemos mapear os dados que nos interessam das quedas
+    quedasProcessadas = quedas.map(a => {
+        const data = new Date(a.data);
+        const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
+
+        //mapeando meses e cidades existentes na lista de quedas
+        if (!mesesUnicos.includes(mes)) {
+            mesesUnicos.push(mes);
+        }
+        if (!cidades.includes(a.nomeCidade)) {
+            cidades.push(a.nomeCidade);
+        }
+
+        const dia = data.getDate();
+        return {mes, nomeCidade: a.nomeCidade, dia, energia: a.faltaDeLuz, coordenada : a.coordenadas};
+    });
+    console.log("Meses encontrados" ,mesesUnicos);
+    console.log("Cidades com quedas encontradas", cidades);
+    console.log("Quedas encontrados", quedasProcessadas);
+    console.log("======Processando quedas finalizado ======\n\n");
+
+    //as quedas processadas não vao mudar então passamos para o filtradas
+    quedasFiltradas = quedasProcessadas;
+}
+
+function filtrarQuedas(){
+    console.log("\n\n======Filtrando quedas ======");
+    //filtramos por nome
+    let filtradasNome = nomeFiltro !== ""
+        ? quedasProcessadas.filter(a => a.nomeCidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
+        : quedasProcessadas;
+    //filtramos por mes da queda
+    if(mes !== "todos"){
+        const mesReduzido = mes.slice(0, 3);
+        const quedasDoMes = filtradasNome.filter(a => a.mes === mesReduzido);
+        diasUnicos = [...new Set(quedasDoMes.map(a => a.dia))].sort((a, b) => a - b);
+        meses = diasUnicos;
+        totaisDeQuedasPorMes = diasUnicos.map(dia =>
+            quedasDoMes.filter(a => a.dia === dia).length
+        );
+        quedasFiltradas = quedasDoMes
+    }else{
+        quedasFiltradas = filtradasNome;
+        meses = mesesUnicos;
+
+
+    }
+    //agrupamos quedas e suas respectivas cidades gerando objeto final com a cidade, quantidade de quedas e quantidade de quedas por energia
+    cidadesOrdenadasObj = cidades.map(cidade => ({
+        cidade,
+        total: quedasFiltradas.filter(a =>
+            a.nomeCidade === cidade &&
+            (mes === "todos" || a.mes === mes.slice(0, 3))
+        ).length,
+        energia: quedasFiltradas.filter(a => a.nomeCidade === cidade && a.energia).length,
+    })).sort((a, b) => b.total - a.total);
+    console.log("Meses encontrado", meses);
+    console.log("Quedas filtradas", quedasFiltradas);
+    console.log("======Filtrando quedas finalizado======\n\n\n");
+}
+
+function graficoAlertasCidades(){
+    console.log("\n\n====== Gerando grafico alertas em cidades ======\n\n");
+    //separamos com base nos dados do objeto
+    const cidadesOrdenadas = cidadesOrdenadasObj.map(obj => obj.cidade);
+    const totaisOrdenados = cidadesOrdenadasObj.map(obj => obj.total);
+    const totaisEnergia = cidadesOrdenadasObj.map(obj => obj.energia);
+
+    //definindo a div  e iniciando gráfico
+    var divGrafico = document.getElementById("chart-quedasCidades");
+    var grafico = echarts.init(divGrafico);
+
+    var option = {
+        title: {
+            text: 'Quedas por cidade'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {},
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.01]
+        },
+        yAxis: {
+            type: 'category',
+            data: cidadesOrdenadas,
+        },
+        dataZoom: [
+            {
+                type: 'slider',
+                yAxisIndex: 0,
+                start: 8,
+                end: 0
+            },
+            {
+                type: 'inside',
+                yAxisIndex: 0,
+                start: 0,
+                end: 20
+            }
+
+        ],
+        series: [
+            {
+                name: 'Total',
+                type: 'bar',
+                label: {
+                    show: true,
+                },
+                data: totaisOrdenados
+            },
+            {
+                name: 'Energia',
+                type: 'bar',
+                color: '#f6652c',
+                data: totaisEnergia
+            }
+        ]
+    };
+    grafico.clear();
+    grafico.setOption(option);
+
+
+}
+
+function graficoRelacaoQuedasEnergia(){
+    console.log("\n\n====== Gerando grafico relacao entre energia======\n\n");
+    const quedasTotais = quedasFiltradas.length;
+    const energiaTotal = quedasFiltradas.filter(a => a.energia).length
+    console.log("Quedas encontrados", quedasTotais);
+    console.log("Quedas de energia encontrados", energiaTotal);
+
+    let optionEnergia = {
+        color: ['#FF4500', '#1e840e'],
+        title: {
+            text: 'Relação quedas energia',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+            top: '5%',
+            left: 'center'
+        },
+        series: [
+            {
+                name: 'Acesso',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                center: ['50%', '75%'], // Ajustado levemente para baixo para caber o texto superior
+                startAngle: 180,
+                endAngle: 360,
+                avoidLabelOverlap: false,
+                label: {
+                    show: true,
+                    position: 'inside',
+                    formatter: '{b}\n{d}%',
+                    fontSize: 15,       // Tamanho do texto maior
+                    fontWeight: 'bold', // Negrito              color: '#fff'       // Cor branca para destacar sobre o colorido
+                },
+                data: [
+                    {value: energiaTotal, name: 'Energia'},
+                    {value:  quedasTotais - energiaTotal},
+                ]
+            }
+        ]
+    };
+    const chartDomEnergia = document.getElementById('chart-quedasCidadesEnergia');
+    const myChartEnergia = echarts.init(chartDomEnergia)
+    myChartEnergia.setOption(optionEnergia);
+
+}
 
 function atualizarGraficoIndisponibilidade() {
     let dadosMes = [];
@@ -187,280 +392,119 @@ function atualizarGraficoIndisponibilidade() {
 }
 
 
-function graficoDeAlertasPorCidadeEMes() {
-    //pega os dados que vieram com a template
-    let meses = [];
-    const cidades = [];
-    // aqui ele vai processar as quedas, quebrando a data da queda para mes e dia, nome e se foi energia
-    // vai verificar quais meses tem na lista também
-    const quedasProcessadas = quedas.map(a => {
-        const data = new Date(a.data);
-        const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
-        if (!meses.includes(mes)) {
-            meses.push(mes);
-        }
-        if (!cidades.includes(a.nomeCidade)) {
-            cidades.push(a.nomeCidade);
-        }
-        const dia = data.getDate();
+function graficoDeQuedasMesDia() {
+    console.log("\n\n\n ===== GRAFICO DE QUEDAS MES E DIA INICIALIZANDO =====");
+    var chartDom = document.getElementById('chart-quedas');
+    var myChart = echarts.init(chartDom, 'dark');
 
-        return {mes, nomeCidade: a.nomeCidade, dia, energia: a.faltaDeLuz, coordenada : a.coordenadas};
-    });
+    // --- 1. PROCESSAMENTO DOS DADOS ---
+    // Decidimos se filtramos por 'mes' ou por 'dia' dependendo da seleção
+    const campoFiltro = (mes !== "todos") ? 'dia' : 'mes';
 
-    //vamos verificar se está sendo esperado filtro ou não
-    const quedasFiltrados = nomeFiltro !== ""
-        ? quedasProcessadas.filter(a => a.nomeCidade.toUpperCase().includes(nomeFiltro.toUpperCase()))
-        : quedasProcessadas;
+    const dataComEnergia = meses.map(m =>
+        quedasFiltradas.filter(q => q[campoFiltro] === m && q.energia === true).length
+    );
 
-    let totaisDeQuedasPorMes;
-    let totalEnergiaPorMes;
-    let totalEnergiaGeral;
+    const dataSemEnergia = meses.map(m =>
+        quedasFiltradas.filter(q => q[campoFiltro] === m && q.energia === false).length
+    );
 
+    const dataTotal = dataComEnergia.map((val, i) => val + dataSemEnergia[i]);
+    const dataMediaDiaria = dataTotal.map(total => (total / 30).toFixed(2));
 
-    if (mes === "todos") {
-        totaisDeQuedasPorMes = meses.map(m =>
-            quedasFiltrados.filter(a => a.mes === m).length
-        );
-        totalEnergiaPorMes = meses.map(m =>
-            quedasFiltrados.filter(a => a.mes === m && a.energia).length
-        );
-    } else {
-        const mesReduzido = mes.slice(0, 3);
-        const quedasDoMes = quedasFiltrados.filter(a => a.mes === mesReduzido);
-        const diasUnicos = [...new Set(quedasDoMes.map(a => a.dia))].sort((a, b) => a - b);
-        meses = diasUnicos;
-        totaisDeQuedasPorMes = diasUnicos.map(dia =>
-            quedasDoMes.filter(a => a.dia === dia).length
-        );
-        totalEnergiaPorMes = diasUnicos.map(dia =>
-            quedasDoMes.filter(a => a.dia === dia && a.energia).length
-        );
-    }
-    graficoMapa(quedasFiltrados, mes);
-
-    totalEnergiaGeral = totalEnergiaPorMes.reduce((acc, curr) => acc + curr, 0);
-    const quedasTotais = totaisDeQuedasPorMes.reduce((a, b) => a + b, 0);
-
-    const series = cidades.map(cidade => {
-        return {
-            name: cidade,
-            type: 'bar',
-            stack: 'alertas',
-            data: meses.map(m => {
-                return mes === "todos" ?
-                    quedasFiltrados.filter(a => a.nomeCidade === cidade && a.mes === m).length
-                    :
-                    quedasFiltrados.filter(a => a.nomeCidade === cidade && a.mes === mes.slice(0, 3) && a.dia === m).length
-            }),
-        };
-    });
-
-    series.push({
-        name: 'Total',
-        type: 'bar',
-        stack: 'alertas',
-        barWidth: '50%',
-
-        label: {
-            show: true,
-            position: 'top',
-            formatter: params => `${totaisDeQuedasPorMes[params.dataIndex]}`,
-            fontWeight: 'bold'
-        },
-        data: meses.map(() => 0)
-    });
-
-    series.push({
-        name: 'Quedas de Energia',
-        type: 'bar',
-        barWidth: '15%',
-
-        stack: 'energia',
-        itemStyle: {color: '#fd4500'},
-        label: {
-            show: true,
-            position: 'top',
-            formatter: params => `${[totalEnergiaPorMes[params.dataIndex]]}⚡`,
-            fontWeight: 'bold'
-        },
-        data: totalEnergiaPorMes
-    });
-
-    const option = {
+    // --- 2. CONFIGURAÇÃO DO ECHARTS ---
+    var option = {
         title: {
-            text: 'Alertas por Cidade e Mês',
+            text: mes !== "todos" ? `Quedas em ${mes}` : 'Análise de Quedas por Mês',
+            subtext: 'Passe o mouse para ver o Top 10 Cidades',
             left: 'center'
-        }, tooltip: {
+        },
+        tooltip: {
             trigger: 'axis',
-            axisPointer: {type: 'shadow'},
+            axisPointer: { type: 'cross' },
+            // --- CUSTOMIZAÇÃO DO TOOLTIP (TOP 10 CIDADES) ---
             formatter: function (params) {
-                const filtered = params
-                    .filter(p => p.value > 1 && p.seriesName !== 'Total')
-                    .sort((a, b) => b.value - a.value)
-                    .slice(0, 11);
+                let eixoX = params[0].name; // Nome do Mês ou Dia
 
-                let result = `${params[0].axisValue}<br/>`;
-                filtered.forEach(p => {
-                    result += `${p.marker}${p.seriesName}: ${p.value}<br/>`;
+                // Filtra as quedas apenas deste mês/dia específico
+                let quedasNoPeriodo = quedasFiltradas.filter(q => q[campoFiltro].toString() === eixoX.toString());
+
+                // Conta ocorrências por cidade
+                let contagemCidades = {};
+                quedasNoPeriodo.forEach(q => {
+                    contagemCidades[q.nomeCidade] = (contagemCidades[q.nomeCidade] || 0) + 1;
                 });
-                result += `<b>Total: ${totaisDeQuedasPorMes[params[0].dataIndex]}</b>`;
-                return result;
+
+                // Transforma em array e ordena (Top 10)
+                let topCidades = Object.entries(contagemCidades)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                // Monta o HTML do tooltip
+                let res = `<b>${mes !== "todos" ? 'Dia' : 'Mês'}: ${eixoX}</b><br/>`;
+                params.forEach(item => {
+                    if(item.seriesName !== 'Média Diária') {
+                        res += `${item.marker} ${item.seriesName}: ${item.value}<br/>`;
+                    }
+                });
+
+                res += `<br/><b>Top 10 Cidades:</b><br/>`;
+                topCidades.forEach(([cidade, qtd]) => {
+                    res += `${cidade}: ${qtd}<br/>`;
+                });
+
+                return res;
             }
         },
-        visualMap: {
-            type: 'piecewise', // Legenda por pedaços/faixas
-            orient: 'horizontal',
-            left: 'center',
-            bottom: 0,
-            seriesIndex: Array.from({length: cidades.length}, (_, i) => i + 1),
-            pieces: [
-                {gt: 8, label: '> 8 quedas', color: '#003333'}, // Vermelho escuro
-                {gt: 4, lte: 8, label: '4-8 quedas', color: '#0077a6'},
-                {gt: 2, lte: 4, label: '2-4 quedas', color: '#3195bc'},
-                {gt: 0, lte: 2, label: '1-2 quedas', color: '#87c2c5'}
-            ],
-            outOfRange: {color: '#ccc'} // Cor para valor 0
-        },
-        xAxis: {
-            type: 'category',
-            data: meses,
-            name: 'Mês'
-        },
-        yAxis: {
-            type: 'value',
-            name: 'Qtd. de quedas'
-        },
-        series: series
-    };
-
-    const chartDom = document.getElementById('chart-quedas');
-    const myChart = echarts.init(chartDom);
-    myChart.clear()
-    myChart.setOption(option);
-
-    //criamos um objeto com nome e total, filtrando quantas vezes aparece a cidade no filtrados.
-    const cidadesOrdenadasObj = cidades.map(cidade => ({
-        cidade,
-        total: quedasFiltrados.filter(a =>
-            a.nomeCidade === cidade &&
-            (mes === "todos" || a.mes === mes.slice(0, 3))
-        ).length
-    })).sort((a, b) => b.total - a.total);
-    //separamos com base nos dados do objeto
-    const cidadesOrdenadas = cidadesOrdenadasObj.map(obj => obj.cidade);
-    const totaisOrdenados = cidadesOrdenadasObj.map(obj => obj.total);
-    console.log(cidadesOrdenadasObj);
-    console.log(quedasFiltrados);
-    console.log(mes);
-
-    var chartDom2 = document.getElementById('chart-quedasCidades');
-    var myChart2 = echarts.init(chartDom2);
-    var option2 = {
-        title: {
-            text: 'Quantidade de alertas por cidade - ' + mes,
-            left: 'center'
-        },
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            }
-        },
-        grid: {
-            left: '5%',
-            right: '5%',
-            bottom: '2%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'value',
-        },
-        yAxis: {
-            type: 'category',
-            data: cidadesOrdenadas,
-            axisLabel: {
-                fontSize: 15,
-                formatter: function (value) {
-                    return value.length > 30 ? value.slice(0, 27) + '...' : value;
-                }
-            }
-        },
-        dataZoom: [
-            {
-                type: 'slider',
-                yAxisIndex: 0,
-                start: 10,
-                end: 0 // mostra as primeiras 20 cidades e permite scroll
-            },
-            {
-                type: 'inside',
-                yAxisIndex: 0,
-                start: 0,
-                end: 20
-            }
-
+        legend: { data: ['Com Energia', 'Sem Energia', 'Média Diária'], bottom: 0 },
+        xAxis: [{ type: 'category', data: meses, axisPointer: { type: 'shadow' } }],
+        yAxis: [
+            { type: 'value', name: 'Qtd.', axisLabel: { formatter: '{value} un' } },
+            { type: 'value', name: 'Média', position: 'right' }
         ],
-        series: [{
-            name: 'Alertas',
-            type: 'bar',
-            data: totaisOrdenados,
-            itemStyle: {
-                color: '#76A7FA'
-            },
-            label: {
-                show: true
-            }
-        }]
-    };
-    myChart2.clear()
-    myChart2.setOption(option2);
-
-    let optionEnergia = {
-        color: ['#FF4500', '#1e840e'],
-        title: {
-            text: 'Relação quedas energia',
-            left: 'center'
-        },
-        tooltip: {
-            trigger: 'item',
-            formatter: '{b}: {c} ({d}%)'
-        },
-        legend: {
-            top: '5%',
-            left: 'center'
-        },
         series: [
             {
-                name: 'Acesso',
-                type: 'pie',
-                radius: ['40%', '70%'],
-                center: ['50%', '75%'], // Ajustado levemente para baixo para caber o texto superior
-                startAngle: 180,
-                endAngle: 360,
-                avoidLabelOverlap: false,
+                name: 'Com Energia',
+                type: 'bar',
+                stack: 'total',
+                barWidth: '50%',
+                itemStyle: { color: '#91cc75' },
+                label: { show: true, position: 'inside', formatter: '{c}' }, // Label dentro
+                data: dataComEnergia
+            },
+            {
+                name: 'Sem Energia',
+                type: 'bar',
+                stack: 'total',
+                itemStyle: { color: '#ee6666' },
+                // Label total em cima da barra (usamos a última série do stack para isso)
                 label: {
                     show: true,
-                    position: 'inside',
-                    formatter: '{b}\n{d}%',
-                    fontSize: 15,       // Tamanho do texto maior
-                    fontWeight: 'bold', // Negrito              color: '#fff'       // Cor branca para destacar sobre o colorido
+                    position: 'top',
+                    formatter: function(p) {
+                        return dataTotal[p.dataIndex]; // Mostra o total calculado
+                    },
+                    textStyle: { color: '#fff', fontWeight: 'bold' }
                 },
-                data: [
-                    {value: totalEnergiaGeral, name: 'Energia'},
-                    {value:  quedasTotais - totalEnergiaGeral},
-                ]
+                data: dataSemEnergia
+            },
+            {
+                name: 'Média Diária',
+                type: 'line',
+                yAxisIndex: 1,
+                smooth: true,
+                itemStyle: { color: '#fac858' },
+                data: dataMediaDiaria
             }
         ]
     };
-    const chartDomEnergia = document.getElementById('chart-quedasCidadesEnergia');
-    const myChartEnergia = echarts.init(chartDomEnergia)
-    myChartEnergia.setOption(optionEnergia);
 
+    option && myChart.setOption(option);
 }
 
-function graficoMapa(dados) {
+function graficoMapa() {
     var chart = echarts.init(document.getElementById('chart'));
-
+    dados = quedasFiltradas
     const transformarParaMapa = (dados) => {
         const agrupado = {};
         dados.forEach(item => {
@@ -534,20 +578,27 @@ function graficoMapa(dados) {
 function atualizarNome(nome) {
     nomeFiltro = nome;
     mes = "todos"
+    filtrarQuedas()
     atualizarGraficoIndisponibilidade()
-    graficoDeAlertasPorCidadeEMes()
+    graficoAlertasCidades()
+    graficoRelacaoQuedasEnergia()
+    graficoDeQuedasMesDia()
+    graficoMapa()
 }
 
 
 let mesAnterior = 'x';
-
 function atualizarMes(mesNovo) {
     mes = mesNovo
     if (mesAnterior !== mesNovo && mesAnterior !== 'x') {
         document.getElementById(mesAnterior).style.backgroundColor = "#11bb79";
     }
+    filtrarQuedas()
     mesAnterior = mesNovo;
     document.getElementById(mesNovo).style.backgroundColor = "#279c00";
     atualizarGraficoIndisponibilidade();
-    graficoDeAlertasPorCidadeEMes();
+    graficoAlertasCidades()
+    graficoRelacaoQuedasEnergia()
+    graficoDeQuedasMesDia()
+    graficoMapa()
 }
