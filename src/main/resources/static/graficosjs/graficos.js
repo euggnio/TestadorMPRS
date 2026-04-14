@@ -397,10 +397,8 @@ function atualizarGraficoIndisponibilidade() {
 function graficoDeQuedasMesDia() {
     console.log("\n\n\n ===== GRAFICO DE QUEDAS MES E DIA INICIALIZANDO =====");
     var chartDom = document.getElementById('chart-quedas');
-    var myChart = echarts.init(chartDom, 'dark');
-    // Decidimos se filtramos por 'mes' ou por 'dia' dependendo da seleção
+    var myChart = echarts.init(chartDom);
     const campoFiltro = (mes !== "todos") ? 'dia' : 'mes';
-
     const dataComEnergia = meses.map(m =>
         quedasFiltradas.filter(q => q[campoFiltro] === m && q.energia === true).length
     );
@@ -409,10 +407,27 @@ function graficoDeQuedasMesDia() {
         quedasFiltradas.filter(q => q[campoFiltro] === m && q.energia === false).length
     );
 
-    const dataTotal = dataComEnergia.map((val, i) => val + dataSemEnergia[i]);
-    const dataMediaDiaria = dataTotal.map(total => (total / dataTotal.length.toFixed(2)));
 
-    // --- 2. CONFIGURAÇÃO DO ECHARTS ---
+    const dataTotal = meses.map(m =>
+        quedasFiltradas.filter(q => q[campoFiltro] === m).length
+    );
+    const cidadesCount = meses.map(m => {
+        const registrosNoPeriodo = quedasFiltradas.filter(q => q[campoFiltro] === m);
+        const nomesCidades = registrosNoPeriodo.map(q => q.nomeCidade);
+        return new Set(nomesCidades).size;
+    });
+
+    const anoAtual = new Date().getFullYear();
+    const diasArray = [];
+    for (let i = 1; i < meses.length +1; i++) {
+        diasArray.push(new Date(anoAtual, i,0).getDate());
+    }
+    const dataMediaPorCidade = dataTotal.map((total, i) => {
+        const qtdCidades =(mes !== "todos") ? cidadesCount[i]:diasArray[i];
+        if (qtdCidades === 0) return "0.00";
+        return (total / qtdCidades).toFixed(2);
+    });
+
     var option = {
         title: {
             text: mes !== "todos" ? `Quedas em ${mes}` : 'Análise de Quedas por Mês',
@@ -422,7 +437,6 @@ function graficoDeQuedasMesDia() {
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'cross' },
-            // --- CUSTOMIZAÇÃO DO TOOLTIP (TOP 10 CIDADES) ---
             formatter: function (params) {
                 let eixoX = params[0].name; // Nome do Mês ou Dia
 
@@ -484,17 +498,20 @@ function graficoDeQuedasMesDia() {
                     formatter: function(p) {
                         return dataTotal[p.dataIndex]; // Mostra o total calculado
                     },
-                    textStyle: { color: '#fff', fontWeight: 'bold' }
+                    textStyle: { fontWeight: 'bold' }
                 },
                 data: dataSemEnergia
             },
             {
                 name: 'Média Diária',
                 type: 'line',
-                yAxisIndex: 1,
                 smooth: true,
-                itemStyle: { color: '#fac858' },
-                data: dataMediaDiaria
+                itemStyle: { color: '#fff' },
+                label:{
+                    show: true,
+                    position: 'inside',
+                },
+                data: dataMediaPorCidade
             }
         ]
     };
