@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<tml xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
     <meta charset="UTF-8">
     <title>Testador</title>
@@ -39,7 +39,10 @@
 
     <div class="nav-container">
         <nav class="navbar">
-                <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >
+            <select name="cidade" id="seletorCidade" onchange="atualizarNome(this.value)">
+                <option value="" selected>Selecione uma Cidade</option>
+            </select>
+<!--            <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >-->
 
                 <label for="dropAno" style="display:none;">Ano: </label>
                 <select id="dropAno">
@@ -85,11 +88,6 @@
         </div>
 
         <div class="centralizar chartCalendario" id="5">
-            <div class="controle-cidade">
-                <button id="aleatoria">Aleatória</button>
-                <label for="seletorCidade">Cidade:</label>
-                <select name="cidade" id="seletorCidade"></select>
-            </div>
 
             <div id="chartTempoPorCidade" class="graficoCalendario"></div>
             <div id="chartQuedasPorCidade" class="graficoCalendario"></div>
@@ -128,18 +126,15 @@
 
 <script>
 
-    //  ***  Dropdown de seleção de cidades  ***
     function fazDropCidades(){
         let select = document.getElementById("seletorCidade")
-        const lista = listaCidades()
-
-        lista.forEach(cid => {
+        cidades.forEach(cid => {
             let elem = document.createElement('option')
             elem.value = elem.innerText = cid
             select.appendChild(elem)
         })
     }
-    window.addEventListener('load', fazDropCidades)
+
 
     // ***  Gráficos Calendário  ***
 
@@ -159,7 +154,7 @@
     fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
     fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
 
-    window.addEventListener('load', () => novaCidade(cidadeAleatoria(), anoAtual))
+
 
     inputCidade.addEventListener('change', () => {
         let input = document.getElementById("seletorCidade")
@@ -169,7 +164,10 @@
     aleatoria.addEventListener('click', () => {
         novaCidade(cidadeAleatoria(), anoAtual)
     })
+
+
+
 </script>
 
 </body>
-</html>
+</tml>

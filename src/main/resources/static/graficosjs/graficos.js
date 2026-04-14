@@ -24,6 +24,8 @@ window.onload = () => {
     graficoAlertasCidades();
     graficoRelacaoQuedasEnergia();
     graficoDeQuedasMesDia();
+    fazDropCidades();
+    console.log(cidades);
 
 
 }
@@ -392,13 +394,10 @@ function atualizarGraficoIndisponibilidade() {
 
 }
 
-
 function graficoDeQuedasMesDia() {
     console.log("\n\n\n ===== GRAFICO DE QUEDAS MES E DIA INICIALIZANDO =====");
     var chartDom = document.getElementById('chart-quedas');
     var myChart = echarts.init(chartDom, 'dark');
-
-    // --- 1. PROCESSAMENTO DOS DADOS ---
     // Decidimos se filtramos por 'mes' ou por 'dia' dependendo da seleção
     const campoFiltro = (mes !== "todos") ? 'dia' : 'mes';
 
@@ -411,7 +410,7 @@ function graficoDeQuedasMesDia() {
     );
 
     const dataTotal = dataComEnergia.map((val, i) => val + dataSemEnergia[i]);
-    const dataMediaDiaria = dataTotal.map(total => (total / 30).toFixed(2));
+    const dataMediaDiaria = dataTotal.map(total => (total / dataTotal.length.toFixed(2)));
 
     // --- 2. CONFIGURAÇÃO DO ECHARTS ---
     var option = {
@@ -505,96 +504,214 @@ function graficoDeQuedasMesDia() {
 
 function graficoMapa() {
     var chart = echarts.init(document.getElementById('chart'));
-    var dados = quedasFiltradas;
 
-    const transformarParaMapa = (dados) => {
-        const agrupado = {};
+    // --- ESTADO ---
+    var filtroEnergia = 'todos';
+    var tipoVisualizacao = 'scatter';
+
+    // --- PAINEL DE CONTROLES ---
+    const chartEl = document.getElementById('chart');
+    let controles = document.getElementById('mapa-controles');
+
+    // Se já existir, removemos para evitar duplicação em atualizações sem recarregar a página
+    if (controles) {
+        controles.remove();
+    }
+
+    controles = document.createElement('div');
+    controles.id = 'mapa-controles';
+    controles.style.cssText = `
+        display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+        padding:8px 12px;background:rgb(34 40 49);
+        border-bottom:1px solid #2a2a2a;font-family:sans-serif;
+    `;
+    controles.innerHTML = `
+        <span style="color:#666;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Energia</span>
+        <button id="btn-todos" class="map-btn" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;">Todos</button>
+        <button id="btn-com" class="map-btn" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;">Com energia</button>
+        <button id="btn-sem" class="map-btn" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;">Sem energia</button>
+        <div style="width:1px;height:20px;background:#2a2a2a;margin:0 4px;"></div>
+        <span style="color:#666;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Modo</span>
+        <button id="btn-bolhas" class="map-btn" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;">Bolhas</button>
+        <button id="btn-calor" class="map-btn" style="padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;">Calor</button>
+        <span id="mapa-total" style="margin-left:auto;color:#666;font-size:12px;"></span>
+    `;
+    chartEl.parentNode.insertBefore(controles, chartEl);
+
+    // --- LÓGICA DE RESET E ESTILO DOS BOTÕES ---
+    const aplicarEstiloBotao = (btn, ativo) => {
+        if (ativo) {
+            btn.style.background = '#3a3a3a';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#555';
+            btn.style.borderStyle = 'solid';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = '#888';
+            btn.style.borderColor = '#444';
+            btn.style.borderStyle = 'solid';
+        }
+    };
+
+    const atualizarBotoesUI = () => {
+        // Reset de Energia
+        aplicarEstiloBotao(document.getElementById('btn-todos'), filtroEnergia === 'todos');
+        aplicarEstiloBotao(document.getElementById('btn-com'), filtroEnergia === 'com');
+        aplicarEstiloBotao(document.getElementById('btn-sem'), filtroEnergia === 'sem');
+
+        // Reset de Modo
+        aplicarEstiloBotao(document.getElementById('btn-bolhas'), tipoVisualizacao === 'scatter');
+        aplicarEstiloBotao(document.getElementById('btn-calor'), tipoVisualizacao === 'heatmap');
+    };
+
+    // Listeners
+    document.getElementById('btn-todos').onclick = () => { filtroEnergia = 'todos'; renderizar(); };
+    document.getElementById('btn-com').onclick   = () => { filtroEnergia = 'com';   renderizar(); };
+    document.getElementById('btn-sem').onclick   = () => { filtroEnergia = 'sem';   renderizar(); };
+    document.getElementById('btn-bolhas').onclick = () => { tipoVisualizacao = 'scatter'; renderizar(); };
+    document.getElementById('btn-calor').onclick  = () => { tipoVisualizacao = 'heatmap'; renderizar(); };
+
+    // --- PROCESSAMENTO DE DADOS ---
+    const agrupar = (dados) => {
+        const mapa = {};
         dados.forEach(item => {
             if (!item.coordenada) return;
-
-            if (!agrupado[item.nomeCidade]) {
-                const partes = item.coordenada.split(',');
-                agrupado[item.nomeCidade] = {
-                    lng: parseFloat(partes[1]),
-                    lat: parseFloat(partes[0]),
-                    count: 0,
-                    nome: item.nomeCidade
+            if (!mapa[item.nomeCidade]) {
+                const [lat, lng] = item.coordenada.split(',').map(Number);
+                mapa[item.nomeCidade] = {
+                    nome: item.nomeCidade.replace(/_/g, ' '),
+                    lat, lng, total: 0, com: 0, sem: 0
                 };
             }
-            agrupado[item.nomeCidade].count += 1;
+            mapa[item.nomeCidade].total++;
+            item.energia ? mapa[item.nomeCidade].com++ : mapa[item.nomeCidade].sem++;
         });
-
-        return Object.values(agrupado).map(c => [c.lng, c.lat, c.count, c.nome]);
+        return Object.values(mapa);
     };
 
-    const dadosFormatados = transformarParaMapa(dados);
+    // --- FORMATAÇÃO DO TOOLTIP (Recuperado e Padronizado) ---
+    const getTooltipFormatter = (params) => {
+        const c = params.data.extra;
+        if (!c) return '';
+        const pct = c.total > 0 ? Math.round((c.sem / c.total) * 100) : 0;
+        const countExibido = params.data.value[2];
 
-    // --- CÁLCULO DO MÁXIMO DINÂMICO ---
-    // Pegamos todos os counts e achamos o maior valor presente nos dados atuais
-    const apenasCounts = dadosFormatados.map(d => d[2]);
-    const maxLocal = apenasCounts.length > 0 ? Math.max(...apenasCounts) : 10;
+        return `
+            <div style="font-family:sans-serif;min-width:180px;color:#ddd;">
+                <b style="font-size:13px;color:#fff;">${c.nome}</b>
+                <hr style="margin:4px 0;border:none;border-top:1px solid #444;"/>
+                <div style="margin-bottom:2px;">Quedas (filtro): <b style="color:#fff;font-size:13px;">${countExibido}</b></div>
+                <div style="font-size:11px;color:#aaa;">Total geral: ${c.total}</div>
+                <div style="font-size:11px;color:#aaa;">Com energia: ${c.com} &nbsp;|&nbsp; Sem: ${c.sem}</div>
+                <div style="margin-top:6px;background:#222;border-radius:3px;height:6px;overflow:hidden;">
+                    <div style="background:#ff4444;border-radius:3px;height:6px;width:${pct}%;"></div>
+                </div>
+                <div style="font-size:10px;color:#F44;text-align:right;margin-top:2px;">${pct}% sem energia</div>
+            </div>
+        `;
+    };
 
-    // Se o máximo for muito baixo (ex: 1), definimos um piso para o gráfico não ficar estranho
-    const valorMaximoGrafico = maxLocal > 0 ? maxLocal : 10;
+    const renderizar = () => {
+        atualizarBotoesUI();
+        const todasCidades = agrupar(quedasFiltradas);
 
-    var option = {
-        leaflet: {
-            center: [-53, -30.2317],
-            zoom: 7,
-            roam: true,
-            tiles: [{
-                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            }]
-        },
-        tooltip: {
-            trigger: 'item',
-            formatter: function (params) {
-                return `<b>${params.data[3]}</b><br/>Quedas: ${params.data[2]}`;
-            }
-        },
-        visualMap: {
-            type: 'continuous',
+        const cidadesFiltradas = todasCidades
+            .map(c => {
+                let count = filtroEnergia === 'com' ? c.com : (filtroEnergia === 'sem' ? c.sem : c.total);
+                return { ...c, count };
+            })
+            .filter(c => c.count > 0);
+
+        const maxCount = cidadesFiltradas.length > 0 ? Math.max(...cidadesFiltradas.map(c => c.count)) : 1;
+
+        const el = document.getElementById('mapa-total');
+        if (el) el.textContent = `${cidadesFiltradas.reduce((s,c) => s+c.count, 0)} quedas em ${cidadesFiltradas.length} cidades`;
+
+        let series = [];
+        let visualMap = {
+            show: true,
             min: 0,
-            max: valorMaximoGrafico, // <--- AGORA É DINÂMICO
-            dimension: 2,
+            max: maxCount,
             calculable: true,
-            realtime: false, // Melhora performance ao arrastar
-            inRange: {
-                symbolSize: [10, 60], // Aumentei um pouco o máximo para destacar bem
-                color: ['#67ff00', '#ffa500', '#ff0000']
-            },
-            textStyle: {
-                color: '#fff'
-            }
-        },
-        series: [
-            {
-                type: 'scatter',
-                coordinateSystem: 'leaflet',
-                data: dadosFormatados,
-                encode: {
-                    value: 2 // Indica explicitamente que o valor visual vem do count (index 2)
+            inRange: { color: ['#50c850', '#ffb300', '#dc2626'] },
+            textStyle: { color: '#aaa' },
+            left: 10,
+            bottom: 40
+        };
+
+        if (tipoVisualizacao === 'heatmap') {
+            // HEATMAP REAL do ECharts
+            series = [
+                {
+                    type: 'heatmap',
+                    coordinateSystem: 'leaflet',
+                    data: cidadesFiltradas.map(c => [c.lng, c.lat, c.count]),
+                    pointSize: 20, // Ajuste conforme a densidade desejada
+                    blurSize: 30
                 },
-                itemStyle: {
-                    opacity: 0.8,
-                    shadowBlur: 10,
-                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                {
+                    // Pontos de interação no topo do heatmap
+                    type: 'scatter',
+                    coordinateSystem: 'leaflet',
+                    data: cidadesFiltradas.map(c => ({
+                        value: [c.lng, c.lat, c.count],
+                        extra: c
+                    })),
+                    symbolSize: 5,
+                    itemStyle: { opacity: 0 }, // Invisível, apenas para o tooltip
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: getTooltipFormatter
+                    }
                 }
-            }
-        ]
+            ];
+        } else {
+            // MODO SCATTER (BOLHAS)
+            series = [{
+                type: 'effectScatter',
+                coordinateSystem: 'leaflet',
+                data: cidadesFiltradas.map(c => ({
+                    value: [c.lng, c.lat, c.count],
+                    extra: c,
+                    symbolSize: 10 + (c.count / maxCount) * 40
+                })),
+                rippleEffect: { brushType: 'stroke', scale: 3 },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: getTooltipFormatter
+                }
+            }];
+        }
+
+        chart.setOption({
+            // ADICIONE ISSO AQUI:
+            tooltip: {
+                show: true,
+                trigger: 'item',
+                backgroundColor: 'rgba(15,15,20,0.9)',
+                borderColor: '#333',
+                borderWidth: 1,
+                padding: 0 // Para que seu HTML customizado preencha tudo
+            },
+            leaflet: {
+                center: [-53, -30.2317],
+                zoom: 7,
+                roam: true,
+                tiles: [{ urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' }]
+            },
+            visualMap,
+            series
+        }, true);
     };
-    chart.setOption(option);
+
+    renderizar();
+    window.addEventListener('resize', () => chart.resize());
 }
 
 function atualizarNome(nome) {
     nomeFiltro = nome;
     mes = "todos"
-    filtrarQuedas()
-    atualizarGraficoIndisponibilidade()
-    graficoAlertasCidades()
-    graficoRelacaoQuedasEnergia()
-    graficoDeQuedasMesDia()
-    graficoMapa()
+    atualizarTudo();
 }
 
 let mesAnterior = 'x';
@@ -603,12 +720,17 @@ function atualizarMes(mesNovo) {
     if (mesAnterior !== mesNovo && mesAnterior !== 'x') {
         document.getElementById(mesAnterior).style.backgroundColor = "#11bb79";
     }
-    filtrarQuedas()
     mesAnterior = mesNovo;
     document.getElementById(mesNovo).style.backgroundColor = "#279c00";
+    atualizarTudo();
+}
+
+function atualizarTudo(){
+    filtrarQuedas()
     atualizarGraficoIndisponibilidade();
     graficoAlertasCidades()
     graficoRelacaoQuedasEnergia()
     graficoDeQuedasMesDia()
     graficoMapa()
 }
+
