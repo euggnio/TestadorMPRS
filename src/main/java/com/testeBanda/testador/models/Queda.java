@@ -84,7 +84,7 @@ public class Queda {
         if (dias > 0) sb.append(dias).append(" dias ");
         if (horas > 0) sb.append(horas).append("h ");
         if (minutos > 0) sb.append(minutos).append("min");
-        if (d.compareTo(Duration.ofMinutes(1)) < 0) sb.append(">1min");
+        if (d.compareTo(Duration.ofMinutes(1)) < 0) sb.append("<1min");
         return sb.toString().trim();
     }
 

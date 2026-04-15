@@ -33,14 +33,15 @@
     margin: auto;
 
 }
-#aleatoria{
-    margin-right: 5em;
-}
 
 .graficoCalendario{
     width: 70%;
     height: 250px;
     margin:auto;
+}
+
+#total{
+    font-weight: bold;
 }
 
 .qntQuedasBarras{

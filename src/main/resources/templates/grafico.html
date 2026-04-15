@@ -31,7 +31,8 @@
     </div>
 
     <div class="btMes"  th:each="mes : ${alertas.getMesDisponibilidades()}">
-        <button th:text="${mes.getNomeMesPtBr()}" th:id="${mes.month.name()}" onclick="atualizarMes(this.id)">
+        <button th:text="${mes.getNomeMesPtBr().substring(0,1).toUpperCase() + mes.getNomeMesPtBr().substring(1)}"
+                th:id="${mes.month.name()}" onclick="atualizarMes(this.id)">
         </button>
     </div>
 </div>
@@ -40,13 +41,13 @@
     <div class="nav-container">
         <nav class="navbar">
             <select name="cidade" id="seletorCidade" onchange="atualizarNome(this.value)">
-                <option value="" selected>Selecione uma Cidade</option>
+                <option value="" selected>Selecionar Cidade</option>
             </select>
 <!--            <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >-->
 
                 <label for="dropAno" style="display:none;">Ano: </label>
                 <select id="dropAno">
-                    <option value="" selected disabled hidden>Ano</option>
+                    <option value="" selected disabled hidden>Selecionar Ano</option>
                     <option th:each="ano : ${alertas.listaAnos}"
                             th:value="${ano}"
                             th:text="${ano}" ></option>
@@ -128,13 +129,12 @@
 
     function fazDropCidades(){
         let select = document.getElementById("seletorCidade")
-        cidades.forEach(cid => {
+        cidades.sort().forEach(cid => {
             let elem = document.createElement('option')
             elem.value = elem.innerText = cid
             select.appendChild(elem)
         })
     }
-
 
     // ***  Gráficos Calendário  ***
 
@@ -153,17 +153,19 @@
     fazGraficoQntQuedasTodas(document.getElementById('chartQuedasPorDia'), quedas, anoAtual)
     fazGraficoEstatisticas(document.getElementById("stats"), quedas, anoAtual)
     fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
-
+    novaCidade(cidadeAleatoria(), anoAtual)
 
 
     inputCidade.addEventListener('change', () => {
         let input = document.getElementById("seletorCidade")
-        novaCidade(input.value, anoAtual)
+        let cid = input.value == '' ? cidadeAleatoria() : input.value
+
+        novaCidade(cid, anoAtual)
     })
 
-    aleatoria.addEventListener('click', () => {
+    /*aleatoria.addEventListener('click', () => {
         novaCidade(cidadeAleatoria(), anoAtual)
-    })
+    })*/
 
 
 

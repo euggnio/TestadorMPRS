@@ -15,6 +15,11 @@ function dadosSalvos() {
         localStorage.clear();
     }
 
+    if(window.location.href.indexOf("dia") > -1){
+        calendario.value = window.location.pathname.slice(-10)
+        localStorage.setItem('dia', calendario.value);
+    }
+
     if(localStorage.getItem('ano') == null){
         localStorage.setItem('ano', hoje.getFullYear());
         dropAno.value = hoje.getFullYear();

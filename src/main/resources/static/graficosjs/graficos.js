@@ -106,7 +106,10 @@ function graficoAlertasCidades(){
 
     var option = {
         title: {
-            text: 'Quedas por cidade'
+            text: 'Quedas por Cidade'
+        },
+        textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
         },
         tooltip: {
             trigger: 'axis',
@@ -151,6 +154,13 @@ function graficoAlertasCidades(){
                 name: 'Energia',
                 type: 'bar',
                 color: '#f6652c',
+                label: {
+                    show: true,
+                    formatter: function (params) {
+                        return params.value == 0 ? '' : params.value;
+                    },
+                    color: 'white'
+                },
                 data: totaisEnergia
             }
         ]
@@ -171,8 +181,11 @@ function graficoRelacaoQuedasEnergia(){
     let optionEnergia = {
         color: ['#FF4500', '#1e840e'],
         title: {
-            text: 'Relação quedas energia',
+            text: 'Relação Quedas por Energia',
             left: 'center'
+        },
+        textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
         },
         tooltip: {
             trigger: 'item',
@@ -200,7 +213,7 @@ function graficoRelacaoQuedasEnergia(){
                 },
                 data: [
                     {value: energiaTotal, name: 'Energia'},
-                    {value:  quedasTotais - energiaTotal},
+                    {value:  quedasTotais - energiaTotal, name: 'Outros'},
                 ]
             }
         ]
@@ -252,13 +265,20 @@ function atualizarGraficoIndisponibilidade() {
     const chartIndisp = echarts.init(document.getElementById('chart-indisponibilidade'));
     var option = {
         title: {
-            text: 'Disponibilidade por cidade (%) - ' + mes,
+            text: 'Disponibilidade por Cidade (%) - ' + mes,
             left: 'center'
+        },
+        textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
         },
         tooltip: {
             trigger: 'axis',
             formatter: '{b} : {c}%',
-            axisPointer: {type: 'shadow'}
+            axisPointer: {type: 'shadow'},
+            textStyle: {
+                fontWeight: 'bolder',
+                color: '#222831'
+            }
         },
         grid: {
             left: '5%',
@@ -314,12 +334,15 @@ function atualizarGraficoIndisponibilidade() {
             trigger: 'item',
             formatter: '{a} <br/>{b}: {c} ({d}%)'
         },
+        textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+        },
         legend: {
             data: [
-                'Média IDM',
-                'NÃO OK',
-                'IDM OK',
-                'IDM NÃO OK',
+                'Média OK',
+                'Média NOK',
+                'OK',
+                'NOK',
             ]
         },
         series: [
@@ -338,8 +361,8 @@ function atualizarGraficoIndisponibilidade() {
                     show: false
                 },
                 data: [
-                    {value: porcentagem.toFixed(2), name: 'Média IDM'},
-                    {value: (100 - porcentagem).toFixed(2), name: 'NÃO OK', itemStyle: {color: '#6d1f9a'}}
+                    {value: porcentagem.toFixed(2), name: 'Média OK'},
+                    {value: (100 - porcentagem).toFixed(2), name: 'Média NOK', itemStyle: {color: '#6d1f9a'}}
                 ],
             },
             {
@@ -381,8 +404,8 @@ function atualizarGraficoIndisponibilidade() {
                     }
                 },
                 data: [
-                    {value: contadorIDMOK, name: 'IDM OK', itemStyle: {color: '#279e00'}},
-                    {value: cidades.length - contadorIDMOK, name: 'IDM NÃO OK', itemStyle: {color: '#a50000'}}
+                    {value: contadorIDMOK, name: 'OK', itemStyle: {color: '#279e00'}, label:{fontSize: 12}},
+                    {value: cidades.length - contadorIDMOK, name: 'NOK', itemStyle: {color: '#a50000'}, label:{fontSize: 12}}
                 ]
             }
         ]
@@ -434,6 +457,9 @@ function graficoDeQuedasMesDia() {
             subtext: 'Passe o mouse para ver o Top 10 Cidades',
             left: 'center'
         },
+        textStyle: {
+            fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
+        },
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'cross' },
@@ -483,7 +509,14 @@ function graficoDeQuedasMesDia() {
                 stack: 'total',
                 barWidth: '50%',
                 itemStyle: { color: '#91cc75' },
-                label: { show: true, position: 'inside', formatter: '{c}' }, // Label dentro
+                label: {
+                    show: true,
+                    position: 'inside',
+                    formatter: function (p){
+                        console.log(p.data)
+                        return p.data == 0 ? "" : p.data
+                    }
+                }, // Label dentro
                 data: dataComEnergia
             },
             {
@@ -496,7 +529,7 @@ function graficoDeQuedasMesDia() {
                     show: true,
                     position: 'top',
                     formatter: function(p) {
-                        return dataTotal[p.dataIndex]; // Mostra o total calculado
+                        return dataTotal[p.dataIndex] == 0 ? '' : dataTotal[p.dataIndex]; // Mostra o total calculado
                     },
                     textStyle: { fontWeight: 'bold' }
                 },
@@ -506,10 +539,10 @@ function graficoDeQuedasMesDia() {
                 name: 'Média Diária',
                 type: 'line',
                 smooth: true,
-                itemStyle: { color: '#fff' },
+                itemStyle: { color: '#5070dd', borderColor: '#ccc'},
                 label:{
                     show: true,
-                    position: 'inside',
+                    position: mes == "todos" ? 'top' : 'bottom'
                 },
                 data: dataMediaPorCidade
             }

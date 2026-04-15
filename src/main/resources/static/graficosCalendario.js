@@ -1,20 +1,4 @@
 
-// 1. Define the font face
-const myFont = new FontFace('Nunito', 'url(https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap)');
-
-// 2. Add the font to the document's FontFaceSet
-document.fonts.add(myFont);
-
-// 3. Force the download and wait for it to complete
-myFont.load().then(() => {
-    console.log('Font loaded successfully!');
-    // Now safe to use the font, e.g., in a canvas or by adding a class
-    document.body.classList.add('fonts-loaded');
-}).catch((error) => {
-    console.error('Font loading failed:', error);
-});
-
-
 
 function mapaDeQuedasNum(quedas){
     let mapa = new Map()
@@ -216,7 +200,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
             fontFamily: 'Nunito, Microsoft YaHei, sans-serif'
           },
           title: {
-            top: 30,
+            top: 20,
             left: 'center',
             text: "Quedas em " + cidade + " (" + ano + ')',
               textStyle: {
@@ -236,10 +220,14 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
                                         let hora = new Date(q.data)
                                         let tempoFora = segundosParaDuration(q.tempoFora)
                                         let newLinha = pad(hora.getHours()) + ':' + pad(hora.getMinutes()) + " por ";
-                                        newLinha += q.tempoFora == 0 ? "DOWN <br>" : tempoCompacto(tempoFora) + "<br>"
+                                        newLinha += q.tempoFora == 0 ? "DOWN" : tempoCompacto(tempoFora)
+                                        if(q.faltaDeLuz){
+                                            newLinha += "⚡"
+                                        }
                                         if( tempoFora.hours >= 1 || q.tempoFora == 0 ){
                                             newLinha = "<span style='color:#222;'>" + newLinha + "</span>"
                                         }
+                                        newLinha += "<br>"
                                         listaQuedas += newLinha;
                                     })
                                 }
@@ -264,7 +252,7 @@ function fazGraficoQntQuedasCidade(elem, quedas, cidade, ano){
                     ],
             orient: 'horizontal',
             left: 'center',
-            top: 65,
+            top: 50,
             target: {
                 outOfRange: {
                     color: '#dedede'
@@ -538,7 +526,7 @@ function fazGraficoQntPorTempo(elem, quedas, ano){
 
 
 function novaCidade(cidade, ano){
-    document.getElementById("seletorCidade").value = cidade
+    //document.getElementById("seletorCidade").value = cidade
     fazGraficoQntQuedasCidade(document.getElementById('chartQuedasPorCidade'), quedas, cidade, ano)
     fazGraficoTempoQuedasCidade(document.getElementById('chartTempoPorCidade'), quedas, cidade, ano)
 
