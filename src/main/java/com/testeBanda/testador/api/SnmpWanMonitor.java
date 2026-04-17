@@ -40,6 +40,9 @@ public class SnmpWanMonitor {
     @Value("${testador.notDoSnmp}")
     private boolean notDoSnmp;
 
+    @Value("${testador.endpointloss}")
+    private String endpointloss;
+
     private static final OID OID_IF_NAME = new OID("1.3.6.1.2.1.31.1.1.1.1");
     private static final OID OID_IN = new OID("1.3.6.1.2.1.31.1.1.1.6");
     private static final OID OID_OUT = new OID("1.3.6.1.2.1.31.1.1.1.10");
@@ -258,7 +261,7 @@ public class SnmpWanMonitor {
 
     private String lastModifiedDate = null;
     public  void setHostLoss(){
-        URI url = URI.create("http://zeus.mp.rs.gov.br/loss.json");
+        URI url = URI.create(endpointloss);
         HttpRequest request = HttpRequest
                 .newBuilder()
                 .uri(url)
@@ -282,8 +285,12 @@ public class SnmpWanMonitor {
             throw new RuntimeException(e);
         }
         resultados.forEach(resultado->{
-            double loss = hosts.get(resultado.getSmokeID());
-            resultado.adicionarLoss(loss);
+            if(hosts != null){
+                double loss = hosts.get(resultado.getSmokeID());
+                resultado.adicionarLoss(loss);
+            }
+            resultado.adicionarLoss(0);
+
         });
     }
 
