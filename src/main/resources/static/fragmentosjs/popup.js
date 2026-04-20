@@ -108,7 +108,7 @@ function showPopup(title, message) {
         justifyContent: "center",
         zIndex: "9999",
         color: "black",
-        font-family: 'Nunito'
+        fontFamily: 'Nunito'
     });
 
     const content = popup.querySelector(".popup-content");
@@ -120,7 +120,7 @@ function showPopup(title, message) {
         boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
         textAlign: "center",
         minWidth: "250px",
-        font-family: 'Nunito',
+        fontFamily: "Nunito",
         animation: "fadeIn 0.2s ease"
     });
 
