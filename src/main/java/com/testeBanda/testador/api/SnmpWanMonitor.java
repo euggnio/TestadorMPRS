@@ -244,7 +244,7 @@ public class SnmpWanMonitor {
                 try {
                     //não pega trafego de roteadores que não foi possivel pegar o wanID
                     if ( wanIndexCache.get(resultado.getIp()) == -1 ){
-                        System.out.println("Roteador fora do ar, IP: "+resultado.getIp());
+                        log.debug("Roteador fora do ar, IP: {}", resultado.getIp());
                         return;
                     }
                     getTraffic(resultado, wanIndexCache.get(resultado.getIp()));
@@ -285,12 +285,11 @@ public class SnmpWanMonitor {
             throw new RuntimeException(e);
         }
         resultados.forEach(resultado->{
+            resultado.adicionarLoss(0);
             if(hosts != null){
                 double loss = hosts.get(resultado.getSmokeID());
                 resultado.adicionarLoss(loss);
             }
-            resultado.adicionarLoss(0);
-
         });
     }
 
