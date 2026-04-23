@@ -48,8 +48,6 @@ public class CidadeService {
     public Cidades findByNagios(String nagiosId) {
         Optional<Cidades> cid = cidadesRepository.findByNagiosIDEqualsIgnoreCase(nagiosId);
 
-        System.out.println(cid);
-
         if(cid.isPresent()){
             return cid.get();
         }else{

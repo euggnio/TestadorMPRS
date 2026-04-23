@@ -32,8 +32,10 @@ public class Cidades {
     public String smokeID;
     public String cacti;
     public String nagiosID;
-
     public String coordenadas;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
+    public List<Dispositivos> dispositivos;
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")

@@ -56,7 +56,7 @@ public class CidadeController {
 
         String cacti = graficoService.cacti(cidade.cacti);
         String smoke = graficoService.pegarUnidadeSmoke(cidade.smokeID);
-
+        System.out.println(cidade);
         model.addAttribute("quedas", quedaService.findQuedasNoBanco());
         model.addAttribute("smoke", smoke);
         model.addAttribute("cacti", cacti);

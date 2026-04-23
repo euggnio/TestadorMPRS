@@ -164,6 +164,20 @@
                     </tr>
                 </tbody>
             </table>
+    <table class="city-auto" id="dataTable2">
+        <thead>
+            <tr>
+                <th>IP</th>
+                <th>DISPOSITIVO</th>
+            </tr>
+        </thead>
+        <tbody class="dadosUnidade">
+            <tr th:each="dispositivo : ${cidade.dispositivos}">
+                 <td th:text="${dispositivo.ip}"></td>
+                 <td th:text="${dispositivo.nome}"></td>
+            </tr>
+        </tbody>
+    </table>
 
     <script type="text/javascript" th:inline="javascript">
         const quedas = /*[[${quedas}]]*/ null;
