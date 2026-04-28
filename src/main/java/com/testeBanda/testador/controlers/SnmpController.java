@@ -34,7 +34,7 @@ public class SnmpController {
     @GetMapping("/scan")
     @ResponseBody
     public String getSnmpList32() throws IOException {
-        scan.adicionarDispositivos("ALVORADA");
+        scan.varrerCidades();
                 return "monitor.resultados;";
     }
 

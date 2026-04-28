@@ -150,6 +150,9 @@ th {
 .inputPequeno{
     width: 9vw;
 }
+.inputPequenoX{
+    width: 3vw;
+}
 
 td{
     font-weight: bold;

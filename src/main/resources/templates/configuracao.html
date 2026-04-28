@@ -98,6 +98,10 @@
             <input form="salvaHost" class="inputPequeno" type="text" id="ip" name="ip" placeholder="IP...">
         </div>
         <div class="">
+            <label for="ip">IP</label>
+            <input form="salvaHost" class="inputPequenoX" type="text" id="notacao" name="ip" placeholder="Notação...">
+        </div>
+        <div class="">
             <label>&nbsp;</label> <button form="salvaHost" type="submit">Salvar</button>
         </div>
         <div class="">
@@ -138,6 +142,7 @@
             <th>Nagios</th>
             <th>Intra</th>
             <th>IP</th>
+            <th>/</th>
             <th>#</th>
         </tr>
         <tr th:each="host : ${hosts}" class="linha">
@@ -165,6 +170,9 @@
                 </td>
                 <td>
                     <input th:class="inputConfig + ' ' + ${host.nome}" th:name="ip" th:value="${host.ip}" readonly></input>
+                </td>
+                <td>
+                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="notacao" th:value="${host.notacao}" readonly></input>
                 </td>
             </form>
             <td style="display: flex; align-items: center;">

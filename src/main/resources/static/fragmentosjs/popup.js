@@ -49,7 +49,6 @@ function enviarModal() {
     document.getElementById("modalValor").value = '';
     const modal = document.getElementById("inputModal");
     modal.style.display = "none";
-
     fetch(url, {
         method: "POST",
         headers: {

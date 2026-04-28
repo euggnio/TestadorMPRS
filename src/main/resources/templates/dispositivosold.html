@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Dispositivos</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script th:src="@{/javascript.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&amp;display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <style>
+        :root {
+            --cor-fundo: #0f1117;
+            --cor-painel: #181c27;
+            --cor-painel2: #1e2333;
+            --cor-borda: #2a2f45;
+            --cor-primaria: #00adb5;
+            --cor-primaria-brilho: #00d4de;
+            --cor-texto: #dde3f0;
+            --cor-texto-muted: #7a8299;
+            --cor-pc: #4e9af1;
+            --cor-switch: #00adb5;
+            --cor-impressora: #f1914e;
+            --cor-telefone: #a56ef1;
+            --cor-outros: #6ef1a5;
+            --raio: 10px;
+            --sombra: 0 4px 24px rgba(0,0,0,0.35);
+        }
+
+        /* ===== RESET / BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+        }
+
+        main {
+            padding: 28px 32px 48px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ===== CABEÇALHO DA PÁGINA ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            color: #fff;
+        }
+
+        .page-header h1 span {
+            color: var(--cor-primaria);
+        }
+
+        .badge-total {
+            background: var(--cor-painel2);
+            border: 1px solid var(--cor-borda);
+            border-radius: 50px;
+            padding: 5px 16px;
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--cor-texto-muted);
+        }
+
+        .badge-total strong { color: var(--cor-primaria); font-size: 1rem; }
+
+        /* ===== CARDS DE RESUMO ===== */
+        .resumo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .resumo-card {
+            background: var(--cor-painel);
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--raio);
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform .18s, border-color .18s;
+            cursor: default;
+        }
+
+        .resumo-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--cor-cat);
+        }
+
+        .resumo-card .rc-icon {
+            font-size: 1.6rem;
+        }
+
+        .resumo-card .rc-label {
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--cor-cat);
+        }
+
+        .resumo-card .rc-num {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+        }
+
+        /* ===== LAYOUT GRÁFICOS ===== */
+        .graficos-row {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 900px) {
+            .graficos-row { grid-template-columns: 1fr; }
+        }
+
+        .painel {
+            background: var(--cor-painel);
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--raio);
+            padding: 20px;
+            box-shadow: var(--sombra);
+        }
+
+        .painel h3 {
+            font-size: .9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--cor-texto-muted);
+            margin-bottom: 16px;
+        }
+
+        .chart-box {
+            width: 100%;
+            height: 260px;
+        }
+
+        /* ===== SEÇÕES DE CATEGORIA ===== */
+        .categoria-section {
+            margin-bottom: 36px;
+        }
+
+        .categoria-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--cor-borda);
+        }
+
+        .categoria-header .cat-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cor-cat);
+            flex-shrink: 0;
+        }
+
+        .categoria-header h2 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+
+        .categoria-header .cat-count {
+            margin-left: auto;
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--cor-cat);
+            background: color-mix(in srgb, var(--cor-cat) 15%, transparent);
+            border-radius: 50px;
+            padding: 2px 12px;
+        }
+
+        /* ===== TABELA ===== */
+        .tabela-categoria {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .875rem;
+        }
+
+        .tabela-categoria thead tr {
+            background: var(--cor-painel2);
+        }
+
+        .tabela-categoria thead th {
+            padding: 10px 14px;
+            text-align: left;
+            font-size: .72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--cor-texto-muted);
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        .tabela-categoria thead th:first-child { border-radius: var(--raio) 0 0 0; }
+        .tabela-categoria thead th:last-child  { border-radius: 0 var(--raio) 0 0; }
+
+        .tabela-categoria tbody tr {
+            border-bottom: 1px solid var(--cor-borda);
+            transition: background .12s;
+        }
+
+        .tabela-categoria tbody tr:hover {
+            background: var(--cor-painel2);
+        }
+
+        .tabela-categoria tbody tr:last-child { border-bottom: none; }
+
+        .tabela-categoria td {
+            padding: 10px 14px;
+            color: var(--cor-texto);
+            vertical-align: middle;
+        }
+
+        .ip-badge {
+            font-family: 'Courier New', monospace;
+            font-size: .8rem;
+            background: color-mix(in srgb, var(--cor-primaria) 12%, transparent);
+            color: var(--cor-primaria-brilho);
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .nome-disp {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .desc-text {
+            color: var(--cor-texto-muted);
+            font-size: .83rem;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-text {
+            font-size: .82rem;
+            color: var(--cor-texto-muted);
+        }
+
+        /* ===== STATUS VAZIO ===== */
+        .categoria-vazia {
+            text-align: center;
+            padding: 32px;
+            color: var(--cor-texto-muted);
+            font-size: .9rem;
+        }
+
+        /* ===== LINKS ===== */
+        .links {
+            text-decoration: none;
+            color: var(--cor-primaria);
+        }
+
+        /* ===== FILTRO / BUSCA ===== */
+        .busca-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .busca-input {
+            flex: 1;
+            min-width: 200px;
+            background: var(--cor-painel);
+            border: 1px solid var(--cor-borda);
+            border-radius: 8px;
+            padding: 9px 16px;
+            color: var(--cor-texto);
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .busca-input::placeholder { color: var(--cor-texto-muted); }
+        .busca-input:focus { border-color: var(--cor-primaria); }
+
+        .filtro-btn {
+            background: var(--cor-painel2);
+            border: 1px solid var(--cor-borda);
+            border-radius: 8px;
+            padding: 9px 16px;
+            color: var(--cor-texto-muted);
+            font-family: 'Nunito', sans-serif;
+            font-size: .85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .filtro-btn:hover, .filtro-btn.ativo {
+            background: var(--cor-primaria);
+            border-color: var(--cor-primaria);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{header :: header}"></div>
+
+<main>
+    <!-- ===== CABEÇALHO ===== -->
+    <div class="page-header">
+        <h1>Parque de <span>Dispositivos</span></h1>
+        <span class="badge-total" id="badgeTotal">Total: <strong id="totalNum">0</strong> dispositivos</span>
+    </div>
+
+    <!-- ===== CARDS DE RESUMO ===== -->
+    <div class="resumo-grid" id="resumoGrid"></div>
+
+    <!-- ===== GRÁFICOS ===== -->
+    <div class="graficos-row">
+        <div class="painel">
+            <h3>Distribuição por tipo</h3>
+            <div class="chart-box" id="chartPizza"></div>
+        </div>
+        <div class="painel">
+            <h3>Quantidade por categoria</h3>
+            <div class="chart-box" id="chartBarras"></div>
+        </div>
+    </div>
+
+    <!-- ===== BUSCA ===== -->
+    <div class="busca-row">
+        <input class="busca-input" type="text" id="buscaInput" placeholder="🔍  Buscar por IP, nome, descrição ou usuário...">
+        <button class="filtro-btn ativo" data-cat="todos" onclick="filtrarCategoria('todos', this)">Todos</button>
+    </div>
+
+    <!-- ===== SEÇÕES DINÂMICAS ===== -->
+    <div id="categoriasContainer"></div>
+</main>
+
+<!-- ===== DADOS THYMELEAF ===== -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const dispositivos = /*[[${dispositivos}]]*/ [];
+    console.log("Dados carregados:", dispositivos);
+    /*]]>*/
+</script>
+
+<script>
+    /* ===== CONFIGURAÇÃO DE CATEGORIAS AJUSTADA ===== */
+    const CATEGORIAS = [
+        {
+            key: "switch",
+            label: "Switches / Roteadores",
+            icon: "🔀",
+            cor: "#00adb5",
+            palavras: ["sw-", "switch", "rtr-", "router", "roteador", "fw-", "firewall", "cisco", "ios (tm)", "summit200"],
+        },
+        {
+            key: "pc",
+            label: "Computadores / Notebooks",
+            icon: "🖥️",
+            cor: "#4e9af1",
+            palavras: ["windows", "microsoft", "pc-", "nb-", "desktop", "workstation"],
+        },
+        {
+            key: "impressora",
+            label: "Impressoras",
+            icon: "🖨️",
+            cor: "#f1914e",
+            palavras: ["imp-", "print", "impressora", "zebra", "hp-", "laser", "epson", "mfp", "lexmark","et788","432fdn"],
+        },
+        {
+            key: "telefone",
+            label: "Telefonia / VoIP",
+            icon: "📞",
+            cor: "#a56ef1",
+            palavras: ["tel-", "voip", "fone", "phone", "pbx", "alcatel"],
+        },
+        {
+            key: "camera",
+            label: "Câmeras / Segurança",
+            icon: "📷",
+            cor: "#f14e6e",
+            palavras: ["cam-", "camera", "câmera", "nvr", "dvr", "cftv", "hikvision", "intelbras"],
+        },
+        {
+            key: "wifi",
+            label: "Access Points / WiFi",
+            icon: "📶",
+            cor: "#6ef1c3",
+            palavras: ["ap-", "wifi", "wireless", "access", "ubiquiti", "mikrotik"],
+        },
+        {
+            key: "servidor",
+            label: "Servidores / NAS",
+            icon: "🗄️",
+            cor: "#f1e24e",
+            palavras: ["serv-", "server", "nas-", "srv-", "host-"],
+        },
+        {
+            key: "outros",
+            label: "Outros",
+            icon: "📦",
+            cor: "#8899aa",
+            palavras: [],
+        },
+    ];
+
+    /* ===== LÓGICA DE CLASSIFICAÇÃO APERFEIÇOADA ===== */
+    function classificar(disp) {
+        const ip = disp.ip || "";
+        const nomeLower = (disp.nome || "").toLowerCase();
+        const descLower = (disp.descricao || "").toLowerCase();
+        const textoCompleto = (nomeLower + " " + descLower).trim();
+
+        // 1. Regra do IP (Infraestrutura abaixo de .60)
+        // Extrai o último octeto do IP
+        const partesIp = ip.split('.');
+        const ultimoOcteto = partesIp.length === 4 ? parseInt(partesIp[3]) : null;
+
+        if (ultimoOcteto !== null && ultimoOcteto < 60) {
+            // Se for Cisco ou tiver termos de rede, é Switch
+            if (textoCompleto.includes("cisco") || textoCompleto.includes("switch")
+                || textoCompleto.includes("ios") || textoCompleto.includes("s2352g")
+            || textoCompleto.includes("summit200")) {
+                return "switch";
+            }
+            // Se for Alcatel no range de infra, geralmente é VoIP
+            if (textoCompleto.includes("alcatel") || nomeLower.includes("alcatel")) return "telefone";
+
+            // Se for HP/Epson/Laser no range de infra, é impressora
+            if (textoCompleto.includes("hp") || textoCompleto.includes("epson") || textoCompleto.includes("print") || textoCompleto.includes("432fdn")) {
+                return "impressora";
+            }
+        }
+
+        // 2. Identificação Específica por Palavras-Chave (Prioridade para PCs)
+        // Se contém "Windows", quase certamente é PC, independente do IP
+        if (textoCompleto.includes("lexmark") || textoCompleto.includes("432fdn") ) return "impressora";
+        if (textoCompleto.includes("alcatel") || nomeLower.includes("alcatel")) return "telefone";
+        if (textoCompleto.includes("windows") || textoCompleto.includes("microsoft") || nomeLower.includes("t")) {
+            return "pc";
+        }
+
+        // 3. Varredura geral das categorias configuradas
+        for (const cat of CATEGORIAS) {
+            if (cat.key === "outros") continue;
+            for (const p of cat.palavras) {
+                if (textoCompleto.includes(p)) return cat.key;
+            }
+        }
+
+        return "outros";
+    }
+
+    /* ===== ESTADO ===== */
+    let categoriaAtiva = "todos";
+    let termoBusca = "";
+
+    /* ===== RENDER PRINCIPAL ===== */
+    function renderTudo(lista) {
+        const porCat = {};
+        for (const cat of CATEGORIAS) porCat[cat.key] = [];
+        for (const d of lista) {
+            const k = classificar(d);
+            porCat[k].push(d);
+        }
+
+        // Resumo cards
+        const resumoGrid = document.getElementById("resumoGrid");
+        resumoGrid.innerHTML = "";
+        let total = 0;
+
+        for (const cat of CATEGORIAS) {
+            const qtd = porCat[cat.key].length;
+            if (qtd === 0) continue;
+            total += qtd;
+            const card = document.createElement("div");
+            card.className = "resumo-card";
+            card.style.setProperty("--cor-cat", cat.cor);
+            card.innerHTML = `
+            <span class="rc-icon">${cat.icon}</span>
+            <span class="rc-label">${cat.label.split("/")[0].trim()}</span>
+            <span class="rc-num">${qtd}</span>
+        `;
+            card.onclick = () => {
+                filtrarCategoria(cat.key, null);
+                document.querySelector(`[data-cat="${cat.key}"]`)?.click();
+            };
+            resumoGrid.appendChild(card);
+        }
+
+        document.getElementById("totalNum").textContent = total;
+
+        // Seções de categorias
+        const container = document.getElementById("categoriasContainer");
+        container.innerHTML = "";
+
+        for (const cat of CATEGORIAS) {
+            const lista = porCat[cat.key];
+            if (lista.length === 0) continue;
+            if (categoriaAtiva !== "todos" && categoriaAtiva !== cat.key) continue;
+
+            const section = document.createElement("div");
+            section.className = "categoria-section";
+            section.dataset.cat = cat.key;
+
+            let rows = "";
+            for (const d of lista) {
+                rows += `<tr>
+                <td><span class="nome-disp">${d.cidadeNome || "—"}</span></td>
+                <td><span class="ip-badge">${d.ip || "—"}</span></td>
+                <td><span class="nome-disp">${d.nome || "—"}</span></td>
+                <td><span class="desc-text" title="${d.descricao || ""}">${d.descricao || "—"}</span></td>
+                <td><span class="user-text">${d.usuario || "—"}</span></td>
+                <td><span class="user-text">${d.ultimaVarredura || "—"}</span></td>
+            </tr>`;
+            }
+
+            section.innerHTML = `
+            <div class="categoria-header">
+                <div class="cat-dot" style="--cor-cat:${cat.cor}; background:${cat.cor}"></div>
+                <span style="font-size:1.2rem">${cat.icon}</span>
+                <h2>${cat.label}</h2>
+                <span class="cat-count" style="--cor-cat:${cat.cor}">${lista.length}</span>
+            </div>
+            <div class="painel" style="padding:0; overflow:hidden">
+                <table class="tabela-categoria">
+                    <thead><tr>
+                        <th>Cidade</th>
+                        <th>IP</th>
+                        <th>Dispositivo</th>
+                        <th>Descrição</th>
+                        <th>Usuário</th>
+                        <th>LastCheck</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+
+            container.appendChild(section);
+        }
+    }
+
+    /* ===== FILTROS ===== */
+    function filtrarCategoria(cat, btn) {
+        categoriaAtiva = cat;
+        document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("ativo"));
+        if (btn) btn.classList.add("ativo");
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+        let lista = dispositivos;
+
+        if (termoBusca) {
+            const t = termoBusca.toLowerCase();
+            lista = lista.filter(d =>
+                (d.cidadeNome || "").toLowerCase().includes(t) ||
+                (d.ip || "").toLowerCase().includes(t) ||
+                (d.nome || "").toLowerCase().includes(t) ||
+                (d.descricao || "").toLowerCase().includes(t) ||
+                (d.usuario || "").toLowerCase().includes(t)
+            );
+        }
+
+        renderTudo(lista);
+        renderGraficos(lista);
+    }
+
+    /* ===== BOTÕES DE FILTRO DINÂMICOS ===== */
+    function criarBotoesFiltro() {
+        const busca = document.querySelector(".busca-row");
+        for (const cat of CATEGORIAS) {
+            const btn = document.createElement("button");
+            btn.className = "filtro-btn";
+            btn.dataset.cat = cat.key;
+            btn.textContent = cat.icon + " " + cat.label.split("/")[0].trim();
+            btn.onclick = function() { filtrarCategoria(cat.key, this); };
+            busca.appendChild(btn);
+        }
+    }
+
+    /* ===== GRÁFICOS ===== */
+    function renderGraficos(lista) {
+        const porCat = {};
+        for (const cat of CATEGORIAS) porCat[cat.key] = 0;
+        for (const d of lista) porCat[classificar(d)]++;
+
+        const dados = CATEGORIAS
+            .filter(c => porCat[c.key] > 0)
+            .map(c => ({ value: porCat[c.key], name: c.label.split("/")[0].trim(), itemStyle: { color: c.cor }, icon: c.icon }));
+
+        // Pizza
+        const pizzaEl = document.getElementById("chartPizza");
+        if (!pizzaEl._chart) pizzaEl._chart = echarts.init(pizzaEl, null, { backgroundColor: "transparent" });
+        pizzaEl._chart.setOption({
+            tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)", backgroundColor: "#1e2333", borderColor: "#2a2f45", textStyle: { color: "#dde3f0" } },
+            legend: { show: false },
+            series: [{
+                type: "pie",
+                radius: ["40%", "72%"],
+                center: ["50%", "50%"],
+                data: dados,
+                label: { color: "#dde3f0", fontSize: 11 },
+                labelLine: { lineStyle: { color: "#2a2f45" } },
+                emphasis: { itemStyle: { shadowBlur: 16, shadowColor: "rgba(0,173,181,.4)" } }
+            }]
+        });
+
+        // Barras horizontais
+        const barEl = document.getElementById("chartBarras");
+        if (!barEl._chart) barEl._chart = echarts.init(barEl, null, { backgroundColor: "transparent" });
+        const nomes = dados.map(d => d.name);
+        const vals  = dados.map(d => d.value);
+        const cores = CATEGORIAS.filter(c => porCat[c.key] > 0).map(c => c.cor);
+
+        barEl._chart.setOption({
+            tooltip: { trigger: "axis", backgroundColor: "#1e2333", borderColor: "#2a2f45", textStyle: { color: "#dde3f0" } },
+            grid: { left: 130, right: 20, top: 10, bottom: 10 },
+            xAxis: { type: "value", axisLabel: { color: "#7a8299" }, splitLine: { lineStyle: { color: "#2a2f45" } }, axisLine: { show: false } },
+            yAxis: { type: "category", data: nomes, axisLabel: { color: "#dde3f0", fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{
+                type: "bar",
+                data: vals.map((v, i) => ({ value: v, itemStyle: { color: cores[i], borderRadius: [0, 5, 5, 0] } })),
+                barMaxWidth: 32,
+                label: { show: true, position: "right", color: "#dde3f0", fontSize: 12, fontWeight: 700 }
+            }]
+        });
+    }
+
+    /* ===== INICIALIZAÇÃO ===== */
+    window.addEventListener("load", () => {
+        criarBotoesFiltro();
+        aplicarFiltros();
+
+        document.getElementById("buscaInput").addEventListener("input", function() {
+            termoBusca = this.value.trim();
+            aplicarFiltros();
+        });
+
+        window.addEventListener("resize", () => {
+            document.querySelectorAll("[id^=chart]").forEach(el => {
+                if (el._chart) el._chart.resize();
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

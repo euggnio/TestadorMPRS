@@ -1,0 +1,65 @@
+[ {
+  "key" : "switch",
+  "label" : "Switches / Roteadores",
+  "icon" : "\uD83D\uDD00",
+  "cor" : "#00adb5",
+  "regexNome" : "sw-|switch|router",
+  "regexDescricao" : "Cisco|DES-3552|RouterOS|Summit200|Switch|3552",
+  "rangeIp" : "0-59"
+}, {
+  "key" : "pc",
+  "label" : "Computadores / Notebooks",
+  "icon" : "\uD83D\uDDA5️",
+  "cor" : "#4e9af1",
+  "regexNome" : "pc-|nb-|desktop|workstation|^t\\d{4,8}$|^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$",
+  "regexDescricao" : "windows|microsoft",
+  "rangeIp" : "60-255"
+}, {
+  "key" : "impressora",
+  "label" : "Impressoras",
+  "icon" : "\uD83D\uDDA8️",
+  "cor" : "#f1914e",
+  "regexNome" : "imp-|print|impressora|Xerox",
+  "regexDescricao" : "zebra|hp|laser|epson|mfp|lexmark|EPSON|KYOCERA",
+  "rangeIp" : ""
+}, {
+  "key" : "telefone",
+  "label" : "Telefonia / VoIP",
+  "icon" : "\uD83D\uDCDE",
+  "cor" : "#a56ef1",
+  "regexNome" : "tel-|voip|fone|alcatel|ALCATEL",
+  "regexDescricao" : "ALCATEL|VOIP",
+  "rangeIp" : ""
+}, {
+  "key" : "camera",
+  "label" : "Câmeras / Segurança",
+  "icon" : "\uD83D\uDCF7",
+  "cor" : "#f14e6e",
+  "regexNome" : "cam-|camera",
+  "regexDescricao" : "nvr|dvr|cftv|hikvision|intelbras",
+  "rangeIp" : ""
+}, {
+  "key" : "wifi",
+  "label" : "Access Points / WiFi",
+  "icon" : "\uD83D\uDCF6",
+  "cor" : "#6ef1c3",
+  "regexNome" : "ap-|wifi|wireless",
+  "regexDescricao" : "ubiquiti|mikrotik",
+  "rangeIp" : ""
+}, {
+  "key" : "servidor",
+  "label" : "Servidores / NAS",
+  "icon" : "\uD83D\uDDC4️",
+  "cor" : "#f1e24e",
+  "regexNome" : "serv-|server|nas-|srv-",
+  "regexDescricao" : "",
+  "rangeIp" : ""
+}, {
+  "key" : "outros",
+  "label" : "Outros",
+  "icon" : "\uD83D\uDCE6",
+  "cor" : "#8899aa",
+  "regexNome" : "N/A",
+  "regexDescricao" : "",
+  "rangeIp" : ""
+} ]

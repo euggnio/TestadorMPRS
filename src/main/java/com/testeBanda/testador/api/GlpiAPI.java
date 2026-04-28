@@ -1,6 +1,7 @@
 package com.testeBanda.testador.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +37,12 @@ public class GlpiAPI {
         this.httpClient = httpClient;
     }
 
-    public synchronized void getSessionToken() throws IOException, InterruptedException {
-        log.info("Requisitando novo token de sessão");
+    public synchronized void getSessionToken()  {
         if ( !Objects.equals(tokenInUse, "") && isTokenValido() ) {
             log.info("Token ainda é válido");
             return;
         }
+        log.info("Requisitando novo token de sessão");
         log.warn("Token expirado, enviando nova requisição");
         URI uri = URI.create(startSessionUrl);
         HttpRequest request = HttpRequest.newBuilder()
@@ -52,10 +53,15 @@ public class GlpiAPI {
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response;
-        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode json = new ObjectMapper().readTree(response.body());
-        log.info("novo token {}", json.get("session_token").asText());
-        this.tokenInUse = json.get("session_token").asText();
+        try{
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            JsonNode json = new ObjectMapper().readTree(response.body());
+            log.info("novo token {}", json.get("session_token").asText());
+            this.tokenInUse = json.get("session_token").asText();
+        } catch (IOException | InterruptedException e) {
+            log.error("ERRO ao pedir token "+ e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     private boolean isTokenValido() {
@@ -197,6 +203,29 @@ public class GlpiAPI {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha na captura de followups " + e.getMessage());
         }
         return followups;
+    }
+
+    public JsonNode getComputerData(String tombo){
+        String endpoint = TicketUrl.replace("Ticket","");
+        String uri = endpoint + "/search/Computer?criteria[0][field]=1&criteria[0][searchtype]=contains&criteria[0][value]=" + tombo ;
+        HttpResponse<String> response = sendHttp(uri,"", "GET", true);
+        if ( response.statusCode() == 401 ) {
+            log.error("Token invalido pedindo outro token");
+            getSessionToken();
+            response = sendHttp(uri,"", "GET", true);
+        }
+        if( response.statusCode() != 200 && response.statusCode() != 206) {
+            log.error("Falha na captura de computer data - REQUISIÇÃO");
+            return null;
+        }
+        try{
+            JsonNode json = new ObjectMapper().readTree(response.body());
+            json = json.get("data");
+            return json.get(0);
+        } catch (JsonProcessingException e) {
+            log.error("Falha na captura de computer data - JSON");
+            throw new RuntimeException(e);
+        }
     }
 
     public String assignUserToTicketJson(String user) {

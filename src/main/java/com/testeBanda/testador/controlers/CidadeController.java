@@ -4,6 +4,7 @@ import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.Microtik;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.*;
+import com.testeBanda.testador.repository.DispositivosRepository;
 import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +31,16 @@ public class CidadeController {
     private final GraficosService graficoService;
     private final QuedaService quedaService;
     private final NagiosAPI nagiosAPI;
+    private final DispositivosRepository dispositivosRepository;
 
     @Autowired
-    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI) {
+    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI, DispositivosRepository dispositivosRepository) {
         this.cidadeService = cidadeService;
         this.microtik = microtik;
         this.graficoService = graficosService;
         this.quedaService = quedaService;
         this.nagiosAPI = nagiosAPI;
+        this.dispositivosRepository = dispositivosRepository;
     }
 
     @GetMapping("/versao")
@@ -111,8 +114,8 @@ public class CidadeController {
 
     @GetMapping("/dispositivos")
     public String dispositivos(Model model) {
-        List<Cidades> cidades = cidadeService.findAll();
-        model.addAttribute("cidades", cidades);
+        List<Dispositivos> dispositivos = dispositivosRepository.findAll();
+        model.addAttribute("dispositivos", dispositivos);
         return "dispositivos";
     }
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.testeBanda.testador.models.Cidades;
-import com.testeBanda.testador.models.Dispositivos;
 import com.testeBanda.testador.models.ResultadosSnmp;
 import com.testeBanda.testador.repository.CidadesRepository;
 import com.testeBanda.testador.service.CidadeService;
@@ -19,19 +18,13 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -39,30 +32,24 @@ public class SnmpWanMonitor {
 
     private final HttpClient httpClient;
     private static final String COMMUNITY = "public";
-    private final CidadesRepository cidadesRepository;
-
     @Value("${snmp.timeout}")
     private int TIMEOUT;
     @Value("${snmp.recheckWanCicles}")
     private int recheckWanIndexCacheCicles;
     private int recheckCounter;
-
     @Value("${testador.notDoSnmp}")
     private boolean notDoSnmp;
-
     @Value("${testador.endpointloss}")
     private String endpointloss;
+    private Snmp snmp;
 
     private static final OID OID_IF_NAME = new OID("1.3.6.1.2.1.31.1.1.1.1");
     private static final OID OID_IN = new OID("1.3.6.1.2.1.31.1.1.1.6");
     private static final OID OID_OUT = new OID("1.3.6.1.2.1.31.1.1.1.10");
 
-    private Snmp snmp;
-
     // cache ip -> ifIndex WAN
     //Utilizamos o cache para n ficar identificando a interface, diminuindo o numero de requisiçoes
     private final Map<String,Integer> wanIndexCache = new ConcurrentHashMap<>();
-
     // cache ultima leitura
     private final Map<String,Long> lastRx = new ConcurrentHashMap<>();
     private final Map<String,Long> lastTx = new ConcurrentHashMap<>();
@@ -74,7 +61,7 @@ public class SnmpWanMonitor {
 
     public List<ResultadosSnmp> resultados = new ArrayList<>();
     @Autowired
-    public SnmpWanMonitor(CidadeService cidadeService, HttpClient httpClient, CidadesRepository cidadesRepository) {
+    public SnmpWanMonitor(CidadeService cidadeService, HttpClient httpClient) {
         this.httpClient = httpClient;
         List<Cidades> cidades = cidadeService.findAll();
         for (Cidades cidade : cidades) {
@@ -82,7 +69,6 @@ public class SnmpWanMonitor {
         }
         this.recheckCounter = this.recheckWanIndexCacheCicles;
         this.init();
-        this.cidadesRepository = cidadesRepository;
     }
 
     public void init(){
@@ -167,7 +153,6 @@ public class SnmpWanMonitor {
     // ------------------------
     // GET RX TX
     // ------------------------
-
     private void getTraffic(ResultadosSnmp data, int index) throws Exception {
         OID in = new OID(OID_IN).append(index);
         OID out = new OID(OID_OUT).append(index);
@@ -263,159 +248,6 @@ public class SnmpWanMonitor {
     public void close() throws IOException {
         snmp.close();
     }
-
-
-
-    private final ExecutorService executor = Executors.newFixedThreadPool(30);
-    public void scanCidades(Cidades cidade, Snmp snmp) {
-        String baseIp = cidade.getIp().substring(0, cidade.getIp().lastIndexOf("."));
-
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-        for (int i = 1; i <= 254; i++) {
-            final String ip = baseIp + "." + i;
-            System.out.println(ip);
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                try {
-                    InetAddress inet = InetAddress.getByName(ip);
-                    if (inet.isReachable(400)) {
-
-                        String hostname = inet.getCanonicalHostName();
-
-                        if (hostname.equals(ip)) {
-                            String snmpName = scanHost(snmp, ip, 161, "public");
-                            hostname = (snmpName != null) ? snmpName : "DESCONHECIDO";
-                        }
-
-                        String gatewayIp = cidade.getIp();
-                        if (hostname.equals("DESCONHECIDO")) {
-                            String mac = getMacFromGatewayArp(snmp, gatewayIp, ip);
-                            assert mac != null;
-                            if(mac.contains("48:7A")){
-                                hostname = "ALTACEL 8018 VOIP";
-                            }else {
-                                hostname = (mac != null) ? "MAC:" + mac : "DESCONHECIDO";
-                            }
-                        }
-
-
-                        synchronized (cidade) {
-                            Dispositivos d = new Dispositivos();
-                            d.setIp(ip);
-                            if ( hostname.contains(".") ) {
-                                hostname = hostname.substring(0, hostname.indexOf("."));
-                            }
-                            d.setNome(hostname);
-                            d.setDescricao(cidade.getNome());
-                            d.setCidade(cidade);
-                            cidade.getDispositivos().add(d);
-                        }
-
-                        System.out.println(ip + " -> " + hostname);
-                    }
-                    else{
-                        System.out.println(ip + " -> FORA ");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }, executor);
-
-            futures.add(future);
-        }
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-    }
-
-    private String scanHost(Snmp snmp, String ip, int port, String community) {
-        try {
-            Address targetAddress = new UdpAddress(ip + "/" + port);
-            CommunityTarget target = new CommunityTarget();
-            target.setCommunity(new OctetString(community));
-            target.setAddress(targetAddress);
-            target.setRetries(1);
-            target.setTimeout(500);
-            target.setVersion(SnmpConstants.version2c);
-
-            PDU pdu = new PDU();
-            pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.1.1.0")));
-            pdu.setType(PDU.GET);
-
-            ResponseEvent response = snmp.send(pdu, target);
-
-            if (response == null) {
-                return null;
-            }
-            if (response.getResponse() == null) {
-                return null;
-            }
-            VariableBinding vb = response.getResponse().get(0);
-            if (vb == null || vb.getVariable() == null) {
-                return null;
-            }
-            return vb.getVariable().toString();
-
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private String getMacFromGatewayArp(Snmp snmp, String gatewayIp, String targetIp) {
-        try {
-            Address targetAddress = new UdpAddress(gatewayIp + "/161");
-
-            CommunityTarget target = new CommunityTarget();
-            target.setCommunity(new OctetString("public"));
-            target.setAddress(targetAddress);
-            target.setRetries(1);
-            target.setTimeout(1000);
-            target.setVersion(SnmpConstants.version2c);
-
-            OID baseOid = new OID("1.3.6.1.2.1.4.22.1.2");
-
-            PDU pdu = new PDU();
-            pdu.add(new VariableBinding(baseOid));
-            pdu.setType(PDU.GETNEXT);
-
-            while (true) {
-                ResponseEvent event = snmp.send(pdu, target);
-                if (event == null || event.getResponse() == null) break;
-
-                VariableBinding vb = event.getResponse().get(0);
-                if (vb == null) break;
-                if (!vb.getOid().startsWith(baseOid)) break;
-
-                String fullOid = vb.getOid().toString();
-                String[] parts = fullOid.split("\\.");
-                String ip = parts[parts.length - 4] + "." +
-                        parts[parts.length - 3] + "." +
-                        parts[parts.length - 2] + "." +
-                        parts[parts.length - 1];
-
-                if (ip.equals(targetIp)) {
-                    OctetString macOctet = (OctetString) vb.getVariable();
-                    byte[] bytes = macOctet.getValue();
-                    StringBuilder mac = new StringBuilder();
-                    for (int i = 0; i < bytes.length; i++) {
-                        if (i > 0) mac.append(":");
-                        mac.append(String.format("%02X", bytes[i] & 0xFF));
-                    }
-                    return mac.toString();
-                }
-
-                pdu = new PDU();
-                pdu.add(new VariableBinding(vb.getOid()));
-                pdu.setType(PDU.GETNEXT);
-            }
-
-        } catch (Exception e) {
-            System.out.println("Erro ARP SNMP: " + e.getMessage());
-        }
-
-        return null;
-    }
-
-
 
     private String lastModifiedDate = null;
     public  void setHostLoss(){

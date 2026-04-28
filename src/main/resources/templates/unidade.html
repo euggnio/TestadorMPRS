@@ -14,9 +14,6 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
     <style>
-        td{
-            width: 50%;
-        }
         .links{
             text-decoration: none;
             color: #00adb5;
@@ -169,12 +166,16 @@
             <tr>
                 <th>IP</th>
                 <th>DISPOSITIVO</th>
+                <th>DESC</th>
+                <th>USER</th>
             </tr>
         </thead>
         <tbody class="dadosUnidade">
             <tr th:each="dispositivo : ${cidade.dispositivos}">
                  <td th:text="${dispositivo.ip}"></td>
                  <td th:text="${dispositivo.nome}"></td>
+                 <td style="width: 150%" th:text="${dispositivo.descricao}"></td>
+                 <td th:text="${dispositivo.usuario}"></td>
             </tr>
         </tbody>
     </table>

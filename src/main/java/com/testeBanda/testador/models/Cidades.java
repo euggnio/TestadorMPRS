@@ -2,14 +2,13 @@ package com.testeBanda.testador.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,6 +32,10 @@ public class Cidades {
     public String cacti;
     public String nagiosID;
     public String coordenadas;
+    @Column(name = "notacao", length = 2)
+    @Size(min = 2, max = 2)
+    public String notacao;
+    public LocalDate ultimaVarredura;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Dispositivos> dispositivos;
@@ -70,6 +73,8 @@ public class Cidades {
         this.resultados.add(new Resultados(data,resultado,this));
 
     }
+
+
 
 
 }
