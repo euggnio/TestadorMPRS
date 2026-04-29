@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Dispositivos</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/dispositivos.css}">
+  <script th:src="@{/javascript.js}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&amp;display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+
+<main th:fragment="~{dispositivos}">
+  <div class="page-header">
+    <h1>Parque de <span>Dispositivos</span></h1>
+    <span class="badge-total">Total: <strong id="totalNum">0</strong> dispositivos</span>
+    <div class="header-actions">
+      <div class="save-indicator" id="saveIndicator" style="display:none">
+        <div class="save-dot"></div>
+        <span id="saveIndicatorText">Salvando…</span>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="Gerenciar categorias">⚙️</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="configModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ Gerenciar Categorias</h2>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <button class="btn-add-cat" id="addCategoryBtn">+ Adicionar Categoria</button>
+      <div id="categoriasConfig"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelBtn">Cancelar</button>
+        <button class="btn-primary"   id="saveBtn">💾 Salvar no Servidor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT MENU -->
+  <div class="ctx-menu" id="ctxMenu"></div>
+  <div class="resumo-grid" id="resumoGrid"></div>
+
+  <div class="graficos-row">
+    <div class="painel">
+      <h3>Distribuição por tipo</h3>
+      <div class="chart-box" id="chartPizza"></div>
+    </div>
+    <div class="painel">
+      <h3>Quantidade por categoria</h3>
+      <div class="chart-box" id="chartBarras"></div>
+    </div>
+  </div>
+
+  <div class="busca-row" id="buscaRow">
+    <input class="busca-input" type="text" id="buscaInput" placeholder="🔍  Buscar por IP, nome, descrição ou usuário...">
+    <button class="filtro-btn ativo" data-cat="todos" onclick="filtrarCategoria('todos',this)">Todos</button>
+  </div>
+
+  <div id="categoriasContainer"></div>
+</main>
+
+<!-- DADOS THYMELEAF -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const dispositivos = /*[[${dispositivos}]]*/ [];
+  /*]]>*/
+</script>
+
+<script>
+  /* ================================================================
+     ESTADO
+  ================================================================ */
+  let CATEGORIAS     = [];
+  let categoriaAtiva = "todos";
+  let termoBusca     = "";
+  let saveTimer      = null;
+
+  /* ================================================================
+     FALLBACK
+  ================================================================ */
+  const FALLBACK = [
+    { key:"switch",     label:"Switches / Roteadores",    icon:"🔀", cor:"#00adb5",
+      regexNome:"sw-|switch|router|summit|xip",
+      regexDescricao:"cisco|des-3|fast ethernet switch|internetwork operating",
+      rangeIp:"0-59" },
+    { key:"pc",         label:"Computadores / Notebooks", icon:"🖥️", cor:"#4e9af1",
+      regexNome:"",
+      regexDescricao:"windows|microsoft windows",
+      rangeIp:"60-200" },
+    { key:"impressora", label:"Impressoras",              icon:"🖨️", cor:"#f1914e",
+      regexNome:"hp[0-9]|tag[0-9]|et788",
+      regexDescricao:"lexmark|hp laser|hp ethernet multi|kyocera|epson built|printing system|print server|mfp",
+      rangeIp:"" },
+    { key:"telefone",   label:"Telefonia / VoIP",         icon:"📞", cor:"#a56ef1",
+      regexNome:"alcatel|voip",
+      regexDescricao:"alcatel|avaya|voip",
+      rangeIp:"200-255" },
+    { key:"camera",     label:"Câmeras / Segurança",      icon:"📷", cor:"#f14e6e",
+      regexNome:"cam-|nvr|dvr",
+      regexDescricao:"nvr|dvr|cftv|hikvision|intelbras",
+      rangeIp:"" },
+    { key:"wifi",       label:"Access Points / WiFi",     icon:"📶", cor:"#6ef1c3",
+      regexNome:"ap-|wifi|wireless",
+      regexDescricao:"ubiquiti|mikrotik|access point",
+      rangeIp:"" },
+    { key:"servidor",   label:"Servidores / NAS",         icon:"🗄️", cor:"#f1e24e",
+      regexNome:"serv-|server|nas-|srv-",
+      regexDescricao:"linux|proxmox|esxi|vmware",
+      rangeIp:"" },
+    { key:"outros",     label:"Outros",                   icon:"📦", cor:"#8899aa",
+      regexNome:"", regexDescricao:"", rangeIp:"" }
+  ];
+
+  /* ================================================================
+     API
+  ================================================================ */
+  async function carregarCategorias() {
+    try {
+      const r = await fetch("/api/categorias");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await r.json();
+      return Array.isArray(d) ? d : (d.categorias ?? FALLBACK);
+    } catch (e) {
+      console.warn("Usando fallback:", e.message);
+      return FALLBACK;
+    }
+  }
+
+  async function salvarCategorias(cats) {
+    setSaveIndicator("saving");
+    try {
+      const r = await fetch("/api/categorias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cats)
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      setSaveIndicator("saved");
+      return true;
+    } catch (e) {
+      setSaveIndicator("error");
+      mostrarToast("Falha ao salvar no servidor.", "erro");
+      return false;
+    }
+  }
+
+  function autoSalvar() {
+    clearTimeout(saveTimer);
+    setSaveIndicator("saving");
+    saveTimer = setTimeout(() => salvarCategorias(CATEGORIAS), 1500);
+  }
+
+  function setSaveIndicator(estado) {
+    const el = document.getElementById("saveIndicator");
+    const tx = document.getElementById("saveIndicatorText");
+    el.style.display = "flex";
+    el.className = "save-indicator " + estado;
+    tx.textContent = { saving:"Salvando…", saved:"Salvo ✓", error:"Erro ao salvar" }[estado];
+    if (estado !== "saving") setTimeout(() => { el.style.display = "none"; }, 3000);
+  }
+
+  /* ================================================================
+     CLASSIFICAÇÃO
+  ================================================================ */
+  function classificar(d) {
+    const nome = (d.nome      || "").toLowerCase().trim();
+    const desc = (d.descricao || "").toLowerCase().trim();
+    const ip   =  d.ip        || "";
+
+    const isMac        = /^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$/i.test(nome);
+    const nomeInvalido = ["n/a","null",""].includes(nome);
+    const descInvalida = ["n/a","null",""].includes(desc);
+    if (isMac || (nomeInvalido && descInvalida)) return "outros";
+
+    // 1. Descrição (mais confiável)
+    for (const c of CATEGORIAS) {
+      if (c.key === "outros" || !c.regexDescricao) continue;
+      try { if (new RegExp(c.regexDescricao, "i").test(desc)) return c.key; } catch {}
+    }
+    // 2. Nome
+    for (const c of CATEGORIAS) {
+      if (c.key === "outros" || !c.regexNome) continue;
+      try { if (new RegExp(c.regexNome, "i").test(nome)) return c.key; } catch {}
+    }
+    // 3. Range IP
+    const oct = parseInt((ip.split(".")[3] || ""), 10);
+    if (!isNaN(oct)) {
+      for (const c of CATEGORIAS) {
+        if (c.key === "outros" || !c.rangeIp) continue;
+        try {
+          const [mn, mx] = c.rangeIp.split("-").map(Number);
+          if (oct >= mn && oct <= mx) return c.key;
+        } catch {}
+      }
+    }
+    return "outros";
+  }
+
+  /* ================================================================
+     CONTEXT MENU
+  ================================================================ */
+  const ctxEl = document.getElementById("ctxMenu");
+
+  function fecharCtx() {
+    ctxEl.classList.remove("open");
+    ctxEl.innerHTML = "";
+  }
+
+  // Fecha ao clicar fora, apertar Esc ou scrollar
+  document.addEventListener("click",   e => { if (!ctxEl.contains(e.target)) fecharCtx(); });
+  document.addEventListener("keydown",  e => { if (e.key === "Escape") fecharCtx(); });
+  document.addEventListener("scroll",   fecharCtx, true);
+
+  function abrirCtxMenu(e, disp) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const sel = window.getSelection().toString().trim();
+    if (!sel) return;
+
+    const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const preview = sel.length > 34 ? sel.slice(0, 34) + "…" : sel;
+
+    /* ---- Constrói o menu do zero com elementos reais (sem innerHTML para events) ---- */
+    ctxEl.innerHTML = "";
+
+    // Bloco: preview do texto
+    const previewDiv = document.createElement("div");
+    previewDiv.className = "ctx-preview";
+    previewDiv.innerHTML = `
+        <div class="ctx-preview-label">Texto selecionado</div>
+        <span class="ctx-preview-text" title="${sel}">${preview}</span>`;
+    ctxEl.appendChild(previewDiv);
+
+    // Bloco: ações rápidas
+    const quickDiv = document.createElement("div");
+    quickDiv.className = "ctx-quick";
+
+    const btnCopiar = document.createElement("button");
+    btnCopiar.className = "ctx-quick-btn";
+    btnCopiar.textContent = "📋 Copiar";
+    btnCopiar.addEventListener("click", e2 => {
+      e2.stopPropagation();
+      navigator.clipboard.writeText(sel);
+      mostrarToast("Copiado!", "sucesso");
+      fecharCtx();
+    });
+
+    const btnFiltrar = document.createElement("button");
+    btnFiltrar.className = "ctx-quick-btn";
+    btnFiltrar.textContent = "🔍 Filtrar";
+    btnFiltrar.addEventListener("click", e2 => {
+      e2.stopPropagation();
+      document.getElementById("buscaInput").value = sel;
+      termoBusca = sel;
+      aplicarFiltros();
+      fecharCtx();
+    });
+
+    quickDiv.appendChild(btnCopiar);
+    quickDiv.appendChild(btnFiltrar);
+    ctxEl.appendChild(quickDiv);
+
+    // Bloco: label categorias
+    const catsLabel = document.createElement("div");
+    catsLabel.className = "ctx-cats-label";
+    catsLabel.textContent = "📌 Adicionar regex à categoria";
+    ctxEl.appendChild(catsLabel);
+
+    // Lista de categorias
+    const scroll = document.createElement("div");
+    scroll.className = "ctx-cats-scroll";
+
+    for (const cat of CATEGORIAS) {
+      if (cat.key === "outros") continue;
+
+      const row = document.createElement("div");
+      row.className = "ctx-cat-row";
+
+      // Linha clicável
+      const line = document.createElement("div");
+      line.className = "ctx-cat-line";
+      line.style.setProperty("--ctx-cor", cat.cor);
+      line.innerHTML = `
+            <div class="ctx-cat-bullet" style="background:${cat.cor}"></div>
+            <span class="ctx-cat-text">${cat.icon} ${cat.label.split("/")[0].trim()}</span>
+            <span class="ctx-cat-arrow">▶</span>`;
+
+      // Painel com botões Nome / Descrição
+      const panel = document.createElement("div");
+      panel.className = "ctx-cat-panel";
+      panel.style.setProperty("--ctx-cor", cat.cor);
+      panel.innerHTML = `<div class="ctx-panel-hint">Adicionar "${escaped}" em:</div>`;
+
+      const btnsDiv = document.createElement("div");
+      btnsDiv.className = "ctx-panel-btns";
+
+      // Botão NOME
+      const btnNome = document.createElement("button");
+      btnNome.className = "ctx-campo-btn";
+      btnNome.style.setProperty("--ctx-cor", cat.cor);
+      btnNome.innerHTML = `🏷️ Nome<span class="campo-sub">regexNome</span>`;
+      btnNome.addEventListener("click", e2 => {
+        e2.stopPropagation();
+        adicionarRegex(cat, "regexNome", escaped);
+        fecharCtx();
+      });
+
+      // Botão DESCRIÇÃO
+      const btnDesc = document.createElement("button");
+      btnDesc.className = "ctx-campo-btn";
+      btnDesc.style.setProperty("--ctx-cor", cat.cor);
+      btnDesc.innerHTML = `📝 Descrição<span class="campo-sub">regexDescricao</span>`;
+      btnDesc.addEventListener("click", e2 => {
+        e2.stopPropagation();
+        adicionarRegex(cat, "regexDescricao", escaped);
+        fecharCtx();
+      });
+
+      btnsDiv.appendChild(btnNome);
+      btnsDiv.appendChild(btnDesc);
+      panel.appendChild(btnsDiv);
+
+      // Toggle ao clicar na linha
+      line.addEventListener("click", e2 => {
+        e2.stopPropagation();
+        const jaAberto = line.classList.contains("aberto");
+
+        // Fecha todos os outros
+        scroll.querySelectorAll(".ctx-cat-line").forEach(l => l.classList.remove("aberto"));
+        scroll.querySelectorAll(".ctx-cat-panel").forEach(p => p.classList.remove("aberto"));
+
+        if (!jaAberto) {
+          line.classList.add("aberto");
+          panel.classList.add("aberto");
+        }
+      });
+
+      row.appendChild(line);
+      row.appendChild(panel);
+      scroll.appendChild(row);
+    }
+
+    ctxEl.appendChild(scroll);
+
+    // Posiciona e abre
+    ctxEl.classList.add("open");
+    ctxEl.style.left = e.clientX + "px";
+    ctxEl.style.top  = e.clientY + "px";
+
+    // Ajuste de borda da tela
+    requestAnimationFrame(() => {
+      const r = ctxEl.getBoundingClientRect();
+      if (r.right  > window.innerWidth  - 10) ctxEl.style.left = (e.clientX - r.width)  + "px";
+      if (r.bottom > window.innerHeight - 10) ctxEl.style.top  = (e.clientY - r.height) + "px";
+    });
+  }
+
+  function adicionarRegex(cat, campo, escaped) {
+    const alvo = CATEGORIAS.find(c => c.key === cat.key);
+    if (!alvo) return;
+    const atual = alvo[campo] || "";
+    // Evita duplicatas
+    const partes = atual ? atual.split("|") : [];
+    if (!partes.includes(escaped)) {
+      alvo[campo] = partes.concat(escaped).join("|");
+    }
+    autoSalvar();
+    aplicarFiltros();
+    const nomeCampo = campo === "regexNome" ? "Nome" : "Descrição";
+    mostrarToast(`"${escaped}" → ${nomeCampo} → ${cat.label.split("/")[0]}`, "sucesso");
+  }
+
+  /* ================================================================
+     MODAL CONFIG
+  ================================================================ */
+  function renderConfigModal() {
+    const cont = document.getElementById("categoriasConfig");
+    cont.innerHTML = "";
+    for (const cat of CATEGORIAS) {
+      const item = document.createElement("div");
+      item.className = "categoria-item";
+      item.dataset.key = cat.key;
+      item.innerHTML = `
+        <div class="categoria-item-header">
+            <input class="cat-icon-input"  type="text"  value="${cat.icon}"  maxlength="2" title="Emoji">
+            <input class="cat-label-input" type="text"  value="${cat.label}" placeholder="Nome">
+            <input type="color" class="cat-color-input" value="${cat.cor}">
+            ${cat.key !== "outros" ? `<button class="cat-delete-btn" title="Excluir">🗑️</button>` : ""}
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Regex — Nome</label>
+                <input type="text" class="cat-regex-nome" value="${cat.regexNome||""}" placeholder="sw-|switch|router">
+                <span class="form-hint">Padrões separados por |</span>
+            </div>
+            <div class="form-group">
+                <label>Regex — Descrição</label>
+                <input type="text" class="cat-regex-desc" value="${cat.regexDescricao||""}" placeholder="cisco|windows">
+                <span class="form-hint">Padrões separados por |</span>
+            </div>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+            <label>Range IP (último octeto)</label>
+            <input type="text" class="cat-range-ip" value="${cat.rangeIp||""}" placeholder="0-59">
+            <span class="form-hint">min-max · Avaliado após os regex</span>
+        </div>`;
+      const del = item.querySelector(".cat-delete-btn");
+      if (del) del.addEventListener("click", () => {
+        if (confirm(`Excluir "${cat.label}"?`)) item.remove();
+      });
+      cont.appendChild(item);
+    }
+  }
+
+  function abrirModal()  { renderConfigModal(); document.getElementById("configModal").classList.add("ativo"); }
+  function fecharModal() { document.getElementById("configModal").classList.remove("ativo"); }
+
+  async function salvarConfiguracoes() {
+    const novas = [];
+    document.querySelectorAll(".categoria-item").forEach(item => {
+      const label = item.querySelector(".cat-label-input").value.trim();
+      if (!label) return;
+      novas.push({
+        key:            item.dataset.key,
+        label,
+        icon:           item.querySelector(".cat-icon-input").value.trim() || "📦",
+        cor:            item.querySelector(".cat-color-input").value,
+        regexNome:      item.querySelector(".cat-regex-nome").value.trim(),
+        regexDescricao: item.querySelector(".cat-regex-desc").value.trim(),
+        rangeIp:        item.querySelector(".cat-range-ip").value.trim()
+      });
+    });
+    if (!novas.find(c => c.key === "outros"))
+      novas.push({ key:"outros", label:"Outros", icon:"📦", cor:"#8899aa", regexNome:"", regexDescricao:"", rangeIp:"" });
+
+    const ok = await salvarCategorias(novas);
+    if (ok) {
+      CATEGORIAS = novas;
+      fecharModal();
+      reconstruirFiltros();
+      aplicarFiltros();
+      mostrarToast("Categorias salvas!", "sucesso");
+    }
+  }
+
+  /* ================================================================
+     FILTROS
+  ================================================================ */
+  function reconstruirFiltros() {
+    const row = document.getElementById("buscaRow");
+    row.querySelectorAll(".filtro-btn:not([data-cat='todos'])").forEach(b => b.remove());
+    for (const cat of CATEGORIAS) {
+      const btn = document.createElement("button");
+      btn.className = "filtro-btn";
+      btn.dataset.cat = cat.key;
+      btn.textContent = cat.icon + " " + cat.label.split("/")[0].trim();
+      btn.onclick = function() { filtrarCategoria(cat.key, this); };
+      row.appendChild(btn);
+    }
+  }
+
+  function filtrarCategoria(cat, btn) {
+    categoriaAtiva = cat;
+    document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("ativo"));
+    if (btn) btn.classList.add("ativo");
+    aplicarFiltros();
+  }
+
+  function aplicarFiltros() {
+    let lista = dispositivos;
+    if (termoBusca) {
+      const t = termoBusca.toLowerCase();
+      lista = lista.filter(d =>
+              [d.cidadeNome, d.ip, d.nome, d.descricao, d.usuario]
+                      .some(v => (v||"").toLowerCase().includes(t)));
+    }
+    renderTudo(lista);
+    renderGraficos(lista);
+  }
+
+  /* ================================================================
+     RENDER
+  ================================================================ */
+  function renderTudo(lista) {
+    const porCat = {};
+    for (const cat of CATEGORIAS) porCat[cat.key] = [];
+    for (const d of lista) porCat[classificar(d)].push(d);
+
+    // Resumo cards
+    const resumo = document.getElementById("resumoGrid");
+    resumo.innerHTML = "";
+    let total = 0;
+    for (const cat of CATEGORIAS) {
+      const qtd = porCat[cat.key].length;
+      if (!qtd) continue;
+      total += qtd;
+      const card = document.createElement("div");
+      card.className = "resumo-card";
+      card.style.setProperty("--cor-cat", cat.cor);
+      card.innerHTML = `
+            <span class="rc-icon">${cat.icon}</span>
+            <span class="rc-label">${cat.label.split("/")[0].trim()}</span>
+            <span class="rc-num">${qtd}</span>`;
+      card.onclick = () => {
+        const btn = document.querySelector(`.filtro-btn[data-cat="${cat.key}"]`);
+        filtrarCategoria(cat.key, btn);
+      };
+      resumo.appendChild(card);
+    }
+    document.getElementById("totalNum").textContent = total;
+
+    // Seções
+    const cont = document.getElementById("categoriasContainer");
+    cont.innerHTML = "";
+    for (const cat of CATEGORIAS) {
+      const dispList = porCat[cat.key];
+      if (!dispList.length) continue;
+      if (categoriaAtiva !== "todos" && categoriaAtiva !== cat.key) continue;
+
+      const rows = dispList.map(d => `
+        <tr>
+            <td><a href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
+            <td><span class="ip-badge">${d.ip||"—"}</span></td>
+            <td><span class="nome-disp">${d.nome||"—"}</span></td>
+            <td><span class="desc-text" title="${(d.descricao||"").replace(/"/g,"&quot;")}">${d.descricao||"—"}</span></td>
+            <td><span class="user-text">${d.usuario||"—"}</span></td>
+            <td><span class="user-text">${d.ultimaVarredura||"—"}</span></td>
+        </tr>`).join("");
+
+      const sec = document.createElement("div");
+      sec.className = "categoria-section";
+      sec.innerHTML = `
+        <div class="categoria-header">
+            <div class="cat-dot" style="background:${cat.cor}"></div>
+            <span style="font-size:1.1rem">${cat.icon}</span>
+            <h2>${cat.label}</h2>
+            <span class="cat-count" style="color:${cat.cor};background:color-mix(in srgb,${cat.cor} 14%,transparent)">${dispList.length}</span>
+        </div>
+        <div class="tabela-wrap">
+            <table class="tabela-categoria">
+                <thead><tr>
+                    <th>Cidade</th><th>IP</th><th>Dispositivo</th>
+                    <th>Descrição</th><th>Usuário</th><th>Last Check</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+
+      // contextmenu em cada linha
+      sec.querySelectorAll("tbody tr").forEach((tr, idx) => {
+        tr.addEventListener("contextmenu", ev => abrirCtxMenu(ev, dispList[idx]));
+      });
+      cont.appendChild(sec);
+    }
+  }
+
+  /* ================================================================
+     GRÁFICOS
+  ================================================================ */
+  function renderGraficos(lista) {
+    const porCat = {};
+    for (const cat of CATEGORIAS) porCat[cat.key] = 0;
+    for (const d of lista) porCat[classificar(d)]++;
+
+    const visiveis = CATEGORIAS.filter(c => porCat[c.key] > 0);
+    const tt = { backgroundColor:"#1e2333", borderColor:"#2a2f45", textStyle:{ color:"#dde3f0" } };
+
+    const pizzaEl = document.getElementById("chartPizza");
+    if (!pizzaEl._ec) pizzaEl._ec = echarts.init(pizzaEl, null, { backgroundColor:"transparent" });
+    pizzaEl._ec.setOption({
+      tooltip: { trigger:"item", formatter:"{b}: {c} ({d}%)", ...tt },
+      legend:  { show: false },
+      series:  [{ type:"pie", radius:["38%","70%"], center:["50%","50%"],
+        data: visiveis.map(c => ({ value:porCat[c.key], name:c.label.split("/")[0].trim(), itemStyle:{ color:c.cor } })),
+        label: { color:"#dde3f0", fontSize:11 },
+        labelLine: { lineStyle:{ color:"#2a2f45" } },
+        emphasis: { itemStyle:{ shadowBlur:16, shadowColor:"rgba(0,173,181,.4)" } }
+      }]
+    }, true);
+
+    const barEl = document.getElementById("chartBarras");
+    if (!barEl._ec) barEl._ec = echarts.init(barEl, null, { backgroundColor:"transparent" });
+    barEl._ec.setOption({
+      tooltip: { trigger:"axis", ...tt },
+      grid:    { left:130, right:30, top:8, bottom:8 },
+      xAxis:   { type:"value", axisLabel:{ color:"#7a8299" }, splitLine:{ lineStyle:{ color:"#2a2f45" } }, axisLine:{ show:false } },
+      yAxis:   { type:"category", data: visiveis.map(c => c.label.split("/")[0].trim()), axisLabel:{ color:"#dde3f0", fontSize:12 }, axisLine:{ show:false }, axisTick:{ show:false } },
+      series:  [{ type:"bar", barMaxWidth:30,
+        data: visiveis.map(c => ({ value:porCat[c.key], itemStyle:{ color:c.cor, borderRadius:[0,5,5,0] } })),
+        label:{ show:true, position:"right", color:"#dde3f0", fontSize:12, fontWeight:700 }
+      }]
+    }, true);
+  }
+
+  /* ================================================================
+     TOAST
+  ================================================================ */
+  function mostrarToast(msg, tipo = "info") {
+    const t = document.createElement("div");
+    t.className = `toast ${tipo}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => {
+      t.style.transition = "opacity .25s";
+      t.style.opacity = "0";
+      setTimeout(() => t.remove(), 260);
+    }, 3200);
+  }
+
+  /* ================================================================
+     INIT
+  ================================================================ */
+  document.addEventListener("DOMContentLoaded", async () => {
+    const ld = document.createElement("div");
+    ld.className = "loading-overlay";
+    ld.innerHTML = `<div class="spinner"></div> Carregando categorias…`;
+    document.body.appendChild(ld);
+
+    CATEGORIAS = await carregarCategorias();
+    ld.remove();
+
+    document.getElementById("settingsBtn").addEventListener("click", abrirModal);
+    document.getElementById("modalClose").addEventListener("click", fecharModal);
+    document.getElementById("cancelBtn").addEventListener("click", fecharModal);
+    document.getElementById("saveBtn").addEventListener("click", salvarConfiguracoes);
+    document.getElementById("configModal").addEventListener("click", function(e) {
+      if (e.target === this) fecharModal();
+    });
+    document.getElementById("addCategoryBtn").addEventListener("click", () => {
+      CATEGORIAS.push({ key:"cat_"+Date.now(), label:"Nova Categoria", icon:"📌", cor:"#00adb5", regexNome:"", regexDescricao:"", rangeIp:"" });
+      renderConfigModal();
+    });
+    document.getElementById("buscaInput").addEventListener("input", function() {
+      termoBusca = this.value.trim();
+      aplicarFiltros();
+    });
+    window.addEventListener("resize", () => {
+      ["chartPizza","chartBarras"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el._ec) el._ec.resize();
+      });
+    });
+    reconstruirFiltros();
+    aplicarFiltros();
+  });
+</script>
+</body>
+</html>

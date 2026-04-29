@@ -17,7 +17,7 @@
 <body>
 
 <main>
-    <div th:replace="~{header :: header}"></div>
+    <div th:replace="~{fragmentos/header :: header}"></div>
     <div th:replace="~{fragmentos/popup :: modalForm()}"></div>
 
     <img th:src="@{\info.png}" alt="info" class="infoBtn" onclick="showInfo('quedas')">

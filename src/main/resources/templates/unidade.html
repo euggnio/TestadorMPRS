@@ -30,7 +30,7 @@
 </head>
 <body>
 
-<div th:replace="~{header :: header}"></div>
+<div th:replace="~{fragmentos/header :: header}"></div>
 <main>
 
 
@@ -152,7 +152,6 @@
                     </tr>
                     <tr>
                         <td>
-<!--                            <div id="chartTempoPorCidade" style="width: 95%; height: 215px; margin:auto;"></div>-->
                             <div id="chartQuedasPorCidade" style="width: 100%; height: 300px; margin:auto;margin-left: 1.3em;"></div>
                         </td>
                         <td id="graficoSmoke">
@@ -161,24 +160,8 @@
                     </tr>
                 </tbody>
             </table>
-    <table class="city-auto" id="dataTable2">
-        <thead>
-            <tr>
-                <th>IP</th>
-                <th>DISPOSITIVO</th>
-                <th>DESC</th>
-                <th>USER</th>
-            </tr>
-        </thead>
-        <tbody class="dadosUnidade">
-            <tr th:each="dispositivo : ${cidade.dispositivos}">
-                 <td th:text="${dispositivo.ip}"></td>
-                 <td th:text="${dispositivo.nome}"></td>
-                 <td style="width: 150%" th:text="${dispositivo.descricao}"></td>
-                 <td th:text="${dispositivo.usuario}"></td>
-            </tr>
-        </tbody>
-    </table>
+    <main th:replace="~{fragmentos/dispositivos}"></main>
+
 
     <script type="text/javascript" th:inline="javascript">
         const quedas = /*[[${quedas}]]*/ null;

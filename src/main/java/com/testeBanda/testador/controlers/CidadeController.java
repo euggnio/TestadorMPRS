@@ -64,6 +64,7 @@ public class CidadeController {
         model.addAttribute("smoke", smoke);
         model.addAttribute("cacti", cacti);
         model.addAttribute("cidade", cidade);
+        model.addAttribute("dispositivos", cidade.getDispositivos());
         return "unidade";
     }
 
