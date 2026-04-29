@@ -38,7 +38,7 @@ public class ScanService {
         LocalDate hoje = LocalDate.now(); //## cache da data para não chamar várias vezes
 
         try (TransportMapping transport = new DefaultUdpTransportMapping();
-             Snmp snmp = new Snmp(transport)) {
+             Snmp snmp = new Snmp(transport); ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();) {
 
             transport.listen();
             glpiAPI.getSessionToken();
@@ -53,7 +53,7 @@ public class ScanService {
                 }
 
                 log.info(">>>> Iniciando varredura em: {}", cidade);
-                List<Dispositivos> encontrados = scanearHost(snmp, cidade);
+                List<Dispositivos> encontrados = scanearHost(snmp, cidade, executor);
 
                 //CRIAMOS UM MAP PARA FACILITAR A REPETIÇÃO SENÃO 255 * 180 * 255  ( IPS DISPOSITIVOS * CIDADES * DISPOSITIVOS JÁ SALVOS )
                 Map<String, Dispositivos> existentesPorIp = cidade.getDispositivos().stream()
@@ -87,25 +87,10 @@ public class ScanService {
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
             throw new RuntimeException(e);
-        } finally {
-            shutdown();
         }
     }
 
-    public  void shutdown() {
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private  final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    private List<Dispositivos> scanearHost(Snmp snmp, Cidades cidade) throws IOException {
+    private List<Dispositivos> scanearHost(Snmp snmp, Cidades cidade, ExecutorService executor) throws IOException {
         Semaphore semaphore = new Semaphore(20);
         String[] partesIp = cidade.getIp().split("\\.");
         int terceiroOctetoBase = Integer.parseInt(partesIp[2]);
@@ -114,7 +99,10 @@ public class ScanService {
         List<Dispositivos> dispositivos = Collections.synchronizedList(new ArrayList<>());
 
         Map<String, String> arpCache = carregarArpDoMikrotik(snmp, prefixoRede + terceiroOctetoBase + ".1", "public");
-        int loops = cidade.getNotacao().equals("23") ? 2 : 1;
+        int loops = 1;
+        if(cidade.getNotacao() != null){
+            loops = cidade.getNotacao().equals("23") ? 2 : 1;
+        }
 
         for (int i = 0; i < loops; i++) {
             int terceiroOctetoAtual = terceiroOctetoBase + i;

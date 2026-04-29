@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Testador</title>
+    <title th:text="${#strings.capitalizeWords(cidade.nome.toLowerCase()) + ' - Testador'}"></title>
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <script th:src="@{/javascript.js}"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
@@ -14,6 +14,9 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
     <style>
+        td{
+            width: 50%;
+        }
         .links{
             text-decoration: none;
             color: #00adb5;
@@ -37,7 +40,7 @@
     <div class="centro">
         <h2>🌐 DADOS <span th:text="${cidade.nome}"></span></h2>
         <div style="white-space: nowrap;">
-            <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 100%; padding: 8px;">
+            <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 17em; padding: 8px;">
             <ul id="listaCidades" class="listaCidades">
                 <!-- Itens adicionados dinamicamente -->
             </ul>
@@ -47,15 +50,27 @@
             let busca = "";
             function atualizarFiltro(input) {
                 const lista = document.getElementById("listaCidades");
-                busca = input.value.toLowerCase();
+                busca = limpaAcentos(input.value.toLowerCase());
                 if (busca.length > 0) {
                     const filtradas = nomeCidades.filter(c => limpaAcentos(c.toLowerCase()).includes(busca));
                     atualizarLista(filtradas);
                     lista.style.display = "block"; // mostra a lista
+                    lista.scrollTop = 0;
                 } else {
                     lista.style.display = "none"; // esconde a lista
                 }
             }
+            // Enter vai para o primeiro da lista
+            document.addEventListener('keyup', (e) => {
+                let filtro = document.getElementById("filtroCidade")
+                let lista = document.getElementById("listaCidades")
+
+                if(e.code === 'Enter' && filtro.matches(':focus')){
+                    if(filtro.value != ""){
+                        window.location.href = "/unidade/" + lista.children[0].innerText;
+                    }
+                }
+            });
 
             function pegarCidadesPorGet() {
                 var url = [[@{/pegarListaCidades}]];
@@ -73,14 +88,14 @@
                     lista.innerHTML = "";
                     cidades.forEach(cidade => {
                         const li = document.createElement("li");
-                        li.textContent = cidade + " ↗";
+                        li.textContent = cidade;
                         li.style.padding = "8px";
                         li.style.cursor = "pointer";
-                        li.style.color = "black";
+                        li.style.color = "white";
                         li.addEventListener("click", () => {
                             window.location.href = "/unidade/" + cidade;
                         });
-                        li.addEventListener("mouseover", () => li.style.backgroundColor = "#f0f0f0");
+                        li.addEventListener("mouseover", () => li.style.backgroundColor = "#0a613f");
                         li.addEventListener("mouseout", () => li.style.backgroundColor = "");
                         lista.appendChild(li);
                     });
