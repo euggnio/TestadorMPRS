@@ -36,7 +36,7 @@
   "icon" : "\uD83D\uDCF7",
   "cor" : "#f14e6e",
   "regexNome" : "cam-|camera",
-  "regexDescricao" : "nvr|dvr|cftv|hikvision|intelbras",
+  "regexDescricao" : "nvr|dvr|cftv|hikvision",
   "rangeIp" : ""
 }, {
   "key" : "wifi",

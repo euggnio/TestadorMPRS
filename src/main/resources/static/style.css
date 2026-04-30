@@ -116,14 +116,19 @@ table {
 
 .listaCidades{
     height: 150px;
-    overflow: hidden;
+    overflow-y: auto;
     padding-left: 0px;
-    width: 10em;
+    width: 17em;
     border: 1px solid #222831;
+    border-radius: 5px;
     list-style: none;
     display: none;
     position: absolute;
     background-color: #11bc7a;
+    li{
+        border-bottom: 1px dotted gray;
+        font-weight: bold;
+    }
 }
 
 .dadosAtual{
@@ -549,9 +554,10 @@ iframe{
     display: flex;
     width: 100%;
     justify-content: center;
+    overflow-x: auto;
     .flexItem{
         width: 50%;
-        height: 89vh;
+        height: 91vh;
         transition: 1s;
         max-height:100%;
         .city{

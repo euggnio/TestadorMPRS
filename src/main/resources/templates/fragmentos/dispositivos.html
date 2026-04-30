@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Dispositivos</title>
+  <title>Dispositivos - Testador</title>
   <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
   <link rel="stylesheet" type="text/css" th:href="@{/css/dispositivos.css}">
   <script th:src="@{/javascript.js}"></script>
@@ -12,9 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&amp;display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
-<body>
+<body class="body-disp" id="body-disp">
 
-<main th:fragment="~{dispositivos}">
+<main class="main-disp" th:fragment="~{dispositivos}">
   <div class="page-header">
     <h1>Parque de <span>Dispositivos</span></h1>
     <span class="badge-total">Total: <strong id="totalNum">0</strong> dispositivos</span>
@@ -526,7 +526,7 @@
 
       const rows = dispList.map(d => `
         <tr>
-            <td><a href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
+            <td><a target="_blank" href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
             <td><span class="ip-badge">${d.ip||"—"}</span></td>
             <td><span class="nome-disp">${d.nome||"—"}</span></td>
             <td><span class="desc-text" title="${(d.descricao||"").replace(/"/g,"&quot;")}">${d.descricao||"—"}</span></td>
@@ -578,8 +578,8 @@
       tooltip: { trigger:"item", formatter:"{b}: {c} ({d}%)", ...tt },
       legend:  { show: false },
       series:  [{ type:"pie", radius:["38%","70%"], center:["50%","50%"],
-        data: visiveis.map(c => ({ value:porCat[c.key], name:c.label.split("/")[0].trim(), itemStyle:{ color:c.cor } })),
-        label: { color:"#dde3f0", fontSize:11 },
+        data: visiveis.map(c => ({ value:porCat[c.key], name:c.icon, itemStyle:{ color:c.cor } })),
+        label: { color:"#dde3f0", fontSize:18 },
         labelLine: { lineStyle:{ color:"#2a2f45" } },
         emphasis: { itemStyle:{ shadowBlur:16, shadowColor:"rgba(0,173,181,.4)" } }
       }]
