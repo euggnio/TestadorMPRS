@@ -12,9 +12,6 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@Table(name = "dispositivos", indexes = {
-        @Index(name = "idx_ip_dispositivo", columnList = "ip", unique = true)
-})
 public class Dispositivos {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

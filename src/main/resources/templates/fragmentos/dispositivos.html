@@ -478,7 +478,7 @@
     if (termoBusca) {
       const t = termoBusca.toLowerCase();
       lista = lista.filter(d =>
-              [d.cidadeNome, d.ip, d.nome, d.descricao, d.usuario]
+              [d.cidadeNome, d.ip, d.nome, d.descricao, d.usuario, d.ultimaVarredura]
                       .some(v => (v||"").toLowerCase().includes(t)));
     }
     renderTudo(lista);
