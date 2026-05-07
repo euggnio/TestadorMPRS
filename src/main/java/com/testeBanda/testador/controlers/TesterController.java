@@ -23,11 +23,11 @@ public class TesterController {
     @PostMapping("/testeBanda")
     @ResponseBody
     public String testeBanda(@RequestBody(required = false) String idCidade) {
-        if (idCidade == null) {
+        if (idCidade == null)
             idCidade = "";
-        }
+
         testerService.iniciarTeste(idCidade);
-        return "{\"status\": \"" + testerService.getTesteStatus() + "\"}"; // Retorna JSON
+        return "{\"status\": \"" + testerService.getTesteStatus() + "\"}";
     }
 
     @GetMapping("/data")

@@ -19,27 +19,29 @@ public class SchedulerService {
     private QuedaService quedaService;
     @Autowired
     private SnmpWanMonitor monitor;
+    @Autowired
+    private ScanService scan;
 
-    @Scheduled(cron = "0 0 0,23 * * ?")
+    @Scheduled(cron = "${schedule.testeDiario}")
     public void schedulerTest() {
         log.info("Iniciando teste diário de banda");
         testerService.iniciarTeste("");
     }
 
-    @Scheduled(cron = "30 00 10 * * ?")
+    @Scheduled(cron = "${schedule.testeFalhas}")
     public void schedulerTestFalhas(){
         log.info("Iniciando segundo teste de banda para unidades que falharam o teste diário");
         testerService.ligarTesteFalhas();
         testerService.iniciarTeste("");
     }
 
-    @Scheduled(cron = "0 0 0,22 * * ?")
+    @Scheduled(cron = "${schedule.revisaoQuedas}")
     public void revisaTodasQuedas() {
         log.info("Revisando todas as quedas do banco com o Nagios");
         quedaService.revisaTodasQuedas();
     }
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelayString = "${schedule.atualizacaoQuedasMs}")
     public void schedulerQuedas(){
         log.debug("ATUALIZANDO QUEDAS");
         quedaService.atualizaQuedas();
@@ -50,6 +52,12 @@ public class SchedulerService {
         log.debug(" == ATUALIZANDO SNMP == ");
         monitor.setHostLoss();
         monitor.run();
+    }
+
+    @Scheduled(cron = "${schedule.varreduraRede}")
+    public void rodarScan() {
+        log.info("Iniciando scan de rede diário");
+        scan.varrerCidades();
     }
 
 

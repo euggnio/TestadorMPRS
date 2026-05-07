@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.ResultadosSnmp;
-import com.testeBanda.testador.repository.CidadesRepository;
 import com.testeBanda.testador.service.CidadeService;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;

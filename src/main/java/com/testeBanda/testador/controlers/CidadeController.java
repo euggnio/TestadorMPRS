@@ -80,7 +80,6 @@ public class CidadeController {
         return ResponseEntity.ok(graficoService.pegarUnidadeSmoke(id));
     }
 
-    //TODO Isso é utilizado?
     @PostMapping("/atualizar")
     public String atualizarCidade(Cidades cidade, RedirectAttributes redirectAttrs) {
         if ( cidade.nome.isEmpty() || cidade.ip.isEmpty()) {

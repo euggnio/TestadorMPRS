@@ -136,7 +136,5 @@ public class QuedaController {
     public void testarOnline(){
         Optional<Queda> queda = quedaRepository.findById(56163L);
         Queda queda1 = queda.get();
-        System.out.println(queda1);
-        System.out.println(queda1.getTempoFora());
     }
 }

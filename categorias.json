@@ -4,8 +4,8 @@
   "icon" : "\uD83D\uDD00",
   "cor" : "#00adb5",
   "regexNome" : "sw-|switch|router",
-  "regexDescricao" : "Cisco|DES-3552|RouterOS|Summit200|Switch|3552",
-  "rangeIp" : "0-59"
+  "regexDescricao" : "Cisco|DES-3552|RouterOS|Summit200|Switch|3552|RouterOS RB2011iL",
+  "rangeIp" : "0-15"
 }, {
   "key" : "pc",
   "label" : "Computadores / Notebooks",
@@ -20,15 +20,15 @@
   "icon" : "\uD83D\uDDA8️",
   "cor" : "#f1914e",
   "regexNome" : "imp-|print|impressora|Xerox",
-  "regexDescricao" : "zebra|hp|laser|epson|mfp|lexmark|EPSON|KYOCERA",
+  "regexDescricao" : "zebra|hp|laser|epson|mfp|lexmark|EPS|xeroxON|KYOCERA",
   "rangeIp" : ""
 }, {
   "key" : "telefone",
   "label" : "Telefonia / VoIP",
   "icon" : "\uD83D\uDCDE",
   "cor" : "#a56ef1",
-  "regexNome" : "tel-|voip|fone|alcatel|ALCATEL",
-  "regexDescricao" : "ALCATEL|VOIP",
+  "regexNome" : "tel-|voip|fone|alcatel|ALCATEL|00:17|XIP:3E",
+  "regexDescricao" : "ALCATEL|VOIP|XIP",
   "rangeIp" : ""
 }, {
   "key" : "camera",

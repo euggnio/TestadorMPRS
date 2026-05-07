@@ -21,10 +21,9 @@ public class DispositivosController {
         public ResponseEntity<String> receberESalvar(@RequestBody List<CategoriaDTO> categorias) {
             try {
                 categoriaService.salvarCategorias(categorias);
-                return ResponseEntity.ok().body("{\"status\": \"sucesso\", \"mensagem\": \"Categorias salvas no arquivo.\"}");
+                return ResponseEntity.ok().body("Categorias salvas no arquivo");
             } catch (Exception e) {
-                return ResponseEntity.internalServerError()
-                        .body("{\"status\": \"erro\", \"mensagem\": \"" + e.getMessage() + "\"}");
+                return ResponseEntity.internalServerError().body("Falha: " + e.getMessage());
             }
         }
 

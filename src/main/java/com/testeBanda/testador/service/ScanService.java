@@ -5,6 +5,7 @@ import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Dispositivos;
 import com.testeBanda.testador.repository.CidadesRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
@@ -15,6 +16,7 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -32,7 +34,14 @@ public class ScanService {
     @Autowired
     GlpiAPI glpiAPI;
 
+    @Value("${varredura.desligar}")
+    private boolean desligar;
+
+    @Transactional
     public void varrerCidades() {
+        if(desligar){
+            return;
+        }
         List<Cidades> cidades = cidadesRepository.findAll();
         if (cidades.isEmpty()) return;
         LocalDate hoje = LocalDate.now(); //## cache da data para não chamar várias vezes
@@ -54,34 +63,10 @@ public class ScanService {
                 }
 
                 log.info(">>>> Iniciando varredura em: {}", cidade);
+
                 List<Dispositivos> encontrados = scanearHost(snmp, cidade, executor);
+                salvarResultados(cidade, encontrados, hoje);
 
-                //CRIAMOS UM MAP PARA FACILITAR A REPETIÇÃO SENÃO 255 * 180 * 255  ( IPS DISPOSITIVOS * CIDADES * DISPOSITIVOS JÁ SALVOS )
-                Map<String, Dispositivos> existentesPorIp = cidade.getDispositivos().stream()
-                        .collect(Collectors.toMap(Dispositivos::getIp, d -> d));
-                //TODO APAGAR OS COMENTARIOS DEPOIS O QUE ARTUR LER
-                //Verificamos se o dispositivo existe na PJ E ATUALIZAMOS
-                //ADICIONAMOS NOVO CASO ELE N EXISTA
-                // DISPOSITIVOS QUE FICARAM OFF VAO ESTAR COM DATA ATRASADA DE VERIFICAÇÃO AI VERIFICAMOS NO FRONT
-                for (Dispositivos encontrado : encontrados) {
-                    Dispositivos existente = existentesPorIp.get(encontrado.getIp());
-
-                    if (existente != null) {
-                        existente.setNome(encontrado.getNome());
-                        existente.setDescricao(encontrado.getDescricao());
-                        existente.setUsuario(encontrado.getUsuario());
-                        existente.setUltimaVarredura(hoje);
-                        log.info("Atualizado: {}", existente.getIp());
-                    } else {
-                        encontrado.setCidade(cidade);
-                        encontrado.setDataDaVarredura(hoje);
-                        cidade.getDispositivos().add(encontrado);
-                        log.info("Adicionado: {}", encontrado.getIp());
-                    }
-                }
-
-                cidade.ultimaVarredura = hoje;
-                cidadesRepository.save(cidade);
                 log.info("Varredura salva para cidade: {}", cidade.getNome());
                 Thread.sleep(1000);
             }
@@ -101,7 +86,8 @@ public class ScanService {
         List<Dispositivos> dispositivos = Collections.synchronizedList(new ArrayList<>());
 
         Map<String, String> arpCache = carregarArpDoMikrotik(snmp, prefixoRede + terceiroOctetoBase + ".1", "public");
-        int loops = cidade.getNotacao().equals("23") ? 2 : 1;
+        int notacao = Integer.parseInt(cidade.getNotacao());
+        int loops = 1 << (24 - notacao);
         int inicioDosIps = Integer.parseInt(partesIp[3]);
         int limiteDosIps = 255;
         if(inicioDosIps == 1 && cidade.getNotacao().equals("25")) {
@@ -143,6 +129,37 @@ public class ScanService {
             }
         }
         return dispositivos;
+    }
+
+    @Transactional
+    public void salvarResultados(Cidades cidade, List<Dispositivos> encontrados, LocalDate hoje) {
+        Cidades cidadeAnexada = cidadesRepository
+                .findByIdComDispositivos(cidade.getNome())
+                .orElse(cidade);
+        Map<String, Dispositivos> existentesPorIp = cidadeAnexada.getDispositivos().stream()
+                .collect(Collectors.toMap(Dispositivos::getIp, d -> d));
+
+        for (Dispositivos encontrado : encontrados) {
+            Dispositivos existente = existentesPorIp.get(encontrado.getIp());
+
+            if (existente != null) {
+                existente.setNome(encontrado.getNome());
+                existente.setDescricao(encontrado.getDescricao());
+                existente.setUsuario(encontrado.getUsuario());
+                existente.setUltimaVarredura(hoje);
+                log.info("Atualizado: {}", existente.getIp());
+            } else {
+                encontrado.setCidade(cidadeAnexada); // Atenção: associe a cidade anexada!
+                encontrado.setDataDaVarredura(hoje);
+                cidadeAnexada.getDispositivos().add(encontrado);
+                log.info("Adicionado: {}", encontrado.getIp());
+            }
+        }
+
+        cidadeAnexada.ultimaVarredura = hoje;
+
+        // Agora o save vai funcionar perfeitamente, pois a entidade está sob os cuidados do Hibernate
+        cidadesRepository.save(cidadeAnexada);
     }
 
     private Dispositivos processarHost(Snmp snmp, String ip, Map<String,String> arp) throws IOException {
@@ -274,51 +291,6 @@ public class ScanService {
             return new String[0];
         }
     }
-    //METODO POR RCP
-    //    public static String ultimoUsuario(String host) {
-//        try {
-//            ProcessBuilder pb = new ProcessBuilder(
-//                    "cmd", "/c",
-//                    "reg query \\\\" + host +
-//                            "\\HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI /v LastLoggedOnUser"
-//            );
-//
-//            pb.redirectErrorStream(true);
-//            Process p = pb.start();
-//            // timeout
-//            boolean terminou = p.waitFor(10, TimeUnit.SECONDS);
-//            if (!terminou) {
-//                p.destroyForcibly();
-//                return "N/A";
-//            }
-//            BufferedReader br = new BufferedReader(
-//                    new InputStreamReader(p.getInputStream())
-//            );
-//            String line;
-//            while ((line = br.readLine()) != null) {
-//
-//                if (line.contains("LastLoggedOnUser")) {
-//
-//                    String[] parts = line.trim().split("\\s+");
-//
-//                    if (parts.length >= 3) {
-//                        String usuario = parts[parts.length - 1];
-//
-//                        // remove dominio\
-//                        if (usuario.contains("\\")) {
-//                            usuario = usuario.substring(
-//                                    usuario.indexOf("\\") + 1
-//                            );
-//                        }
-//
-//                        return usuario;
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            return "Erro";
-//        }
-//        return "Sem usuário";
-//    }
+
 
 }

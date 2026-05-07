@@ -42,8 +42,7 @@ public class GlpiAPI {
             log.info("Token ainda é válido");
             return;
         }
-        log.info("Requisitando novo token de sessão");
-        log.warn("Token expirado, enviando nova requisição");
+        log.warn("Token expirado, enviando nova requisição de token");
         URI uri = URI.create(startSessionUrl);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)

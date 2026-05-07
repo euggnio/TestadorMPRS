@@ -31,8 +31,6 @@ public class Microtik {
     @Autowired
     private DataAboutTest dataAboutTest;
 
-    public Microtik() {
-    }
 
     public void testar(String cidadeId) {
         System.out.println(" == Iniciando teste de banda == ");
