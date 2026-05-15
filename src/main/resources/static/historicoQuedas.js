@@ -258,6 +258,27 @@ function expandirMapa(){
     }
 }
 
+function setTravamentoGlpi(queda){
+    let q = queda.dataset.queda;
+    console.log(q);
+    fetch("naoFecharGlpi",{
+        method: "POST",
+        body: q,
+        headers: { "Content-Type": "application/json"}
+    })
+        .then(response => response.json())
+    .then(data => {
+        if(data === true){
+            queda.innerHTML = '🔒';
+        }
+        else{
+            queda.innerHTML = '🔓';
+        }
+    })
+    .catch(error => console.log(error))
+
+}
+
 function setasTeclado(e) {
     if( e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA" ) return;
     if( e.target.isContentEditable ) return;

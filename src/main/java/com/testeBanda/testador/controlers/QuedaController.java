@@ -131,6 +131,20 @@ public class QuedaController {
         return ResponseEntity.ok(glpiService.getFollowUpTicket(id));
     }
 
+    @PostMapping("/naoFecharGlpi")
+    public ResponseEntity<String> naoFecharGlpi(@RequestBody String queda){
+        if ( queda != null ){
+            System.out.println("QUEDA" + queda);
+            Optional<Queda> q = quedaRepository.findById(Long.valueOf(queda));
+            if ( q.isPresent() ){
+                q.get().setNaoFecharGlpi(q.get().isNaoFecharGlpi() ? false : true);
+                quedaRepository.save(q.get());
+                return ResponseEntity.ok(q.get().isNaoFecharGlpi() + "");
+            }
+        }
+        return ResponseEntity.internalServerError().body("ERRO ao salvar!");
+    }
+
     @GetMapping("/testarOnline")
     @ResponseBody
     public void testarOnline(){

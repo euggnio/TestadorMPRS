@@ -15,8 +15,19 @@ import java.util.Objects;
 public class Dispositivos {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(nullable = false)
     private Long id;
+    @Column(nullable = false)
+    private String ip;
+    private String nome;
+    private String descricao;
+    private String usuario;
+    private LocalDate dataDaVarredura;
+    private LocalDate ultimaVarredura;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "cidade_nome")
+    private Cidades cidade;
 
     public Dispositivos(String ip, String nome, Cidades cidade) {
         this.ip = ip;
@@ -30,22 +41,9 @@ public class Dispositivos {
         this.descricao = descricao;
         this.usuario = usuario;
 
-    }    public Dispositivos() {
-
     }
-
-    @Column(nullable = false)
-    private String ip;
-    private String nome;
-    private String descricao;
-    private String usuario;
-    private LocalDate dataDaVarredura;
-    private LocalDate ultimaVarredura;
-
-    @ManyToOne
-    @JsonIgnore
-    @JoinColumn(name = "cidade_nome")
-    private Cidades cidade;
+    public Dispositivos() {
+    }
 
     @JsonProperty("cidadeNome")
     public String getCidadeNome() {

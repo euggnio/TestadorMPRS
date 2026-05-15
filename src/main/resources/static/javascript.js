@@ -63,6 +63,45 @@ document.addEventListener("click", function (event) {
     at.style.display = "none";
 });
 
+function iniciarTeste(idCidade) {
+    document.getElementById("rodando").classList.add("loader");
+    let statusTeste = document.getElementById("statusTeste");
+    fetch(`/testeBanda`, {
+        method: "POST",
+        body:  idCidade,
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na requisição: ' + response.statusText);
+            }
+            return response.json(); // Pega a resposta JSON
+        })
+        .then(async data => {
+            if (data.status === "true") {
+                if (statusTeste != null){
+                    statusTeste.innerHTML = "TESTE DESLIGADO"
+                }
+                else{
+                    window.location.reload();
+                }
+            } else {
+                if (statusTeste != null){
+                    statusTeste.innerHTML = "INICIADO."
+                }            }
+            document.getElementById("rodando").classList.remove("loader");
+
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert("Desconectado, entre novamente");
+            window.location.reload();
+
+        });
+}
+
 
 function getGraficoSmoke(smokeid) {
     const container = document.getElementById(smokeid.dataset.cidade + smokeid.dataset.id);

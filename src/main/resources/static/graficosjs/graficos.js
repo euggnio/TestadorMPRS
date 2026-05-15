@@ -174,7 +174,7 @@ function graficoAlertasCidades(){
 function graficoRelacaoQuedasEnergia(){
     console.log("\n\n====== Gerando grafico relacao entre energia======\n\n");
     const quedasTotais = quedasFiltradas.length;
-    const energiaTotal = quedasFiltradas.filter(a => a.energia).length
+    const energiaTotal = quedasFiltradas.filter(a => a.energia === true).length
     console.log("Quedas encontrados", quedasTotais);
     console.log("Quedas de energia encontrados", energiaTotal);
 
@@ -212,8 +212,8 @@ function graficoRelacaoQuedasEnergia(){
                     fontWeight: 'bold', // Negrito              color: '#fff'       // Cor branca para destacar sobre o colorido
                 },
                 data: [
-                    {value: energiaTotal, name: 'Energia'},
-                    {value:  quedasTotais - energiaTotal, name: 'Outros'},
+                    {value: quedasTotais - energiaTotal, name: 'Sem energia'},
+                    {value: energiaTotal, name: 'Outros'},
                 ]
             }
         ]

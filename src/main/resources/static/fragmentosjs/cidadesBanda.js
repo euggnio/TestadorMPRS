@@ -14,7 +14,7 @@ eventSource.onmessage = function (event) {
         document.getElementById("statusAtual").innerHTML = "PARADO";
         document.getElementById("buttonLigar").style.backgroundColor = "#00adb5";
 
-        document.getElementById("loader").classList.remove("loader")
+        document.getElementById("rodando").classList.remove("loader")
         if(linha.nome !== "@END"){
             getDataAtualizada(linha.nome);
         }
@@ -37,7 +37,7 @@ eventSource.onmessage = function (event) {
     document.getElementById("statusAtual").innerHTML = "RODANDO";
     document.getElementById("statusTeste").innerHTML = "DESLIGAR";
     document.getElementById("buttonLigar").style.backgroundColor = "red"
-    document.getElementById("loader").classList.add("loader")
+    document.getElementById("rodando").classList.add("loader")
     trocarDadosAtuais();
 };
 
@@ -63,34 +63,7 @@ function trocarDadosAtuais() {
     document.getElementById("velocidadeAtual").innerHTML = linha.velocidade;
 }
 
-function iniciarTeste(idCidade) {
-    fetch(`/testeBanda`, {
-        method: "POST",
-        body:  idCidade,
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na requisição: ' + response.statusText);
-            }
-            return response.json(); // Pega a resposta JSON
-        })
-        .then(async data => {
-            if (data.status == "true") {
-                document.getElementById("statusTeste").innerHTML = "TESTE DESLIGADO."
-            } else {
-                document.getElementById("statusTeste").innerHTML = "INICIADO."
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert("Desconectado, entre novamente");
-            window.location.reload();
 
-        });
-}
 
 function selectCity(){
     const params = new URLSearchParams(window.location.search);

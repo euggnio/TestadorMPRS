@@ -22,6 +22,7 @@ public class Queda {
     private LocalDateTime data;
     private Duration tempoFora;
     private boolean faltaDeLuz;
+    private boolean naoFecharGlpi;
     private long uptime;
     private String protocolo;
     private String chamado;

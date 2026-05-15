@@ -42,7 +42,7 @@ public class GlpiService {
             log.error("Erro ao adicionar FollowUp - Queda sem chamado");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Erro ao adicionar FollowUp - Queda sem chamado");
         }
-        glpiAPI.insertFollowUpTicket(queda.getChamado(), "<p>Testador: " + texto + "</p>");
+        glpiAPI.insertFollowUpTicket(queda.getChamado(), "<p>" + texto + "</p>");
     }
 
     public ArrayList<String> getFollowUpTicket(long id) {
@@ -57,6 +57,10 @@ public class GlpiService {
 
     public void fecharChamado(long id, String texto) {
         Queda queda = quedaRepository.findById(id).get();
+        if ( queda.isNaoFecharGlpi() ){
+            log.info("Fechamento de chamado referente a queda: {} foi bloqueado", queda);
+            return;
+        }
         log.info("Fechando chamado referente a queda: {}", queda);
         if(queda.getChamado().isBlank()){
             log.info("Erro ao fechar chamado - Queda não foi encontrada");
@@ -73,7 +77,7 @@ public class GlpiService {
 
     private static String getStringDeFechamento(Queda queda) {
         return "<div>" +
-                "<p>Chamado fechado pelo testador</p>" +
+                "<p>Chamado fechado automaticamente</p>" +
                 "<p>Protocolo da operadora: "+ queda.getProtocolo()+ " </p>" +
                 "<p>Chamado do GLPI: "+ queda.getChamado()+" </p>" +
                 "<p>Tempo fora: "+ queda.getTempoFora().toMinutes()+" minutos. </p>" +

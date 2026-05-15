@@ -19,24 +19,28 @@ public class Cidades {
 
     @Id
     public String nome;
+    @Size(max = 4)
     public String codigo;
     public String intra;
     public String ip;
     public String velocidade;
-    public boolean checkTesteBanda;
-    @Size(min = 1, max = 500)
-    public String ultimoTesteBanda;
-    public String dataUltimoTeste;
-    //Ids dos hosts em todos os programas são o nome do host...
-    public String smokeID;
-    public String cacti;
-    public String nagiosID;
     public String coordenadas;
     @Column(name = "notacao", length = 2)
     @Size(min = 2, max = 2)
     public String notacao;
-    public LocalDate ultimaVarredura;
+    //Ids dos hosts em todos os programas são o nome do host...
+    public String smokeID;
+    public String cacti;
+    public String nagiosID;
 
+    //Datas e Checks
+    public LocalDate ultimaVarredura;
+    @Size(min = 1, max = 500)
+    public String ultimoTesteBanda;
+    public String dataUltimoTeste;
+    public boolean checkTesteBanda;
+
+    //RELACIONAMENTOS
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Dispositivos> dispositivos;
 
@@ -45,24 +49,9 @@ public class Cidades {
     public List<Resultados> resultados;
 
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false, mappedBy = "cidade")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "cidade")
     public List<Queda> quedas;
 
-
-    @Override
-    public String toString() {
-        return "{" +
-                "\"nome\":\"" + nome + "\"" +
-                ", \"codigo\":\"" + codigo + " \" " +
-                ", \"intra\":\"" + intra + " \" " +
-                ", \"ip\":\"" + ip + " \" " +
-                ", \"velocidade\":\"" + velocidade + " \" " +
-                ", \"checkTesteBanda\":" + checkTesteBanda +
-                ", \"ultimoTesteBanda\":\"" + ultimoTesteBanda + " \" " +
-                ", \"Nome sistema\":\"" + smokeID + " \" " +
-                "}";
-
-    }
 
     public int getVelocidadeInteger(){
         String inteiros = velocidade.replaceAll("\\D", "");
@@ -71,10 +60,6 @@ public class Cidades {
 
     public void addResultado(LocalDateTime data, String resultado){
         this.resultados.add(new Resultados(data,resultado,this));
-
     }
-
-
-
 
 }

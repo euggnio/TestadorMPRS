@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<tml xmlns:th="http://www.thymeleaf.org" lang="pt">
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
 <head>
     <meta charset="UTF-8">
     <title>Gráfico - Testador</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/graficos2.css}">
 
     <script th:src="@{/javascript.js}"></script>
     <script th:src="@{/graficosjs/graficos.js}"></script>
     <script th:src="@{/graficosCalendario.js}"></script>
+
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
-    <script src="https://unpkg.com/simple-statistics@7.8.8/dist/simple-statistics.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <script src="https://unpkg.com/simple-statistics@7.8.8/dist/simple-statistics.min.js"></script>
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/graficos2.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/imagens/favicon.ico">
 
 </head>
 <body>
@@ -25,7 +26,7 @@
 <div th:replace="~{fragmentos/header :: header}"></div>
 <div class="botoes">
     <div class="btMes">
-        <button   id="todos" onclick="atualizarMes('todos') ">
+        <button id="todos" onclick="atualizarMes('todos') ">
             Todos
         </button>
     </div>
@@ -43,8 +44,6 @@
             <select name="cidade" id="seletorCidade" onchange="atualizarNome(this.value)">
                 <option value="" selected>Selecionar Cidade</option>
             </select>
-<!--            <input id="cidadeBuscar" type="text" placeholder="Digite a cidade..." onchange="atualizarNome(this.value)" >-->
-
                 <label for="dropAno" style="display:none;">Ano: </label>
                 <select id="dropAno">
                     <option value="" selected disabled hidden>Selecionar Ano</option>
@@ -155,21 +154,14 @@
     fazGraficoQntPorTempo(document.getElementById("tempos"), quedas, anoAtual)
     novaCidade(cidadeAleatoria(), anoAtual)
 
-
     inputCidade.addEventListener('change', () => {
         let input = document.getElementById("seletorCidade")
-        let cid = input.value == '' ? cidadeAleatoria() : input.value
+        let cid = input.value === '' ? cidadeAleatoria() : input.value
 
         novaCidade(cid, anoAtual)
     })
 
-    /*aleatoria.addEventListener('click', () => {
-        novaCidade(cidadeAleatoria(), anoAtual)
-    })*/
-
-
-
 </script>
 
 </body>
-</tml>
+</html>

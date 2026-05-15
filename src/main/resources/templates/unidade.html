@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
           rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/imagens/favicon.ico">
 
     <style>
         td{
@@ -35,10 +35,10 @@
 
 <div th:replace="~{fragmentos/header :: header}"></div>
 <main>
-
-
     <div class="centro">
+        <h2> <a target="_blank" th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}">Intranet ⤴</a></h2>
         <h2>🌐 DADOS <span th:text="${cidade.nome}"></span></h2>
+        <h2><span id="rodando"></span></h2>
         <div style="white-space: nowrap;">
             <input type="text" id="filtroCidade" oninput="atualizarFiltro(this)" placeholder="Digite o nome da cidade..." style="width: 17em; padding: 8px;">
             <ul id="listaCidades" class="listaCidades">
@@ -127,10 +127,6 @@
                                         <td th:text="${cidade.velocidade}"></td>
                                     </tr>
                                     <tr>
-                                        <td>Ultimo teste de banda</td>
-                                        <td th:text="${cidade.ultimoTesteBanda}"></td>
-                                    </tr>
-                                    <tr>
                                         <td> IP </td>
                                         <td th:text="${cidade.ip}"></td>
                                     </tr>
@@ -139,12 +135,22 @@
                                         <td th:text="${cidade.codigo}"></td>
                                     </tr>
                                     <tr>
-                                        <td>Intra</td>
-                                        <td><a target="_blank" th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"><span th:text="${cidade.intra + '⤴'}"></span></a> </td>
+                                        <td>Notação</td>
+                                        <td th:text="'/' + ${cidade.notacao}"></td>
                                     </tr>
                                     <tr>
                                         <td>Teste de Banda</td>
-                                        <td><a target="_blank" th:href="@{/cidadesBanda?cidade={nome}(nome=${cidade.nome})}">TESTAR⤴</a></td>
+                                        <td>
+                                            <button class="ligarTeste "
+                                                    th:attr="data-cidade=${cidade.nome}"
+                                                    onclick="iniciarTeste(this.getAttribute('data-cidade'))">
+                                                    Testar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ultimo teste de banda</td>
+                                        <td th:text="${cidade.ultimoTesteBanda}"></td>
                                     </tr>
                                     <tr>
                                         <td>Switches</td>

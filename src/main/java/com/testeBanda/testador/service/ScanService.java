@@ -37,48 +37,70 @@ public class ScanService {
     @Value("${varredura.desligar}")
     private boolean desligar;
 
-    @Transactional
     public void varrerCidades() {
-        if(desligar){
-            return;
-        }
+        if (desligar) return;
+
         List<Cidades> cidades = cidadesRepository.findAll();
         if (cidades.isEmpty()) return;
-        LocalDate hoje = LocalDate.now(); //## cache da data para não chamar várias vezes
+
+        LocalDate hoje = LocalDate.now();
+        Semaphore semaforoScans = new Semaphore(80);
+        ExecutorService routerExecutor = Executors.newFixedThreadPool(2);
+        ExecutorService vThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        Semaphore semaforoPjs = new Semaphore(2);
 
         try (TransportMapping transport = new DefaultUdpTransportMapping();
-             Snmp snmp = new Snmp(transport);
-                ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();) {
+             Snmp snmp = new Snmp(transport)) {
 
             transport.listen();
             glpiAPI.getSessionToken();
 
             for (Cidades cidade : cidades) {
-                if (cidade.ultimaVarredura == null) {
-                    cidade.ultimaVarredura = hoje.minusDays(1);
-                }
-                if (cidade.ultimaVarredura.equals(hoje)) {
+                if (hoje.equals(cidade.getUltimaVarredura())) {
                     log.info("Varredura já efetuada em {}", cidade.getNome());
                     continue;
                 }
-
-                log.info(">>>> Iniciando varredura em: {}", cidade);
-
-                List<Dispositivos> encontrados = scanearHost(snmp, cidade, executor);
-                salvarResultados(cidade, encontrados, hoje);
-
-                log.info("Varredura salva para cidade: {}", cidade.getNome());
-                Thread.sleep(1000);
+                routerExecutor.submit(() -> {
+                    try {
+                        semaforoPjs.acquire();
+                        log.info(">>>> Iniciando varredura em: {}", cidade.getNome());
+                        List<Dispositivos> encontrados = scanearHost(snmp, cidade, vThreadExecutor,semaforoScans);
+                        salvarResultados(cidade, encontrados, hoje);
+                        log.info("Varredura salva para cidade: {}", cidade.getNome());
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("Thread interrompida para {}", cidade.getNome());
+                    } catch (Exception e) {
+                        log.error("Erro na varredura de {}: {}", cidade.getNome(), e.getMessage());
+                    } finally {
+                        semaforoPjs.release();
+                    }
+                });
             }
-        } catch (IOException | InterruptedException e) {
-            log.error(e.getMessage());
+
+            routerExecutor.shutdown();
+            if (!routerExecutor.awaitTermination(2, TimeUnit.HOURS)) {
+                log.warn("routerExecutor não terminou");
+                routerExecutor.shutdownNow();
+            }
+            vThreadExecutor.shutdown();
+            if (!vThreadExecutor.awaitTermination(10, TimeUnit.MINUTES)) {
+                log.warn("vThreadExecutor não terminou");
+                vThreadExecutor.shutdownNow();
+            }
+        } catch (IOException e) {
+            log.error("Erro na camada de rede: {}", e.getMessage());
             throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Varredura interrompida: {}", e.getMessage());
+            routerExecutor.shutdownNow();
+            vThreadExecutor.shutdownNow();
         }
     }
 
 
-    private List<Dispositivos> scanearHost(Snmp snmp, Cidades cidade, ExecutorService executor) throws IOException {
-        Semaphore semaphore = new Semaphore(20);
+    private List<Dispositivos> scanearHost(Snmp snmp, Cidades cidade, ExecutorService executor, Semaphore semaphore) {
         String[] partesIp = cidade.getIp().split("\\.");
         int terceiroOctetoBase = Integer.parseInt(partesIp[2]);
         String prefixoRede = partesIp[0] + "." + partesIp[1] + ".";
@@ -104,6 +126,8 @@ public class ScanService {
                         semaphore.acquire();
                         try {
                             Dispositivos d = processarHost(snmp, ip, arpCache);
+                            System.out.println("SEMAFORO " + semaphore.availablePermits() + " para " + ip);
+
                             if (d != null) {
                                 dispositivos.add(d);
                                 System.out.println("Encontrado: " + d);
@@ -147,6 +171,9 @@ public class ScanService {
                 existente.setDescricao(encontrado.getDescricao());
                 existente.setUsuario(encontrado.getUsuario());
                 existente.setUltimaVarredura(hoje);
+                if(!existente.getCidade().equals(cidade)) {
+                    existente.setCidade(cidade);
+                }
                 log.info("Atualizado: {}", existente.getIp());
             } else {
                 encontrado.setCidade(cidadeAnexada); // Atenção: associe a cidade anexada!
@@ -211,7 +238,7 @@ public class ScanService {
             target.setCommunity(new OctetString(community));
             target.setAddress(targetAddress);
             target.setRetries(1);
-            target.setTimeout(2000);
+            target.setTimeout(3000);
             target.setVersion(SnmpConstants.version2c);
 
             OID baseOid = new OID("1.3.6.1.2.1.4.22.1.2");
