@@ -269,10 +269,10 @@ function setTravamentoGlpi(queda){
         .then(response => response.json())
     .then(data => {
         if(data === true){
-            queda.innerHTML = '🔒';
+            queda.children[0].innerText = '🔒';
         }
         else{
-            queda.innerHTML = '🔓';
+            queda.children[0].innerText = '🔓';
         }
     })
     .catch(error => console.log(error))

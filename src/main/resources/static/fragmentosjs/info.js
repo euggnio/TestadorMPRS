@@ -13,17 +13,17 @@ const infoQueda =
 
         <div class="gridBtns" style="grid-template-columns: 8em 25em;">
             <button style="background-color: #e10000;" title="Fechar">
-                <img class="btnGLPI" src="\\close.png" alt="Fechar">
+                <img class="btnGLPI" src="\\imagens\\close.png" alt="Fechar">
             </button>
             <p>Fecha o chamado no GLPI associado à queda</p>
 
             <button title="Acompanhamento">
-                <img class="btnGLPI" src="\\comment.png" alt="Acompanhamento">
+                <img class="btnGLPI" src="\\imagens\\comment.png" alt="Acompanhamento">
             </button>
             <p>Abre o histórico de acompanhamentos no chamado, onde podemos incluir novos acompanhamentos</p>
 
             <button title="Atribuir">
-                <img class="btnGLPI" src="\\attrib.png" alt="Atribuir">
+                <img class="btnGLPI" src="\\imagens\\attrib.png" alt="Atribuir">
             </button>
             <p>Abre uma lista de nomes dos integrantes da infra para atribuir ao chamado</p>
         </div>

@@ -39,6 +39,9 @@ header {
     position: sticky;
     top: 0;
     z-index:30;
+    h1{
+        font-size: 1.8em;
+    }
 }
 
 .menu{
@@ -351,7 +354,7 @@ button:hover{
 }
 
 .ligarTeste{
-    width: 8em;
+    width: 9em;
 }
 
 #filtro:hover{
@@ -548,7 +551,7 @@ iframe{
     overflow-x: auto;
     .flexItem{
         width: 50%;
-        height: 91vh;
+        height: 93vh;
         transition: 1s;
         max-height:100%;
         .city{
@@ -630,7 +633,9 @@ iframe{
     font-size: 0.8em;
     cursor: help;
     position: relative;
-    margin-left: 8px;
+    margin-left: 6px;
+    margin-right: -12px;
+    margin-bottom: 2px;
     font-weight: bold;
     display: inline-block;
     float: left;
@@ -704,8 +709,8 @@ iframe{
 
 .infoBtn{
     position: fixed;
-    top:   1vw;
-    right: 1vw;
+    top:   0.7vw;
+    right: 0.7vw;
     width: 40px;
     z-index: 999;
     transition: transform 0.5s;
@@ -792,6 +797,9 @@ iframe{
     tr{
         border-bottom: 1px solid #393e46;
     }
+    td{
+        padding: 6px;
+    }
 
     tr:last-child{
         border: none;
@@ -855,6 +863,13 @@ iframe{
 
 #global-popup{
     font-family: 'Nunito', sans-serif !important;
+}
+
+@media only screen and (max-width: 1600px){
+    .controleDia{
+        margin-right: 0em !important;
+        margin-left: 0.5em !important;
+    }
 }
 
 @media only screen and (max-width: 1200px) {

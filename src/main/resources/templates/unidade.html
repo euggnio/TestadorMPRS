@@ -5,6 +5,7 @@
     <title th:text="${#strings.capitalizeWords(cidade.nome.toLowerCase()) + ' - Testador'}"></title>
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
     <script th:src="@{/javascript.js}"></script>
+    <script th:src="@{/fragmentosjs/unidade.js}"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,37 +121,33 @@
                                 <tbody class="dadosUnidade">
                                     <tr>
                                         <td>Cidade</td>
-                                        <td th:text="${cidade.nome}"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Velocidade</td>
-                                        <td th:text="${cidade.velocidade}"></td>
-                                    </tr>
-                                    <tr>
-                                        <td> IP </td>
-                                        <td th:text="${cidade.ip}"></td>
+                                        <td style="font-size: 1.1em;" th:text="${cidade.nome}"></td>
                                     </tr>
                                     <tr>
                                         <td>Sigla</td>
                                         <td th:text="${cidade.codigo}"></td>
                                     </tr>
                                     <tr>
-                                        <td>Notação</td>
-                                        <td th:text="'/' + ${cidade.notacao}"></td>
+                                        <td>Velocidade</td>
+                                        <td th:text="${cidade.velocidade}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td> Subrede </td>
+                                        <td th:text="${cidade.ip.substring(0, cidade.ip.length() - 1) + '0 /' + cidade.notacao}"></td>
                                     </tr>
                                     <tr>
                                         <td>Teste de Banda</td>
                                         <td>
-                                            <button class="ligarTeste "
+                                            <button class="ligarTeste"
                                                     th:attr="data-cidade=${cidade.nome}"
                                                     onclick="iniciarTeste(this.getAttribute('data-cidade'))">
-                                                    Testar
+                                                    Testar&nbsp;&nbsp;&nbsp;▶
                                             </button>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Ultimo teste de banda</td>
-                                        <td th:text="${cidade.ultimoTesteBanda}"></td>
+                                        <td id="ultimo-teste" th:text="${cidade.ultimoTesteBanda}"></td>
                                     </tr>
                                     <tr>
                                         <td>Switches</td>

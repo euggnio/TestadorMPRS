@@ -101,19 +101,19 @@
                 <tr th:each="queda : ${quedas}" class="linha">
                     <td class="nomeCidade" th:if="${queda.cidade != null}">
                         <div style="display: flex; align-items: center;">
-                            <div style="display: grid; align-items: center;">
-                                                            <span class="trigger-grafico" th:attr="data-cidade=${queda.cidade.smokeID}, data-id=${queda.id}"
-                                                                  onmouseover="getGraficoSmoke(this)">
+                            <div style="display: grid; align-items: center; float:left;">
+                                    <span class="trigger-grafico" th:attr="data-cidade=${queda.cidade.smokeID}, data-id=${queda.id}"
+                                        onmouseover="getGraficoSmoke(this)">
                                 📈
-                                <div class="img-popup">
-                                    <img th:id="${queda.cidade.smokeID + queda.id}" src="" alt="Gráfico Smokeping">
-                                </div>
-                            </span>
+                                    <div class="img-popup">
+                                        <img th:id="${queda.cidade.smokeID + queda.id}" src="" alt="Gráfico Smokeping">
+                                    </div>
+                                </span>
                                 <div th:attr="data-queda=${queda.id}" onclick="setTravamentoGlpi(this)" title="TRAVAR GLPI PARA NAO FECHAR.">
-                                     <span th:text="${queda.isNaoFecharGlpi() ? '🔒':'🔓'}" id="cadeado"></span>
+                                     <span class="trigger-grafico" th:text="${queda.isNaoFecharGlpi() ? '🔒':'🔓'}" id="cadeado"></span>
                                 </div>
                             </div>
-                            <div id="graficoSmoke2">
+                            <div id="graficoSmoke2" style="margin:auto;">
                                 <a th:class="${queda.cidade.nome.length() > 20 ? 'nomeGrande' : ''}"
                                    target="_blank"
                                    th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"
