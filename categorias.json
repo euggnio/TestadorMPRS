@@ -43,7 +43,7 @@
   "label" : "Access Points / WiFi",
   "icon" : "\uD83D\uDCF6",
   "cor" : "#6ef1c3",
-  "regexNome" : "ap-|wifi|wireless",
+  "regexNome" : "D8:B3:70",
   "regexDescricao" : "ubiquiti|mikrotik",
   "rangeIp" : ""
 }, {

@@ -236,6 +236,12 @@ public class SnmpWanMonitor {
                         log.debug("Roteador fora do ar, IP: {}", resultado.getIp());
                         return;
                     }
+                    boolean alive = InetAddress.getByName(resultado.getIp()).isReachable(1000);
+                    if (!alive) {
+                        log.debug("Ping falhou, roteador está inacessível: {}", resultado.getIp());
+                        return;
+                    }
+
                     getTraffic(resultado, wanIndexCache.get(resultado.getIp()));
                 } catch (Exception e) {
                     log.error("ERRO ao pegar trafego de IP {}: {}", resultado.getIp(), e.getMessage());
@@ -275,7 +281,7 @@ public class SnmpWanMonitor {
             hosts = mapper.convertValue(node, new TypeReference<Map<String,Double>>(){});
         } catch (IOException | InterruptedException e) {
             log.error("ERRO ao pegar dados de LOSS: {}", e.getMessage());
-            throw new RuntimeException(e);
+            return;
         }
         resultados.forEach(resultado->{
             resultado.adicionarLoss(0);

@@ -111,7 +111,7 @@ public class ScanService {
         int notacao = Integer.parseInt(cidade.getNotacao());
         int loops = 1 << (24 - notacao);
         int inicioDosIps = Integer.parseInt(partesIp[3]);
-        int limiteDosIps = 255;
+        int limiteDosIps = 254;
         if(inicioDosIps == 1 && cidade.getNotacao().equals("25")) {
             limiteDosIps = 128;
         }
@@ -126,11 +126,8 @@ public class ScanService {
                         semaphore.acquire();
                         try {
                             Dispositivos d = processarHost(snmp, ip, arpCache);
-                            System.out.println("SEMAFORO " + semaphore.availablePermits() + " para " + ip);
-
                             if (d != null) {
                                 dispositivos.add(d);
-                                System.out.println("Encontrado: " + d);
                             }
                         } finally {
                             semaphore.release();
@@ -224,7 +221,6 @@ public class ScanService {
             }
         }
         else {
-            System.out.println(ip + " OFF");
             return null;
         }
         return new Dispositivos(ip,hostname,descricao,nomeUsuario);
