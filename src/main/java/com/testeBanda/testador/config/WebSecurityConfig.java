@@ -64,8 +64,10 @@ public class WebSecurityConfig {
                 .requestMatchers(
                         "/style.css"
                         ,"/static/**"
+                        ,"/imagens/**"
                         ,"/img.png"
-                        ,"/backgroundLogin1.jpg"
+                        ,"/backgroundLogin1.png"
+                        ,"/backgroundLogin2.jpg"
                         ,"/grafico"
                         ,"/versao"
                         ,"/grafico/**"

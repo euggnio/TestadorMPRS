@@ -37,7 +37,7 @@
 <div th:replace="~{fragmentos/header :: header}"></div>
 <main>
     <div class="centro">
-        <h2> <a target="_blank" th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}">Intranet ⤴</a></h2>
+        <h2> <button><a target="_blank" th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}">Intranet ⤴</a></button></h2>
         <h2>🌐 DADOS <span th:text="${cidade.nome}"></span></h2>
         <h2><span id="rodando"></span></h2>
         <div style="white-space: nowrap;">
@@ -134,6 +134,18 @@
                                     <tr>
                                         <td> Subrede </td>
                                         <td th:text="${cidade.ip.substring(0, cidade.ip.length() - 1) + '0 /' + cidade.notacao}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td> Abordagem </td>
+                                        <td th:text="${cidade.duplaAbordagem ? 'Dupla':'Simples'}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Configurações</td>
+                                        <td> <span th:text="${cidade.bloquearTesteBanda ? 'Teste de banda bloqueado':'Teste de banda liberado'}"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>==</td>
+                                        <td> <span th:text="${cidade.limitarTesteBanda ? 'Teste de banda limitado':'Teste de bande livre'}"></span></td>
                                     </tr>
                                     <tr>
                                         <td>Teste de Banda</td>

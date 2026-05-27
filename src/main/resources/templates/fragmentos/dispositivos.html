@@ -58,8 +58,14 @@
   </div>
 
   <div class="busca-row" id="buscaRow">
-    <input class="busca-input" type="text" id="buscaInput" placeholder="🔍  Buscar por IP, nome, descrição ou usuário...">
-    <button class="filtro-btn ativo" data-cat="todos" onclick="filtrarCategoria('todos',this)">Todos</button>
+    <div class="ip-search-wrap" id="ipSearchWrap">
+      <input class="busca-input" type="text" id="buscaInput"
+             placeholder="🔍  IP, nome, descrição ou usuário... (Enter para buscar)"
+             autocomplete="off">
+      <div class="ip-dropdown" id="ipDropdown"></div>
+    </div>
+    <button class="filtro-btn ativo" data-cat="todos"
+            onclick="filtrarCategoria('todos',this)">Todos</button>
   </div>
 
   <div id="categoriasContainer"></div>
@@ -626,6 +632,109 @@
 
     CATEGORIAS = await carregarCategorias();
     ld.remove();
+
+    const buscaEl   = document.getElementById("buscaInput");
+    const dropEl    = document.getElementById("ipDropdown");
+    let dropIndex   = -1;
+    let dropItems   = [];
+
+    function fecharDrop() {
+      dropEl.classList.remove("aberto");
+      dropEl.innerHTML = "";
+      dropIndex = -1;
+      dropItems = [];
+    }
+
+    function abrirDrop(termo) {
+      const t = termo.toLowerCase();
+      if (!t) { fecharDrop(); return; }
+
+      // Coleta IPs únicos que contenham o termo
+      const ipsUnicos = [...new Set(
+              dispositivos
+                      .map(d => d.ip || "")
+                      .filter(ip => ip.toLowerCase().includes(t))
+      )].sort().slice(0, 40);
+
+      if (!ipsUnicos.length) { fecharDrop(); return; }
+
+      dropEl.innerHTML = "";
+      dropItems = ipsUnicos;
+      dropIndex = -1;
+
+      ipsUnicos.forEach((ip, i) => {
+        const div = document.createElement("div");
+        div.className = "ip-drop-item";
+        // Destaca a parte digitada
+        const idx = ip.toLowerCase().indexOf(t);
+        div.innerHTML = ip.slice(0, idx)
+                + `<span>${ip.slice(idx, idx + t.length)}</span>`
+                + ip.slice(idx + t.length);
+        div.addEventListener("mousedown", e => {
+          e.preventDefault();
+          selecionarIp(ip);
+        });
+        dropEl.appendChild(div);
+      });
+
+      // Rodapé com contagem
+      if (ipsUnicos.length >= 40) {
+        const info = document.createElement("div");
+        info.className = "ip-drop-count";
+        const total = dispositivos.filter(d => (d.ip||"").toLowerCase().includes(t)).length;
+        info.textContent = `Mostrando 40 de ${total} resultados`;
+        dropEl.appendChild(info);
+      }
+
+      dropEl.classList.add("aberto");
+    }
+
+    function selecionarIp(ip) {
+      buscaEl.value = ip;
+      termoBusca = ip;
+      fecharDrop();
+      aplicarFiltros();
+    }
+
+    function highlightDrop(dir) {
+      const items = dropEl.querySelectorAll(".ip-drop-item");
+      if (!items.length) return;
+      items[dropIndex]?.classList.remove("selected");
+      dropIndex = (dropIndex + dir + items.length) % items.length;
+      items[dropIndex].classList.add("selected");
+      items[dropIndex].scrollIntoView({ block: "nearest" });
+    }
+
+    buscaEl.addEventListener("input", function () {
+      // Só abre sugestões, NÃO filtra ainda
+      abrirDrop(this.value.trim());
+    });
+
+    buscaEl.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") { e.preventDefault(); highlightDrop(1); return; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); highlightDrop(-1); return; }
+      if (e.key === "Escape")    { fecharDrop(); return; }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const sel = dropEl.querySelector(".ip-drop-item.selected");
+        if (sel) {
+          // Tem item selecionado no dropdown → usa ele
+          const ip = dropItems[dropIndex];
+          selecionarIp(ip);
+        } else {
+          // Busca livre pelo que foi digitado
+          termoBusca = this.value.trim();
+          fecharDrop();
+          aplicarFiltros();
+        }
+      }
+    });
+
+    buscaEl.addEventListener("blur", () => setTimeout(fecharDrop, 150));
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { fecharDrop(); }
+    });
 
     document.getElementById("settingsBtn").addEventListener("click", abrirModal);
     document.getElementById("modalClose").addEventListener("click", fecharModal);

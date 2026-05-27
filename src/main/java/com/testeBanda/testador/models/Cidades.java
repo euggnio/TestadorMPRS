@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,12 +34,17 @@ public class Cidades {
     public String cacti;
     public String nagiosID;
 
-    //Datas e Checks
+    //Datas
     public LocalDate ultimaVarredura;
     @Size(min = 1, max = 500)
     public String ultimoTesteBanda;
     public String dataUltimoTeste;
-    public boolean checkTesteBanda;
+    //checks
+    public boolean checkTesteBanda = false;
+    //checks de configs
+    public boolean duplaAbordagem = false;
+    public boolean bloquearTesteBanda = false;
+    public boolean limitarTesteBanda = false;
 
     //RELACIONAMENTOS
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")

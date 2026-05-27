@@ -32,22 +32,49 @@ public class ScanService {
     @Autowired
     CidadesRepository cidadesRepository;
     @Autowired
+    DispositivosService dispositivosService;
+    @Autowired
     GlpiAPI glpiAPI;
 
     @Value("${varredura.desligar}")
     private boolean desligar;
 
+
+    //Responsável por pegar os IPS sem cidades cadastrados
+    public List<String> ipsSemCidade(List<Cidades> cidades) {
+        List<String> ipsLimpos = new ArrayList<>();
+        List<String> ips = new ArrayList<>(cidades.stream().map(Cidades::getIp).toList());
+        for (int i = 1; i < 255; i++) {
+            String ip = "172.17." + i + ".1";
+            if (!ips.contains(ip)) {
+                ipsLimpos.add(ip);
+            }
+        }
+        for (Cidades c : cidades) {
+            int notacao = Integer.parseInt(c.getNotacao());
+            int loops = 1 << (24 - notacao);
+            String[] partesIp = c.getIp().split("\\.");
+            String baseIp = partesIp[0] + "." + partesIp[1] + ".";
+            int terceiroOcteto = Integer.parseInt(partesIp[2]);
+            for (int i = 0; i < loops; i++) {
+                String ipDaNotacao = baseIp + (terceiroOcteto + i) + ".1";
+                ipsLimpos.remove(ipDaNotacao);
+            }
+        }
+        return ipsLimpos;
+    }
+
     public void varrerCidades() {
-        if (desligar) return;
+        if ( desligar ) return;
 
         List<Cidades> cidades = cidadesRepository.findAll();
-        if (cidades.isEmpty()) return;
-
+        if ( cidades.isEmpty() ) return;
+        List<String> ipsLimpos = ipsSemCidade(cidades);
         LocalDate hoje = LocalDate.now();
         Semaphore semaforoScans = new Semaphore(80);
-        ExecutorService routerExecutor = Executors.newFixedThreadPool(2);
+        ExecutorService routerExecutor = Executors.newFixedThreadPool(3);
         ExecutorService vThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        Semaphore semaforoPjs = new Semaphore(2);
+        Semaphore semaforoPjs = new Semaphore(3);
 
         try (TransportMapping transport = new DefaultUdpTransportMapping();
              Snmp snmp = new Snmp(transport)) {
@@ -55,8 +82,27 @@ public class ScanService {
             transport.listen();
             glpiAPI.getSessionToken();
 
+            for (String ip : ipsLimpos) {
+                routerExecutor.submit(() -> {
+                    try {
+                        semaforoPjs.acquire();
+                        log.info(">>>> Iniciando varredura em: {}", ip);
+                        List<Dispositivos> encontrados = scanearHost(snmp, ip, vThreadExecutor, semaforoScans);
+                        dispositivosService.salvarResultadosOrfaos(encontrados, hoje);
+                        log.info("Varredura salva para cidade: {}", ip);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("Thread interrompida para {}", ip);
+                    } catch (Exception e) {
+                        log.error("Erro na varredura de {}: {}", ip, e.getMessage());
+                    } finally {
+                        semaforoPjs.release();
+                    }
+                });
+            }
+
             for (Cidades cidade : cidades) {
-                if (hoje.equals(cidade.getUltimaVarredura())) {
+                if ( hoje.equals(cidade.getUltimaVarredura()) ) {
                     log.info("Varredura já efetuada em {}", cidade.getNome());
                     continue;
                 }
@@ -64,8 +110,8 @@ public class ScanService {
                     try {
                         semaforoPjs.acquire();
                         log.info(">>>> Iniciando varredura em: {}", cidade.getNome());
-                        List<Dispositivos> encontrados = scanearHost(snmp, cidade, vThreadExecutor,semaforoScans);
-                        salvarResultados(cidade, encontrados, hoje);
+                        List<Dispositivos> encontrados = scanearHost(snmp, cidade, vThreadExecutor, semaforoScans);
+                        dispositivosService.salvarResultadosCidade(cidade, encontrados, hoje);
                         log.info("Varredura salva para cidade: {}", cidade.getNome());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -79,12 +125,12 @@ public class ScanService {
             }
 
             routerExecutor.shutdown();
-            if (!routerExecutor.awaitTermination(2, TimeUnit.HOURS)) {
+            if ( !routerExecutor.awaitTermination(2, TimeUnit.HOURS) ) {
                 log.warn("routerExecutor não terminou");
                 routerExecutor.shutdownNow();
             }
             vThreadExecutor.shutdown();
-            if (!vThreadExecutor.awaitTermination(10, TimeUnit.MINUTES)) {
+            if ( !vThreadExecutor.awaitTermination(10, TimeUnit.MINUTES) ) {
                 log.warn("vThreadExecutor não terminou");
                 vThreadExecutor.shutdownNow();
             }
@@ -97,6 +143,45 @@ public class ScanService {
             routerExecutor.shutdownNow();
             vThreadExecutor.shutdownNow();
         }
+    }
+
+    private List<Dispositivos> scanearHost(Snmp snmp, String ip, ExecutorService executor, Semaphore semaphore) {
+        String[] partesIp = ip.split("\\.");
+        String baseIp = partesIp[0] + "." + partesIp[1] + "." + partesIp[2] + ".";
+        List<Future<?>> futures = new ArrayList<>();
+        List<Dispositivos> dispositivos = Collections.synchronizedList(new ArrayList<>());
+
+        Map<String, String> arpCache = carregarArpDoMikrotik(snmp, ip, "public");
+        for (int i = 0; i < 254; i++) {
+                final String ipFinal = baseIp + i;
+                Future<?> future = executor.submit(() -> {
+                    try {
+                        semaphore.acquire();
+                        try {
+                            Dispositivos d = processarHost(snmp, ipFinal, arpCache);
+                            if ( d != null ) {
+                                dispositivos.add(d);
+                            }
+                        } finally {
+                            semaphore.release();
+                        }
+                    } catch (Exception e) {
+                        dispositivos.add(new Dispositivos(ipFinal, "ERRO", e.getMessage(), null));
+                    }
+                    return null;
+                });
+                futures.add(future);
+        }
+        for (Future<?> future : futures) {
+            try {
+                future.get(5, TimeUnit.MINUTES);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+            } catch (Exception e) {
+                System.err.println("Erro na task: " + e.getMessage());
+            }
+        }
+        return dispositivos;
     }
 
 
@@ -112,13 +197,13 @@ public class ScanService {
         int loops = 1 << (24 - notacao);
         int inicioDosIps = Integer.parseInt(partesIp[3]);
         int limiteDosIps = 254;
-        if(inicioDosIps == 1 && cidade.getNotacao().equals("25")) {
+        if ( inicioDosIps == 1 && cidade.getNotacao().equals("25") ) {
             limiteDosIps = 128;
         }
         for (int i = 0; i < loops; i++) {
             int terceiroOctetoAtual = terceiroOctetoBase + i;
             String baseIpAtual = prefixoRede + terceiroOctetoAtual;
-            for (int atual = inicioDosIps ; atual <= limiteDosIps; atual++) {
+            for (int atual = inicioDosIps; atual <= limiteDosIps; atual++) {
                 final String ip = baseIpAtual + "." + atual;
 
                 Future<?> future = executor.submit(() -> {
@@ -126,14 +211,14 @@ public class ScanService {
                         semaphore.acquire();
                         try {
                             Dispositivos d = processarHost(snmp, ip, arpCache);
-                            if (d != null) {
+                            if ( d != null ) {
                                 dispositivos.add(d);
                             }
                         } finally {
                             semaphore.release();
                         }
                     } catch (Exception e) {
-                        dispositivos.add(new Dispositivos(ip, "ERRO" , e.getMessage(),null));
+                        dispositivos.add(new Dispositivos(ip, "N/A", "N/A", null));
                     }
                     return null;
                 });
@@ -152,81 +237,62 @@ public class ScanService {
         return dispositivos;
     }
 
-    @Transactional
-    public void salvarResultados(Cidades cidade, List<Dispositivos> encontrados, LocalDate hoje) {
-        Cidades cidadeAnexada = cidadesRepository
-                .findByIdComDispositivos(cidade.getNome())
-                .orElse(cidade);
-        Map<String, Dispositivos> existentesPorIp = cidadeAnexada.getDispositivos().stream()
-                .collect(Collectors.toMap(Dispositivos::getIp, d -> d));
 
-        for (Dispositivos encontrado : encontrados) {
-            Dispositivos existente = existentesPorIp.get(encontrado.getIp());
-
-            if (existente != null) {
-                existente.setNome(encontrado.getNome());
-                existente.setDescricao(encontrado.getDescricao());
-                existente.setUsuario(encontrado.getUsuario());
-                existente.setUltimaVarredura(hoje);
-                if(!existente.getCidade().equals(cidade)) {
-                    existente.setCidade(cidade);
-                }
-                log.info("Atualizado: {}", existente.getIp());
-            } else {
-                encontrado.setCidade(cidadeAnexada); // Atenção: associe a cidade anexada!
-                encontrado.setDataDaVarredura(hoje);
-                cidadeAnexada.getDispositivos().add(encontrado);
-                log.info("Adicionado: {}", encontrado.getIp());
-            }
-        }
-
-        cidadeAnexada.ultimaVarredura = hoje;
-
-        // Agora o save vai funcionar perfeitamente, pois a entidade está sob os cuidados do Hibernate
-        cidadesRepository.save(cidadeAnexada);
-    }
-
-    private Dispositivos processarHost(Snmp snmp, String ip, Map<String,String> arp) throws IOException {
+    private Dispositivos processarHost(Snmp snmp, String ip, Map<String, String> arp) throws IOException {
         InetAddress inet = InetAddress.getByName(ip);
         String hostname = "";
-        String descricao= "N/A";
+        String descricao = "N/A";
         String nomeUsuario = "N/A";
 
         //ta pingavel?
-        if (inet.isReachable(500)) {
+        if ( inet.isReachable(500) ) {
             String name = inet.getHostName();
             //não resolvido com tombo vai snmp
-            if (name.equals(ip)) {
+            if ( name.equals(ip) ) {
                 String[] dados = scanHost(snmp, ip, 161, "public");
                 //snmp deu erro vai de arp
-                if (dados.length < 2 ) {
+                if ( dados.length < 2 ) {
                     hostname = arp.getOrDefault(ip, "N/A");
-                    if (hostname.contains("48:7A")) {
+                    if ( hostname.contains("48:7A") ) {
                         hostname = "ALCATEL VOIP";
                     }
-                }else{
+                } else {
                     hostname = dados[0];
                     descricao = dados[1];
                 }
             }
-            //Its a PC
+            //Its a PC deve ter t111111.mp.rs.gov.br
             else {
                 String nomeHost = name.contains(".")
                         ? name.substring(0, name.indexOf("."))
                         : name;
-                JsonNode node = glpiAPI.getComputerData(nomeHost);
                 hostname = nomeHost;
-                nomeUsuario = Objects.equals(node.get("70").asText(), "null") ? "N/A" : node.get("70").asText();
-                descricao = node.get("45").asText();
+                boolean ehPc = nomeHost.matches("(?i)^t\\d{6}$");
+                if (ehPc) {
+                    JsonNode node = glpiAPI.getComputerData(nomeHost);
+                    if (node != null) {
+                        nomeUsuario = node.has("70") &&
+                                !Objects.equals(node.get("70").asText(), "null")
+                                ? node.get("70").asText()
+                                : "N/A";
+                        descricao = node.has("45")
+                                ? node.get("45").asText()
+                                : "N/A";
+                    }
+                } else {
+                    descricao = "Servidor/Dispositivo";
+                    nomeUsuario = "N/A";
+                }
             }
-        }
-        else {
+        } else {
+            log.debug("DISPOSITIVO DO IP {} ESTÁ OFF", ip);
             return null;
         }
-        return new Dispositivos(ip,hostname,descricao,nomeUsuario);
+        System.out.println( ip + " " +hostname + " " + descricao + " " + nomeUsuario);
+        return new Dispositivos(ip, hostname, descricao, nomeUsuario);
     }
 
-    public  Map<String, String> carregarArpDoMikrotik(Snmp snmp, String mikrotikIp, String community) {
+    public Map<String, String> carregarArpDoMikrotik(Snmp snmp, String mikrotikIp, String community) {
         Map<String, String> arpCache = new HashMap<>();
         try {
             Address targetAddress = new UdpAddress(mikrotikIp + "/161");
@@ -244,23 +310,23 @@ public class ScanService {
 
             while (true) {
                 ResponseEvent event = snmp.send(pdu, target);
-                if (event == null || event.getResponse() == null) break;
+                if ( event == null || event.getResponse() == null ) break;
 
                 VariableBinding vb = event.getResponse().get(0);
-                if (vb == null || !vb.getOid().startsWith(baseOid)) break;
+                if ( vb == null || !vb.getOid().startsWith(baseOid) ) break;
 
                 String[] parts = vb.getOid().toString().split("\\.");
-                String ip = parts[parts.length-4] + "." +
-                        parts[parts.length-3] + "." +
-                        parts[parts.length-2] + "." +
-                        parts[parts.length-1];
+                String ip = parts[parts.length - 4] + "." +
+                        parts[parts.length - 3] + "." +
+                        parts[parts.length - 2] + "." +
+                        parts[parts.length - 1];
 
                 OctetString macOctet = (OctetString) vb.getVariable();
                 byte[] bytes = macOctet.getValue();
-                if (bytes.length == 6) {
+                if ( bytes.length == 6 ) {
                     StringBuilder mac = new StringBuilder();
                     for (int i = 0; i < bytes.length; i++) {
-                        if (i > 0) mac.append(":");
+                        if ( i > 0 ) mac.append(":");
                         mac.append(String.format("%02X", bytes[i] & 0xFF));
                     }
                     arpCache.put(ip, mac.toString());
@@ -279,7 +345,7 @@ public class ScanService {
         return arpCache;
     }
 
-    private  String[] scanHost(Snmp snmp, String ip, int port, String community) {
+    private String[] scanHost(Snmp snmp, String ip, int port, String community) {
         try {
             Address targetAddress = new UdpAddress(ip + "/" + port);
 
@@ -297,15 +363,16 @@ public class ScanService {
 
             ResponseEvent response = snmp.send(pdu, target);
 
-            if ( response == null || response.getResponse() == null ) return new String[0];;
+            if ( response == null || response.getResponse() == null ) return new String[0];
+            ;
 
             VariableBinding vb = response.getResponse().get(0);
             VariableBinding vbx = response.getResponse().get(1);
 
-            if (vb == null || vb.getVariable() == null) {
+            if ( vb == null || vb.getVariable() == null ) {
                 return new String[0];
             }
-            return new String[] {
+            return new String[]{
                     vbx.getVariable().toString(),
                     vb.getVariable().toString()
             };
@@ -314,6 +381,4 @@ public class ScanService {
             return new String[0];
         }
     }
-
-
 }

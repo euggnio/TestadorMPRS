@@ -70,7 +70,8 @@
         </thead>
         <tbody>
         <th:block th:each="cidade : ${cidades}" >
-            <tr th:id="${cidade.nome}" class="linha">
+            <tr th:id="${cidade.nome}" th:class="${cidade.bloquearTesteBanda} ? 'linha bloqueado' : 'linha'">
+
                 <td>
                     <div class="background">
                         <div class="resultado"
@@ -85,7 +86,10 @@
                 </td>
                 <td><span class="dado" th:text="${cidade.velocidade}"></span>
                 </td>
-                <td><span class="dado" th:text="${cidade.ultimoTesteBanda}"></span>
+                <td><span class="dado" th:text="${cidade.bloquearTesteBanda ?
+                'TESTE BLOQUEADO':cidade.ultimoTesteBanda}"></span>
+                    <span th:if="${cidade.limitarTesteBanda}">Limited</span>
+                </td>
 
                 <td><span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
                 </td>
@@ -95,7 +99,9 @@
                 <td>
                     <button class="ligarTeste "
                             th:attr="data-cidade=${cidade.nome}"
-                            onclick="iniciarTeste(this.getAttribute('data-cidade'))">
+                            onclick="iniciarTeste(this.getAttribute('data-cidade'))"
+                    th:disabled="${cidade.bloquearTesteBanda}"
+                    >
                         ▶
                     </button>
                 </td>

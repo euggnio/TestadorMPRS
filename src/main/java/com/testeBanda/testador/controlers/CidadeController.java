@@ -86,6 +86,10 @@ public class CidadeController {
             redirectAttrs.addFlashAttribute("status", "Falta de dados! (Obgt. nome e IP)");
             return "redirect:configuracao";
         }
+        System.out.println(cidade.nome);
+        System.out.println(cidade.limitarTesteBanda);
+        System.out.println(cidade.bloquearTesteBanda);
+
         cidadeService.salvarCidade(cidade);
         redirectAttrs.addFlashAttribute("status", "Cidade salva !");
         return "redirect:configuracao";
