@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Quedas - Testador</title>
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
-    <link rel="stylesheet" type="text/css" th:href="@{/historicoQuedas.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/historicoQuedas.css}">
     <script th:src="@{/javascript.js}"></script>
     <script th:src="@{/fragmentosjs/popup.js}"></script>
     <script th:src="@{/fragmentosjs/info.js}"></script>
@@ -35,46 +35,48 @@
 
                 <input type="checkbox" id="toggle-switch" hidden>
 
-                <div class="controleDia">
-                    <label for="calendario">Data:</label>
-                    <input
-                            type="date"
-                            id="calendario"
-                            name="calendario"
-                            th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
-                            th:min="${datas.getLast()}"
-                            th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
-                    <button id="hoje" onclick="diaHoje()" title="Home">Hoje</button>
+                <div class="chq-group chq-date" id="chq-date-group">
+                    <span class="chq-label">Data</span>
+                    <div class="chq-date-inputs">
+                        <input type="date" id="calendario" name="calendario"
+                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"
+                               th:min="${datas.getLast()}"
+                               th:max="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}"/>
+                        <button id="hoje" onclick="diaHoje()" class="chq-hoje" title="Ir para hoje">Hoje</button>
+                    </div>
                     <div id="diaDaSemana"></div>
                 </div>
 
-                <div class="controleMes">
-                    <label for="dropAno" style="display: none">Ano:</label>
-                    <select id="dropAno">
-                        <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
-                                th:value="${ano}"
-                                th:text="${ano}"></option>
-                    </select>
+                <div class="chq-divider"></div>
 
-                    <label for="dropMes" style="display: none">Mes:</label>
-                    <select id="dropMes">
-                        <option th:each="mes : ${#numbers.sequence(0, 11)}"
-                                th:value="${mes+1}"
-                                th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
-                                        #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
-                    </select>
+                <div class="chq-group chq-month" id="chq-month-group">
+                    <span class="chq-label">Período</span>
+                    <div class="chq-month-inputs">
+                        <select id="dropAno">
+                            <option th:each="ano : ${#numbers.sequence(datas.getLast().getYear(), datas.getFirst().getYear())}"
+                                    th:value="${ano}" th:text="${ano}"></option>
+                        </select>
+                        <select id="dropMes">
+                            <option th:each="mes : ${#numbers.sequence(0, 11)}"
+                                    th:value="${mes+1}"
+                                    th:text="${ #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(0,1).toUpperCase() +
+                                            #temporals.monthName(datas.getFirst().withMonth(mes+1)).substring(1)}"></option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="tituloBox">
-                    <div style="white-space:nowrap;">
-                        <button id="diaAntes" class="flechas" onclick="setasData(-1)" title=" ← ">&lt;</button>
-                        <label th:text="${titulo}" id="titulo"></label>
-                        <button id="diaDepois" class="flechas" onclick="setasData(1)" title=" → ">&gt;</button>
+                <div class="chq-divider"></div>
+
+                <div class="chq-group chq-nav">
+                    <div class="chq-nav-buttons">
+                        <button id="diaAntes" class="chq-arrow" onclick="setasData(-1)" title="Anterior">&lsaquo;</button>
+                        <span th:text="${titulo}" id="titulo"></span>
+                        <button id="diaDepois" class="chq-arrow" onclick="setasData(1)" title="Próximo">&rsaquo;</button>
                     </div>
                     <div id="count"></div>
                 </div>
 
-
+                <div class="chq-divider"></div>
 
                 <label for="toggle-switch" class="toggle-label">
                     <span class="option-one">Dia</span>
@@ -85,6 +87,7 @@
             </div>
 
 
+            <div class="table-responsive">
             <table class="city" id="dataTable">
                 <thead>
                 <tr class="linha">
@@ -140,9 +143,8 @@
 
                         <label th:if="${queda.tempoFora.toHours() != 0 && queda.tempoFora.toMinutesPart() != 0}"
                                th:text="${queda.tempoFora.toHours() + 'h ' + queda.tempoFora.toMinutesPart() + 'min'}"></label>
+                        <label th:if="${queda.flap}">⟳</label>
 
-<!--                        <label th:text="'Horas: ' + ${queda.tempoFora.toHours()}"></label><br>-->
-<!--                        <label th:text="'Minutos: ' + ${queda.tempoFora.toMinutesPart()}"></label>-->
                     </td>
 
                     <td th:if="${queda.tempoFora.toSeconds() == 0}">
@@ -239,6 +241,7 @@
                 </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

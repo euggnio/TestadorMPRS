@@ -51,7 +51,7 @@
   "label" : "Servidores / NAS",
   "icon" : "\uD83D\uDDC4️",
   "cor" : "#f1e24e",
-  "regexNome" : "serv-|server|nas-|srv-",
+  "regexNome" : "serv-|server|nas-|srv-|bekapeitordesat|bekapeitor",
   "regexDescricao" : "",
   "rangeIp" : ""
 }, {

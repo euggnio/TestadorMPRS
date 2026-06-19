@@ -28,18 +28,79 @@
             </button>
             <button   >
                 <span onclick="
-            if(document.getElementById('search').value === 'NÃO'){
+            if(document.getElementById('search').value === 'NÃO OK'){
                 document.getElementById('search').value = 'OK'
             }else{
-                document.getElementById('search').value = 'NÃO'
+                document.getElementById('search').value = 'NÃO OK'
             }
              ; filterTable();"> Filtrar</span>
             </button>
+
         </div>
         <span style="font-size: larger">🔍︎</span>
         <input type="text" id="search" placeholder="Digite nome da cidade para filtrar..." onkeyup="filterTable()">
+        <div class="stats-card">
+            <div class="stats-card-inner">
+                <div class="stat-item stat-ok">
+                    <span class="stat-value" th:text="${#lists.size(cidades.?[checkTesteBanda])}">0</span>
+                    <span class="stat-label">OK</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item stat-naook">
+                    <span class="stat-value" th:text="${#lists.size(cidades.?[!checkTesteBanda])}">0</span>
+                    <span class="stat-label">NÃO OK</span>
+                </div>
+            </div>
+            <span class="stats-card-title">Testes</span>
+        </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".barra-banda-fundo").forEach(barra => {
+                const textoBanda = barra.dataset.banda;
+                const textoLimite = barra.dataset.limite;
 
+                if (!textoBanda || !textoLimite) {
+                    barra.style.display = "none";
+                    return;
+                }
+
+                const rxMatch = textoBanda.match(/RX:\s*([\d.,]+)/i);
+                const txMatch = textoBanda.match(/TX:\s*([\d.,]+)/i);
+
+                const limiteMatch = textoLimite.match(/([\d.,]+)/);
+
+                if (!rxMatch || !txMatch || !limiteMatch) {
+                    barra.style.display = "none";
+                    return;
+                }
+
+                const rx = parseFloat(rxMatch[1].replace(",", "."));
+                const tx = parseFloat(txMatch[1].replace(",", "."));
+                const limite = parseFloat(limiteMatch[1].replace(",", "."));
+
+                if (isNaN(rx) || isNaN(tx) || isNaN(limite) || limite <= 0) {
+                    barra.style.display = "none";
+                    return;
+                }
+
+                // Usa a média entre RX e TX como referência visual
+                const mediaResultados = (rx + tx) / 2;
+
+                // Se passou do limite contratado, trava em 100%
+                const porcentagem = Math.min((mediaResultados / limite) * 100, 100);
+
+                const progresso = barra.querySelector(".barra-banda-progresso");
+                progresso.style.width = porcentagem + "%";
+
+                barra.title =
+                    `RX: ${rx.toFixed(2)} Mbps | ` +
+                    `TX: ${tx.toFixed(2)} Mbps | ` +
+                    `Limite: ${limite.toFixed(0)} Mbps | ` +
+                    `${porcentagem.toFixed(0)}%`;
+            });
+        });
+    </script>
 
     <br>
     <span style="font-size: small">Desligamento e início demoram alguns segundos para atualizar...</span>
@@ -47,21 +108,21 @@
         <thead>
         <tr id="@END">
             <th class="dadosAtual" id="cidadeAtual">Nome da cidade: ...</th>
-            <th class="dadosAtual" id="velocidadeAtual">Vel</th>
+            <th class="dadosAtual" id="velocidadeAtual">Velocidade</th>
             <th class="dadosAtual" id="statusAtual">PARADO</th>
             <th class="dadosAtual" th:colspan="3" ><span id="rodando"></span>
             </th>
         </tr>
         <tr>
             <th>Unidade</th>
-            <th>Vel</th>
+            <th>Velocidade</th>
             <th>Banda</th>
             <th>Data</th>
             <th id="filtro" onclick="
-            if(document.getElementById('search').value === 'NÃO'){
+            if(document.getElementById('search').value === 'NÃO OK'){
                 document.getElementById('search').value = 'OK'
             }else{
-                document.getElementById('search').value = 'NÃO'
+                document.getElementById('search').value = 'NÃO OK'
             }
              ; filterTable();"
             >Resultado▲</th>
@@ -86,14 +147,26 @@
                 </td>
                 <td><span class="dado" th:text="${cidade.velocidade}"></span>
                 </td>
-                <td><span class="dado" th:text="${cidade.bloquearTesteBanda ?
-                'TESTE BLOQUEADO':cidade.ultimoTesteBanda}"></span>
-                    <span th:if="${cidade.limitarTesteBanda}">Limited</span>
+                <td class="td-banda">
+    <span class="dado banda-texto"
+          th:text="${cidade.bloquearTesteBanda ? 'TESTE BLOQUEADO' : cidade.ultimoTesteBanda}">
+    </span>
+
+                    <span th:if="${cidade.limitarTesteBanda}" class="limited-badge">
+        Limitado à velocidade
+    </span>
+
+                    <div class="barra-banda-fundo"
+                         th:if="${!cidade.bloquearTesteBanda}"
+                         th:data-banda="${cidade.ultimoTesteBanda}"
+                         th:data-limite="${cidade.velocidade}">
+                        <div class="barra-banda-progresso"></div>
+                    </div>
                 </td>
 
                 <td><span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
                 </td>
-                <td><span class="dado" th:text="${cidade.checkTesteBanda ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"
+                <td><span th:if="${!cidade.bloquearTesteBanda}" class="dado" th:text="${(cidade.checkTesteBanda) ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"
                           th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
                 </td>
                 <td>

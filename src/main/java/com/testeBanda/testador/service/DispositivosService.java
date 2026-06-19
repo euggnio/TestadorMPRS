@@ -52,8 +52,9 @@ public class DispositivosService {
                     cidadeAnexada.getDispositivos().add(encontrado);
                     log.info("Adicionado: {}", encontrado.getIp());
                 }
-            }
 
+            }
+            dispositivosRepository.saveAll(encontrados);
             cidadeAnexada.ultimaVarredura = hoje;
             cidadesRepository.save(cidadeAnexada);
         }

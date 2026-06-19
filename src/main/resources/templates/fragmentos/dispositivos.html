@@ -87,6 +87,11 @@
   let categoriaAtiva = "todos";
   let termoBusca     = "";
   let saveTimer      = null;
+  let classificados  = false;
+  function debounce(fn, ms) {
+      let timer;
+      return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+  }
 
   /* ================================================================
      FALLBACK
@@ -379,6 +384,7 @@
       alvo[campo] = partes.concat(escaped).join("|");
     }
     autoSalvar();
+    classificados = false;
     aplicarFiltros();
     const nomeCampo = campo === "regexNome" ? "Nome" : "Descrição";
     mostrarToast(`"${escaped}" → ${nomeCampo} → ${cat.label.split("/")[0]}`, "sucesso");
@@ -452,6 +458,7 @@
       CATEGORIAS = novas;
       fecharModal();
       reconstruirFiltros();
+      classificados = false;
       aplicarFiltros();
       mostrarToast("Categorias salvas!", "sucesso");
     }
@@ -480,7 +487,13 @@
     aplicarFiltros();
   }
 
+  function classificarTodos() {
+    for (const d of dispositivos) d._cat = classificar(d);
+    classificados = true;
+  }
+
   function aplicarFiltros() {
+    if (!classificados) classificarTodos();
     let lista = dispositivos;
     if (termoBusca) {
       const t = termoBusca.toLowerCase();
@@ -495,10 +508,12 @@
   /* ================================================================
      RENDER
   ================================================================ */
+  const MAX_POR_CATEGORIA = 200;
+
   function renderTudo(lista) {
     const porCat = {};
     for (const cat of CATEGORIAS) porCat[cat.key] = [];
-    for (const d of lista) porCat[classificar(d)].push(d);
+    for (const d of lista) porCat[d._cat || "outros"].push(d);
 
     // Resumo cards
     const resumo = document.getElementById("resumoGrid");
@@ -531,7 +546,9 @@
       if (!dispList.length) continue;
       if (categoriaAtiva !== "todos" && categoriaAtiva !== cat.key) continue;
 
-      const rows = dispList.map(d => `
+      const totalNaCategoria = dispList.length;
+      const limitados = dispList.slice(0, MAX_POR_CATEGORIA);
+      const rows = limitados.map(d => `
         <tr>
             <td><a target="_blank" href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
             <td><span class="ip-badge">${d.ip||"—"}</span></td>
@@ -539,7 +556,10 @@
             <td><span class="desc-text" title="${(d.descricao||"").replace(/"/g,"&quot;")}">${d.descricao||"—"}</span></td>
             <td><span class="user-text">${d.usuario||"—"}</span></td>
             <td><span class="user-text">${d.ultimaVarredura||"—"}</span></td>
-        </tr>`).join("");
+        </tr>`).join("") +
+        (totalNaCategoria > MAX_POR_CATEGORIA
+          ? `<tr class="tr-mais"><td colspan="6">Mostrando ${MAX_POR_CATEGORIA} de ${totalNaCategoria} dispositivos nesta categoria</td></tr>`
+          : "");
 
       const sec = document.createElement("div");
       sec.className = "categoria-section";
@@ -560,9 +580,9 @@
             </table>
         </div>`;
 
-      // contextmenu em cada linha
-      sec.querySelectorAll("tbody tr").forEach((tr, idx) => {
-        tr.addEventListener("contextmenu", ev => abrirCtxMenu(ev, dispList[idx]));
+      // contextmenu nas linhas visiveis (ignora .tr-mais)
+      sec.querySelectorAll("tbody tr:not(.tr-mais)").forEach((tr, idx) => {
+        tr.addEventListener("contextmenu", ev => abrirCtxMenu(ev, limitados[idx]));
       });
       cont.appendChild(sec);
     }
@@ -633,6 +653,8 @@
     CATEGORIAS = await carregarCategorias();
     ld.remove();
 
+    const ipList = [...new Set(dispositivos.map(d => d.ip).filter(Boolean))].sort();
+
     const buscaEl   = document.getElementById("buscaInput");
     const dropEl    = document.getElementById("ipDropdown");
     let dropIndex   = -1;
@@ -649,12 +671,8 @@
       const t = termo.toLowerCase();
       if (!t) { fecharDrop(); return; }
 
-      // Coleta IPs únicos que contenham o termo
-      const ipsUnicos = [...new Set(
-              dispositivos
-                      .map(d => d.ip || "")
-                      .filter(ip => ip.toLowerCase().includes(t))
-      )].sort().slice(0, 40);
+      // Filtra IPs do cache (evita percorrer 10k dispositivos)
+      const ipsUnicos = ipList.filter(ip => ip.includes(t)).slice(0, 40);
 
       if (!ipsUnicos.length) { fecharDrop(); return; }
 
@@ -665,7 +683,6 @@
       ipsUnicos.forEach((ip, i) => {
         const div = document.createElement("div");
         div.className = "ip-drop-item";
-        // Destaca a parte digitada
         const idx = ip.toLowerCase().indexOf(t);
         div.innerHTML = ip.slice(0, idx)
                 + `<span>${ip.slice(idx, idx + t.length)}</span>`
@@ -677,12 +694,10 @@
         dropEl.appendChild(div);
       });
 
-      // Rodapé com contagem
       if (ipsUnicos.length >= 40) {
         const info = document.createElement("div");
         info.className = "ip-drop-count";
-        const total = dispositivos.filter(d => (d.ip||"").toLowerCase().includes(t)).length;
-        info.textContent = `Mostrando 40 de ${total} resultados`;
+        info.textContent = `Mostrando 40 de ${ipList.length} IPs disponíveis`;
         dropEl.appendChild(info);
       }
 
@@ -705,9 +720,19 @@
       items[dropIndex].scrollIntoView({ block: "nearest" });
     }
 
+    const aplicarFiltrosDebounced = debounce((termo) => {
+      termoBusca = termo;
+      aplicarFiltros();
+    }, 300);
+
+    const abrirDropDebounced = debounce((termo) => {
+      abrirDrop(termo);
+    }, 200);
+
     buscaEl.addEventListener("input", function () {
-      // Só abre sugestões, NÃO filtra ainda
-      abrirDrop(this.value.trim());
+      const val = this.value.trim();
+      abrirDropDebounced(val);
+      aplicarFiltrosDebounced(val);
     });
 
     buscaEl.addEventListener("keydown", function (e) {
@@ -746,10 +771,6 @@
     document.getElementById("addCategoryBtn").addEventListener("click", () => {
       CATEGORIAS.push({ key:"cat_"+Date.now(), label:"Nova Categoria", icon:"📌", cor:"#00adb5", regexNome:"", regexDescricao:"", rangeIp:"" });
       renderConfigModal();
-    });
-    document.getElementById("buscaInput").addEventListener("input", function() {
-      termoBusca = this.value.trim();
-      aplicarFiltros();
     });
     window.addEventListener("resize", () => {
       ["chartPizza","chartBarras"].forEach(id => {

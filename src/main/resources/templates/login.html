@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Login - Testador</title>
-  <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <link rel="stylesheet" type="text/css" href="/css/header.css">
   <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/header.css}">
   <script src="/javascript.js"></script>
   <script th:src="@{/javascript.js}"></script>
   <link rel="icon" type="image/x-icon" href="/imagens/ico.png">
@@ -13,7 +15,7 @@
 <body class="backgroundLogin">
   <div class="login">
     <form method="POST" th:action="@{/login}">
-      <label th:text="Testador + ' ' +${versao}">Testador 2.6</label>
+      <label th:text="Vigia + ' ' +${versao}">Testador 2.6</label>
       <h3 class="erro" th:text="${erro}"></h3>
       <br>
       <input type="text" name="username" placeholder="Login">

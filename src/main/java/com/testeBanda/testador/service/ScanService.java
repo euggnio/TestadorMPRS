@@ -81,7 +81,6 @@ public class ScanService {
 
             transport.listen();
             glpiAPI.getSessionToken();
-
             for (String ip : ipsLimpos) {
                 routerExecutor.submit(() -> {
                     try {

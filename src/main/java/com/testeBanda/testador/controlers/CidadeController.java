@@ -86,11 +86,22 @@ public class CidadeController {
             redirectAttrs.addFlashAttribute("status", "Falta de dados! (Obgt. nome e IP)");
             return "redirect:configuracao";
         }
-        System.out.println(cidade.nome);
-        System.out.println(cidade.limitarTesteBanda);
-        System.out.println(cidade.bloquearTesteBanda);
+        Cidades cidadeModificar = cidadeService.findById(cidade.getNome());
 
-        cidadeService.salvarCidade(cidade);
+        cidadeModificar.setNome(cidade.getNome());
+        cidadeModificar.setIp(cidade.ip);
+        cidadeModificar.setCodigo(cidade.codigo);
+        cidadeModificar.setVelocidade(cidade.velocidade);
+        cidadeModificar.setIntra(cidade.intra);
+        cidadeModificar.setNotacao(cidade.notacao);
+        cidadeModificar.setNagiosID(cidade.nagiosID);
+        cidadeModificar.setSmokeID(cidade.smokeID);
+        cidadeModificar.setCacti(cidade.cacti);
+        cidadeModificar.setBloquearTesteBanda(cidade.bloquearTesteBanda);
+        cidadeModificar.setLimitarTesteBanda(cidade.limitarTesteBanda);
+        cidadeModificar.setDuplaAbordagem(cidade.duplaAbordagem);
+
+        cidadeService.salvarCidade(cidadeModificar);
         redirectAttrs.addFlashAttribute("status", "Cidade salva !");
         return "redirect:configuracao";
     }
@@ -100,6 +111,13 @@ public class CidadeController {
         cidadeService.apagarCidade(cidade.nome);
         redirectAttrs.addFlashAttribute("status", "Cidade apagada !");
         return "redirect:configuracao";
+    }
+
+    @GetMapping("/varreduraFlaps")
+    @ResponseBody
+    public String teste() {
+        quedaService.identificaitorDeFlaps();
+        return "varreduraFlaps OK";
     }
 
     @GetMapping("/pegarListaCidades")
@@ -182,7 +200,7 @@ public class CidadeController {
     public String graficos2(Model model){
       
         model.addAttribute("quedas", quedaService.findQuedasNoBanco());
-        return "graficos2";
+        return "old-graficos2";
     }
 
 }

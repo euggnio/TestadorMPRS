@@ -42,7 +42,7 @@ public class CidadeService {
     }
 
     public Cidades findById(String id) {
-        return  cidadesRepository.findById(id).get();
+        return  cidadesRepository.findById(id).orElseThrow();
     }
 
     public Cidades findByNagios(String nagiosId) {

@@ -7,7 +7,6 @@
     <script th:src="@{/javascript.js}"></script>
     <script th:src="@{/fragmentosjs/info.js}"></script>
     <link rel="icon" type="image/x-icon" href="/imagens/favicon.ico">
-
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
           rel="stylesheet">
 </head>
@@ -30,195 +29,154 @@
     </div>
     <div>
         <h3>Host de teste</h3>
-        <table STYLE="width: 35%">
+        <table class="host-info" style="width: 35%">
             <tr class="linha">
-                <td>
-                    <label>IP Testador</label>
-                </td>
-                <td>
-                    <input th:value="${ip}" readonly>
-                </td>
+                <td><label>IP Testador</label></td>
+                <td><input th:value="${ip}" readonly></td>
             </tr>
             <tr class="linha">
-                <td>
-                    <label>Usuário</label>
-                </td>
-                <td>
-                    <input th:value="${usuario}" readonly>
-                </td>
+                <td><label>Usuário</label></td>
+                <td><input th:value="${usuario}" readonly></td>
             </tr>
             <tr class="linha">
-                <td>
-                    <label>Senha</label>
-                </td>
-                <td>
-                    <input th:value="'Boa tentativa homoerectus'" type="password" readonly></input>
-                </td>
+                <td><label>Senha</label></td>
+                <td><input th:value="'Boa tentativa homoerectus'" type="password" readonly></td>
             </tr>
         </table>
     </div>
 </div>
 
-<h1><button onclick="salvarHostLiberar()" id="abrirCadastroBtn" >
+<h1><button onclick="salvarHostLiberar()" id="abrirCadastroBtn">
     Cadastrar novo host
 </button></h1>
 
 <form action="/atualizar" method="POST" id="salvaHost" class="cadastroDeDispositivos">
 
-
     <div style="min-width: 320px;flex: 1;">
-        <h2 style="
-            color: #ffffff;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #11bb79;
-            padding-bottom: 8px;
-        ">
+        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #11bb79; padding-bottom: 8px;">
             Dados do HOST
         </h2>
-
         <div style="display:flex; flex-direction:column; gap:14px;">
-
             <div>
-                <label for="nome" style="color:#cbd5e1; font-size:14px;">Nome</label>
-                <input form="salvaHost" type="text" id="nome" name="nome" placeholder="Nome..." class="inputConfig2 ">
+                <label for="nome" class="form-label">Nome</label>
+                <input form="salvaHost" type="text" id="nome" name="nome" placeholder="Nome..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="codigo" style="color:#cbd5e1; font-size:14px;">Código</label>
-                <input form="salvaHost" type="text" id="codigo" name="codigo" placeholder="Sigla..." class="inputConfig2 ">
+                <label for="codigo" class="form-label">Código</label>
+                <input form="salvaHost" type="text" id="codigo" name="codigo" placeholder="Sigla..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="ip" style="color:#cbd5e1; font-size:14px;">IP</label>
-                <input form="salvaHost" type="text" id="ip" name="ip" placeholder="IP..." class="inputConfig2 ">
+                <label for="ip" class="form-label">IP</label>
+                <input form="salvaHost" type="text" id="ip" name="ip" placeholder="IP..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="velocidade" style="color:#cbd5e1; font-size:14px;">Velocidade</label>
-                <input form="salvaHost" type="number" id="velocidade" name="velocidade"
-                       placeholder="Mbps..." class="inputConfig2 ">
+                <label for="velocidade" class="form-label">Velocidade</label>
+                <input form="salvaHost" type="number" id="velocidade" name="velocidade" placeholder="Mbps..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="notacao" style="color:#cbd5e1; font-size:14px;">Notação</label>
-                <input form="salvaHost" type="text" id="notacao" name="notacao"
-                       placeholder="/24"
-                       class="inputConfig2 ">
+                <label for="notacao" class="form-label">Notação</label>
+                <input form="salvaHost" type="text" id="notacao" name="notacao" placeholder="/24" class="inputConfig2">
             </div>
-
         </div>
     </div>
 
     <div style="min-width: 320px;flex: 1;">
-        <h2 style="
-            color: #ffffff;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #fd0000;
-            padding-bottom: 8px;
-        ">
+        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #fd0000; padding-bottom: 8px;">
             APIs e Terceiros
         </h2>
         <div style="display:flex; flex-direction:column; gap:14px;">
             <div>
-                <label for="smokeID" style="color:#cbd5e1; font-size:14px;">SmokeID</label>
-                <input form="salvaHost" type="text" id="smokeID" name="smokeID"
-                       placeholder="ID do smoke..." class="inputConfig2 ">
+                <label for="smokeID" class="form-label">SmokeID</label>
+                <input form="salvaHost" type="text" id="smokeID" name="smokeID" placeholder="ID do smoke..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="cacti" style="color:#cbd5e1; font-size:14px;">Cacti</label>
-                <input form="salvaHost" type="text" id="cacti" name="cacti"
-                       placeholder="ID do gráfico..." class="inputConfig2 ">
+                <label for="cacti" class="form-label">Cacti</label>
+                <input form="salvaHost" type="text" id="cacti" name="cacti" placeholder="ID do gráfico..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="nagios" style="color:#cbd5e1; font-size:14px;">Nagios</label>
-                <input form="salvaHost" type="text" id="nagios" name="nagios"
-                       placeholder="ID no Nagios..." class="inputConfig2 ">
+                <label for="nagios" class="form-label">Nagios</label>
+                <input form="salvaHost" type="text" id="nagios" name="nagios" placeholder="ID no Nagios..." class="inputConfig2">
             </div>
-
             <div>
-                <label for="intra" style="color:#cbd5e1; font-size:14px;">Intra</label>
-                <input form="salvaHost" type="text" id="intra" name="intra"
-                       placeholder="Código intranet..." class="inputConfig2 ">
+                <label for="intra" class="form-label">Intra</label>
+                <input form="salvaHost" type="text" id="intra" name="intra" placeholder="Código intranet..." class="inputConfig2">
             </div>
-
         </div>
     </div>
 
     <div>
-        <h2 style="
-            color: #ffffff;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #11bb79;
-            padding-bottom: 8px;
-        ">
-            <s> Verificações</s>
+        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #11bb79; padding-bottom: 8px;">
+            Verificações
         </h2>
-
-        <div style="display:flex; flex-direction:column; gap:14px;">
-
-            <div>
-                <label for="nome" style="color:#cbd5e1; font-size:14px;">Bloquear teste de banda</label>
-                <input form="salvaHost" type="checkbox" id="bloquearTesteBanda" name="bloquearTesteBanda" class="inputConfig2 ">
-            </div>
-            <div>
-                <label for="nome" style="color:#cbd5e1; font-size:14px;">Limitar teste de banda</label>
-                <input form="salvaHost" type="checkbox" id="limitarTesteBanda" name="limitarTesteBanda" class="inputConfig2 ">
-            </div>
-            <div>
-                <label for="nome" style="color:#cbd5e1; font-size:14px;">Dupla abordagem</label>
-                <input form="salvaHost" type="checkbox" id="duplaAbordagem" name="duplaAbordagem" class="inputConfig2 ">
-            </div>
-
-
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <label class="config-form-row">
+                <input type="checkbox" form="salvaHost" id="bloquearTesteBanda" name="bloquearTesteBanda">
+                <span>Bloquear teste de banda</span>
+            </label>
+            <label class="config-form-row">
+                <input type="checkbox" form="salvaHost" id="limitarTesteBanda" name="limitarTesteBanda">
+                <span>Limitar teste de banda</span>
+            </label>
+            <label class="config-form-row">
+                <input type="checkbox" form="salvaHost" id="duplaAbordagem" name="duplaAbordagem">
+                <span>Dupla abordagem</span>
+            </label>
         </div>
     </div>
     <div>
-        <button form="salvaHost" type="submit">
-            💾 Salvar Host
-        </button>
-        <button form="salvaHost" type="reset" onclick="salvarHostLiberar()" style="background-color: red">
-            ✖ Cancelar
-        </button>
+        <button form="salvaHost" type="submit">💾 Salvar Host</button>
+        <button form="salvaHost" type="reset" onclick="salvarHostLiberar()" style="background-color: red">✖ Cancelar</button>
     </div>
 
 </form>
 <h3>Hosts cadastrados</h3>
 
-    <script th:inline="javascript">
-        let editAtualHost = '';
-        function liberarEdicaoHost(host){
-            hostClass = host.dataset.id;
-            form = document.getElementById(hostClass);
-            cancelar = document.getElementById(hostClass + 'cancelar');
-            if(editAtualHost.length <= 0){
-                cancelar.style.display = 'flex';
-                host.innerHTML = 'Salvar';
-                editAtualHost = hostClass;
-                var inputs = document.getElementsByClassName(hostClass)
-                console.log("" + editAtualHost)
-                for (var i = 0; i < inputs.length; i++) {
+<script th:inline="javascript">
+    let editAtualHost = '';
+    function liberarEdicaoHost(host){
+        hostClass = host.dataset.id;
+        form = document.getElementById(hostClass);
+        cancelar = document.getElementById(hostClass + 'cancelar');
+        if(editAtualHost.length <= 0){
+            cancelar.style.display = '';
+            host.innerHTML = 'Salvar';
+            editAtualHost = hostClass;
+            var inputs = document.getElementsByClassName(hostClass)
+            console.log("" + editAtualHost)
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].type === 'checkbox') {
+                    inputs[i].classList.remove('check-travado');
+                } else {
                     inputs[i].readOnly = false;
-                    inputs[i].className += " inputConfig2";
                 }
-            }else if (editAtualHost == hostClass){
-                form.submit();
+                inputs[i].className += " inputConfig2";
             }
+        }else if (editAtualHost == hostClass){
+            form.submit();
         }
+    }
 
-        function salvarHostLiberar() {
-            let tabela = document.getElementById("salvaHost");
-            let botao = document.getElementById("abrirCadastroBtn");
+    function salvarHostLiberar() {
+        let tabela = document.getElementById("salvaHost");
+        let botao = document.getElementById("abrirCadastroBtn");
+        const visivel = window.getComputedStyle(tabela).display !== "none";
+        tabela.style.display = visivel ? "none" : "flex";
+        botao.style.display = visivel ? "" : "none";
+    }
 
-            const visivel = window.getComputedStyle(tabela).display !== "none";
-
-            tabela.style.display = visivel ? "none" : "flex";
-            botao.style.display = visivel ? "" : "none";
+    function apagarHost(nome) {
+        if (confirm('Tem certeza que quer deletar o host ' + nome + '?')) {
+            fetch('/apagarCidade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'nome=' + encodeURIComponent(nome)
+            }).then(() => location.reload());
         }
+    }
+</script>
 
-    </script>
-    <table>
+<table class="city" id="dataTable">
+    <thead>
         <tr class="linha">
             <th>Host</th>
             <th>Sigla</th>
@@ -230,57 +188,77 @@
             <th>IP</th>
             <th>/</th>
             <th>Configs</th>
-            <th>#</th>
+            <th>Ações</th>
         </tr>
-        <tr th:each="host : ${hosts}" class="linha">
-            <form th:action="@{/atualizar}" th:method="POST" th:id="${host.nome}">
-                <td>
-                    <input th:class="inputConfig" th:name="nome" th:value="${host.nome}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="codigo" th:value="${host.codigo}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="velocidade" th:value="${host.velocidade}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="smokeID" th:value="${host.smokeID}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="cacti" th:value="${host.cacti}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="nagiosID" th:value="${host.nagiosID}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="intra" th:value="${host.intra}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="ip" th:value="${host.ip}" readonly></input>
-                </td>
-                <td>
-                    <input th:class="inputConfig + ' ' + ${host.nome}" th:name="notacao" th:value="${host.notacao}" readonly></input>
-                </td>
-                <td>
-                    <label th:class="inputConfig + ' ' + ${host.nome}">Bloquear Teste de Banda</label>
-                    <input type="checkbox" th:class="inputConfig + ' ' + ${host.nome}" th:name="bloquearTesteBanda" th:checked="${host.bloquearTesteBanda}" readonly>
-                    <label>Limitar teste de banda</label>
-                    <input type="checkbox" th:class="inputConfig + ' ' + ${host.nome}" th:name="limitarTesteBanda" th:checked="${host.limitarTesteBanda}" readonly>
-                    <label>Dupla abordagem</label>
-                    <input type="checkbox" th:class="inputConfig + ' ' + ${host.nome}" th:name="duplaAbordagem" th:checked="${host.duplaAbordagem}" readonly>
+    </thead>
+    <tbody>
+    <tr th:each="host : ${hosts}" class="linha">
+        <form th:action="@{/atualizar}" th:method="POST" th:id="${host.nome}">
+            <td>
+                <a target="_blank" th:href="@{/unidade/{nome}(nome=${host.nome})}" th:text="${host.nome}">Nome</a>
+                <input th:class="inputConfig" type="hidden" th:name="nome" th:value="${host.nome}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="codigo" th:value="${host.codigo}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="velocidade" th:value="${host.velocidade}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="smokeID" th:value="${host.smokeID}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="cacti" th:value="${host.cacti}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="nagiosID" th:value="${host.nagiosID}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="intra" th:value="${host.intra}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="ip" th:value="${host.ip}" readonly>
+            </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="notacao" th:value="${host.notacao}" readonly>
+            </td>
+            <td class="configs-cell">
+                <div class="config-row" th:classappend="${host.nome}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="bloquearTesteBanda" th:checked="${host.bloquearTesteBanda}">
+                    <span class="config-text">Bloquear</span>
+                </div>
+                <div class="config-row" th:classappend="${host.nome}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="limitarTesteBanda" th:checked="${host.limitarTesteBanda}">
+                    <span class="config-text">Limitar</span>
+                </div>
+                <div class="config-row" th:classappend="${host.nome}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="duplaAbordagem" th:checked="${host.duplaAbordagem}">
+                    <span class="config-text">Dupla</span>
+                </div>
+            </td>
+            <td class="actions-cell">
+                <button type="button" class="btn-edit" th:attr="data-id=${host.nome}" onclick="liberarEdicaoHost(this)">🖊</button>
+                <button type="button" th:id="${host.nome} + 'cancelar'" class="btn-cancel" style="display:none" onclick="location.reload()">Cancelar</button>
+            </td>
+        </form>
+    </tr>
+    </tbody>
+</table>
 
-                </td>
-            </form>
-            <td style="display: flex; align-items: center;">
-                <button th:attr="data-id=${host.nome}" onclick="liberarEdicaoHost(this)">🖊</button>
-                <button th:id="${host.nome} + 'cancelar'" style="display: none;background-color: red" onclick="location.reload()">Cancelar</button>
-            <form action="/apagarCidade" method="POST" th:data-host="${host.nome}"
-                  onsubmit="return confirm('Tem certeza que quer deletar o host ' + this.getAttribute('data-host') + '?');">
-                <input class="inputPequeno" type="text" th:value="${host.nome}" id="nome2" name="nome" hidden="hidden">
-                <button type="submit">Apagar</button>
-            </form>
-        </td>
-        </tr>
-    </table>
+<script>
+    document.querySelectorAll('#dataTable tbody tr').forEach(row => {
+        const deleteBtn = row.querySelector('td:last-of-type');
+        deleteBtn.className = 'actions-cell';
+        const nome = row.querySelector('a')?.textContent.trim();
+        if (nome) {
+            const btn = document.createElement('button');
+            btn.textContent = 'Apagar';
+            btn.className = 'btn-delete';
+            btn.onclick = () => apagarHost(nome);
+            deleteBtn.appendChild(btn);
+            row.appendChild(deleteBtn);
+        }
+    });
+</script>
 </body>
 </html>

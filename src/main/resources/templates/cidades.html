@@ -34,18 +34,22 @@
             <td><a target="_blank" th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}"></a></td>
 
             <td th:data-intra="${cidade.intra}" class="conteudo-container">
-                <button  th:id="${cidade.intra}" th:attr="onclick='contatosIntra(this)'" style="display: none"> C
-                </button>
-                <div>Sigla: <span th:text="${cidade.codigo}"></span></div>
-                <div>Velocidade: <span th:text="${cidade.velocidade}"></span> </div>
-                <div>Subrede: <span style="color: white; font-size: 0.9em !important;"
-                                    th:text="${cidade.ip.substring(0, cidade.ip.length() - 1) + '0 /' + cidade.notacao}"></span></div>
-                <div>Intra: <a th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"
-                               th:text="${cidade.intra}"
-                               target="_blank"
-                    rel="noopener noreferrer"></a></div>
-                <div id="ctc" style="font-size: 0.8em !important;"></div>
-
+                <button th:id="${cidade.intra}" th:attr="onclick='contatosIntra(this)'" class="intra-btn">C</button>
+                <div class="info-grid">
+                    <span class="info-label">Sigla</span>
+                    <span class="info-value" th:text="${cidade.codigo}">COD</span>
+                    <span class="info-label">Velocidade</span>
+                    <span class="info-value" th:text="${cidade.velocidade}">100 Mbps</span>
+                    <span class="info-label">Subrede</span>
+                    <span class="info-value subnet"
+                          th:text="${cidade.ip.substring(0, cidade.ip.length() - 1) + '0 /' + cidade.notacao}">10.0.0.0/24</span>
+                    <span class="info-label">Intra</span>
+                    <a class="info-value info-link"
+                       th:href="'https://intra.mp.rs.gov.br/site/promotorias/' + ${cidade.intra}"
+                       th:text="${cidade.intra}"
+                       target="_blank" rel="noopener noreferrer">codigo</a>
+                </div>
+                <div class="ctc"></div>
             </td>
 
             <td>

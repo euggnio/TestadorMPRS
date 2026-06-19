@@ -1,8 +1,17 @@
 
+
+<link rel="stylesheet" type="text/css" th:href="@{/css/dispositivos.css}">
 <div th:fragment="~{header :: header}">
 
     <header>
-        <h1>⌛ Testador MPRS <span style="font-size: 0.5em" id="versao">v....🔥</span></h1>
+        <div>
+            <h2 style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                <img src="/imagens/icone.png" width="64rem" height="64rem">
+                VIGIA MPRS
+                <span style="font-size: 0.5em" id="versao">v....🔥</span>
+            </h2>
+
+        </div>
         <div class="menu">
             <a href="/grafico">        Dados 📈</a>
             <a href="/historicoQuedas">Quedas 🔎</a>

@@ -124,7 +124,7 @@ async function contatosIntra(info) {
     var button = info;
     var url = "https://intra.mp.rs.gov.br/site/promotorias/" + cidadeIntra + "/";
 
-    let targetDiv = button.parentElement.querySelector("#ctc");
+    let targetDiv = button.parentElement.querySelector(".ctc");
     if(targetDiv.innerHTML.length > 3){
         targetDiv.innerHTML = ""
         return
@@ -139,10 +139,10 @@ async function contatosIntra(info) {
         const conteudoDesejado = tempDiv.querySelector(".details");
 
         if (conteudoDesejado) {
-            let targetDiv = button.parentElement.querySelector("#ctc");
+            let targetDiv = button.parentElement.querySelector(".ctc");
             targetDiv.innerHTML = conteudoDesejado.innerHTML;
         } else {
-            let targetDiv = button.parentElement.querySelector("#ctc");
+            let targetDiv = button.parentElement.querySelector(".ctc");
             targetDiv.innerHTML = "Sem contato na intra"
             console.log("Div não encontrada!");
         }

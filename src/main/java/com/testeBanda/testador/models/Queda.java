@@ -23,6 +23,10 @@ public class Queda {
     private Duration tempoFora;
     private boolean faltaDeLuz;
     private boolean naoFecharGlpi;
+    @Enumerated(EnumType.STRING)
+    private CategoriaQueda categoria = CategoriaQueda.NORMAL;
+    private Long flapGrupoId;
+    private boolean flap;
     private long uptime;
     private String protocolo;
     private String chamado;
@@ -68,6 +72,8 @@ public class Queda {
         }
         return "";
     }
+
+
 
     @JsonIgnore
     public String getUptimeFormatado() {

@@ -4,11 +4,13 @@ import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.Alerta;
+import com.testeBanda.testador.models.CategoriaQueda;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
 import com.testeBanda.testador.utils.Calculos;
 import com.testeBanda.testador.utils.QuedaUtils;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +20,9 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,6 +44,99 @@ public class QuedaService {
         this.glpiService = glpiService;
         this.quedaUtils = quedaUtils;
     }
+
+    private static final long limiteDeReboot = 660;
+    private static final long JanelaLoop = 60;
+    private static final long JanelaEnergia = 60;
+    private static final int minQuedasParaFlap = 3;
+    //Pega todas as quedas, separa por cidade, ordena por data,
+    // monta “episodios” de quedas proximas e quando fecha um episódio
+    // chama fecharEpisodio() para decidir se aquilo vira flap ou não.
+    @Transactional
+        public void identificaitorDeFlaps() {
+            List<Queda> todas = quedaRepository.findAll();
+            //mapeamos as quedas por cidade
+            Map<String, List<Queda>> porCidade = todas.stream()
+                    .filter(q -> q.getNomeCidade() != null && q.getData() != null)
+                    .collect(Collectors.groupingBy(Queda::getNomeCidade));
+
+            List<Queda> paraAtualizar = new ArrayList<>();
+
+            //identificaitor de grupo de quedas, me ajuda a puxar as quedas no banco para debug, retirar em produção se precisar.
+            long grupoSeq = 0;
+
+            //iniciamos varredura da lista por cidade, sort pela data e verificamos as quedas atual.
+            for (List<Queda> quedasCidade : porCidade.values()) {
+
+                quedasCidade.sort(Comparator.comparing(Queda::getData));
+                List<Queda> episodio = new ArrayList<>();
+                for (Queda atual : quedasCidade) {
+                    if (episodio.isEmpty()) { episodio.add(atual); continue; }
+
+                    //tive que apagar as quedas do banco então esse if é para debug e recolar o check de energia.
+                    if(atual.getUptime() <690){
+                        atual.setFaltaDeLuz(true);
+                    }
+
+
+                    Queda anterior = episodio.get(episodio.size() - 1);
+                    //verificamos se correspondem a um episodio de quedas em sequencia
+                    if (mesmoEpisodio(anterior, atual)) {
+                        episodio.add(atual);
+                    } else {
+                        grupoSeq = fecharEpisodio(episodio, paraAtualizar, grupoSeq);
+                        episodio = new ArrayList<>();
+                        episodio.add(atual);
+                    }
+                }
+                grupoSeq = fecharEpisodio(episodio, paraAtualizar, grupoSeq);
+            }
+
+            if (!paraAtualizar.isEmpty()) quedaRepository.saveAll(paraAtualizar);
+            System.out.println("Flaps marcados: " + paraAtualizar.size() + " quedas em episódios.");
+        }
+
+        //nome diz tudo
+        private boolean rebootou(Queda q) {
+            return q.getUptime() > 0 && q.getUptime() <= limiteDeReboot;
+        }
+
+        //comparamos os gaps entre as queds aqui, com base nas variaveis
+        private boolean mesmoEpisodio(Queda anterior, Queda atual) {
+            long gap = ChronoUnit.MINUTES.between(anterior.getDataUp(), atual.getData());
+            if (gap < 0) gap = 0;
+            if (rebootou(atual)) {
+                return gap <= JanelaEnergia;
+            }
+            return gap <= JanelaLoop;
+        }
+
+        private long fecharEpisodio(List<Queda> episodio, List<Queda> paraAtualizar, long grupoSeq) {
+            if (episodio.size() < minQuedasParaFlap ) {
+                return grupoSeq;
+            }
+            long reboots = episodio.stream().filter(this::rebootou).count();
+            boolean maioriaRebootou = reboots * 2 >= episodio.size();
+            CategoriaQueda categoria = maioriaRebootou ? CategoriaQueda.FLAP_ENERGIA : CategoriaQueda.FLAP_LOOP;
+            long grupo = ++grupoSeq;
+            for (Queda q : episodio) {
+                q.setFlap(true);
+                q.setCategoria(categoria);
+                q.setFlapGrupoId(grupo);
+                paraAtualizar.add(q);
+            }
+
+//            Isso aqui seria para apagar os flaps e deixar como uma queda unica. como decidimos não mexer no banco n serve mais.
+//            Queda principal = episodio.get(0);
+//            Duration total = principal.getTempoFora() != null ? principal.getTempoFora() : Duration.ZERO;
+//            for (int i = 1; i < episodio.size(); i++) {
+//                Queda q = episodio.get(i);
+//                if (q.getTempoFora() != null) total = total.plus(q.getTempoFora());
+//                quedaRepository.delete(q); // remover as repetidas
+//            }
+//            principal.setTempoFora(total);
+            return grupoSeq;
+        }
 
     public void editaFaltaDeLuz(long id, boolean novoValor) {
         if (quedaRepository.findById(id).isPresent()) {
