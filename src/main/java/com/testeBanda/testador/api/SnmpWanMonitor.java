@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SnmpWanMonitor {
 
     private final HttpClient httpClient;
-    private static final String COMMUNITY = "public";
+    private static final String COMMUNITY = "moc3pgj";
     @Value("${snmp.timeout}")
     private int TIMEOUT;
     @Value("${snmp.recheckWanCicles}")
@@ -134,7 +134,7 @@ public class SnmpWanMonitor {
 
             System.out.println("Interface "+index+" -> "+name);
 
-            if(name.contains("wan")){
+            if(name.contains("wan") || name.contains("gi0/2")){
 
                 long time = System.currentTimeMillis()-start;
                 System.out.println("WAN encontrada index "+index+" ("+time+" ms)");

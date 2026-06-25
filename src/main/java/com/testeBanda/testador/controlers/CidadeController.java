@@ -86,7 +86,9 @@ public class CidadeController {
             redirectAttrs.addFlashAttribute("status", "Falta de dados! (Obgt. nome e IP)");
             return "redirect:configuracao";
         }
-        Cidades cidadeModificar = cidadeService.findById(cidade.getNome());
+        Cidades cidadeModificar;
+        Optional<Cidades> cidadeExiste = cidadeService.findByIdOptional(cidade.getNome());
+        cidadeModificar = cidadeExiste.orElseGet(Cidades::new);
 
         cidadeModificar.setNome(cidade.getNome());
         cidadeModificar.setIp(cidade.ip);
@@ -100,6 +102,7 @@ public class CidadeController {
         cidadeModificar.setBloquearTesteBanda(cidade.bloquearTesteBanda);
         cidadeModificar.setLimitarTesteBanda(cidade.limitarTesteBanda);
         cidadeModificar.setDuplaAbordagem(cidade.duplaAbordagem);
+        cidadeModificar.setNagiosID(cidade.nagiosID);
 
         cidadeService.salvarCidade(cidadeModificar);
         redirectAttrs.addFlashAttribute("status", "Cidade salva !");

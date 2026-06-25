@@ -45,6 +45,10 @@ public class CidadeService {
         return  cidadesRepository.findById(id).orElseThrow();
     }
 
+    public Optional<Cidades> findByIdOptional(String id) {
+        return  cidadesRepository.findById(id);
+    }
+
     public Cidades findByNagios(String nagiosId) {
         Optional<Cidades> cid = cidadesRepository.findByNagiosIDEqualsIgnoreCase(nagiosId);
 
