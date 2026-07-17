@@ -39,6 +39,7 @@ public class DispositivosService {
 
             for (Dispositivos encontrado : encontrados) {
                 Dispositivos existente = existentesPorIp.get(encontrado.getIp());
+
                 if (existente != null) {
                     existente.setNome(encontrado.getNome());
                     existente.setDescricao(encontrado.getDescricao());
@@ -46,7 +47,8 @@ public class DispositivosService {
                     existente.setUltimaVarredura(hoje);
                     if (!existente.getCidade().equals(cidade)) existente.setCidade(cidade);
                     log.info("Atualizado: {}", existente.getIp());
-                } else {
+                }
+                else {
                     encontrado.setCidade(cidadeAnexada);
                     encontrado.setDataDaVarredura(hoje);
                     cidadeAnexada.getDispositivos().add(encontrado);
@@ -54,8 +56,6 @@ public class DispositivosService {
                 }
 
             }
-            dispositivosRepository.saveAll(encontrados);
-            cidadeAnexada.ultimaVarredura = hoje;
             cidadesRepository.save(cidadeAnexada);
         }
 

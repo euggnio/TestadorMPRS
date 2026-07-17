@@ -57,13 +57,17 @@ body {
     }
 }
 
+small{
+    font-size: 60%;
+}
+
 header {
     background-size: auto;
     background: linear-gradient(
             165deg,
-            rgba(244, 154, 2, 0.95) 1%,
-            rgba(227, 99, 1, 0.90) 3%,
-            rgba(232, 66, 1, 0.85) 5%,
+            rgb(55, 186, 250) 1%,
+            rgb(11, 121, 230) 3%,
+            rgb(14, 58, 182) 5%,
             rgba(34, 40, 49, 0.75) 10%,
             var(--bg-dark) 24%
     ) no-repeat;
@@ -147,7 +151,7 @@ header #versao {
 }
 
 .backgroundLogin {
-    background-image: url("backgroundLogin1.png") !important;
+    background-image: url("backgroundLogin3.png") !important;
     background-repeat: no-repeat !important;
     background-size: cover !important;
     background-attachment: fixed !important;
@@ -160,7 +164,7 @@ header #versao {
     margin-top: 15%;
     width: auto;
     height: 35%;
-    background-color: #de5701;
+    background-color: #0f4680;
     border-radius: 5px;
     padding: 3em 3em 2em 2em;
     input{
@@ -208,7 +212,7 @@ table {
     width: 90%;
 }
 .city{
-    width: 85% !important;
+    width: 91% !important;
 }
 
 .city-auto{

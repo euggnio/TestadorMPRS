@@ -1,14 +1,11 @@
 package com.testeBanda.testador.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.testeBanda.testador.models.configs.ConfigCidades;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,7 +32,7 @@ public class Cidades {
     public String nagiosID;
 
     //Datas
-    public LocalDate ultimaVarredura;
+    public LocalDateTime ultimaVarredura;
     @Size(min = 1, max = 500)
     public String ultimoTesteBanda;
     public String dataUltimoTeste;
@@ -46,6 +43,18 @@ public class Cidades {
     public boolean bloquearTesteBanda = false;
     public boolean limitarTesteBanda = false;
 
+
+
+    @OneToOne(cascade = CascadeType.ALL)
+    public ConfigCidades config = new ConfigCidades();
+
+    @PrePersist
+    private void garantirConfiguracao() {
+        if (config == null) {
+            config = new ConfigCidades();
+        }
+    }
+
     //RELACIONAMENTOS
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Dispositivos> dispositivos;
@@ -53,6 +62,10 @@ public class Cidades {
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
     public List<Resultados> resultados;
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cidade")
+    public List<Child> childs;
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cidade")

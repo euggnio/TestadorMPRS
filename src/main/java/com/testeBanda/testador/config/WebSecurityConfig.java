@@ -37,6 +37,7 @@ public class WebSecurityConfig {
                         .permitAll()
                         .loginPage("/login")
                         .defaultSuccessUrl("/cidadesBanda", true)
+                        .failureUrl("/login?error")
                 )
                 .csrf(csrf -> csrf.disable())
                 .logout((logout) ->
@@ -68,6 +69,7 @@ public class WebSecurityConfig {
                         ,"/img.png"
                         ,"/backgroundLogin1.png"
                         ,"/backgroundLogin2.jpg"
+                        ,"/backgroundLogin3.png"
                         ,"/grafico"
                         ,"/versao"
                         ,"/grafico/**"

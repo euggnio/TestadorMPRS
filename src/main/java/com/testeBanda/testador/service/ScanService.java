@@ -5,7 +5,6 @@ import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Dispositivos;
 import com.testeBanda.testador.repository.CidadesRepository;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
@@ -23,7 +22,6 @@ import java.net.InetAddress;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -65,7 +63,7 @@ public class ScanService {
     }
 
     public void varrerCidades() {
-        if ( desligar ) return;
+//        if ( desligar ) return;
 
         List<Cidades> cidades = cidadesRepository.findAll();
         if ( cidades.isEmpty() ) return;
@@ -254,6 +252,8 @@ public class ScanService {
                     hostname = arp.getOrDefault(ip, "N/A");
                     if ( hostname.contains("48:7A") ) {
                         hostname = "ALCATEL VOIP";
+                    } else if ( hostname.contains("D8:B3:70") ) {
+                        hostname = "Ubiquiti AP Wifi";
                     }
                 } else {
                     hostname = dados[0];

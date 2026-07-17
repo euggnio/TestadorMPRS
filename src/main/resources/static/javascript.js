@@ -167,43 +167,20 @@ function carregarResultados() {
         try {
              rx = parseFloat(partes[0].replace("RX:", "").trim());
              tx = parseFloat(partes[1].replace("TX:", "").trim());
-        }catch (error){
+        }
+        catch (error){
             console.log(error)
         }
+        let velocidade = parseInt(vel,10);
+        let velocidadeValidativa = velocidade  - (velocidade * 0.8);
 
-        if(vel.includes("20")){
-            if(rx > 17 && tx > 17){
+            if(rx > velocidadeValidativa && tx > velocidadeValidativa){
                 div.className = "resultadoOK"
             }
             else{
                 div.className = "resultadoNAOOK"
             }
 
-        }
-        else if (vel.includes("50")){
-            if(rx > 43 && tx > 43){
-                div.className = "resultadoOK"
-            }
-            else{
-                div.className = "resultadoNAOOK"
-            }
-        }
-        else if (vel.includes("100")){
-            if(rx > 92 && tx > 92){
-                div.className = "resultadoOK"
-            }
-            else{
-                div.className = "resultadoNAOOK"
-            }
-        }
-        else if (vel.includes("200")){
-            if(rx > 190 && tx > 190){
-                div.className = "resultadoOK"
-            }
-            else{
-                div.className = "resultadoNAOOK"
-            }
-        }
         div.innerHTML = dia + " 🠖";
     });
 }

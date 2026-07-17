@@ -147,8 +147,7 @@ public class QuedaController {
 
     @GetMapping("/testarOnline")
     @ResponseBody
-    public void testarOnline(){
-        Optional<Queda> queda = quedaRepository.findById(56163L);
-        Queda queda1 = queda.get();
+    public List<Queda> testarOnline(){
+        return quedaService.getQuedasFree();
     }
 }

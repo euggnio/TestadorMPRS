@@ -27,7 +27,11 @@
             <button class="expandirMapa" onclick="expandirMapa()" title=" X ">
                 <span id="expandirTexto">Expandir</span>
             </button>
-            <iframe src="http://nagiosmpls.mp.rs.gov.br/nagmapv2.1/" title="description" class="iframeNagmap"></iframe>
+            <iframe
+                    src="/nagmap/"
+                    class="iframeNagmap">
+            </iframe>
+
         </div>
         <div id="listaQuedas" class="flexItem quedasSemMapa">
 
@@ -120,7 +124,7 @@
                                 <a th:class="${queda.cidade.nome.length() > 20 ? 'nomeGrande' : ''}"
                                    target="_blank"
                                    th:href="@{/unidade/{nome}(nome=${queda.cidade.nome})}"
-                                   th:text="${queda.cidade.nome}">
+                                   th:utext="${queda.cidade.nome + ' ' + (queda.getCategoria().toString() == 'REDUNDANCIA' ? '<small>FIBRA</small>':'')}"></a>
                                 </a>
 
                                 <br>

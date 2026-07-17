@@ -10,14 +10,16 @@ import java.time.LocalDateTime;
 public class Alerta  {
 
     private String nome;
+    private String descricao;
     private LocalDateTime data;
     private String tipo;
     private String tempoFora;
     private long uptime;
 
-    public Alerta(String nome, LocalDateTime data, String tipo) {
+    public Alerta(String nome, String descricao,LocalDateTime data, String tipo) {
         this.nome = nome;
         this.data = data;
+        this.descricao = descricao;
         if(tipo.contains("OK")){
             this.tipo = "UP";
             this.uptime = coletaUptimeDoAlerta(tipo);
@@ -53,6 +55,7 @@ public class Alerta  {
                 ", data=" + data +
                 ", tipo='" + tipo + '\'' +
                 ", tempoFora='" + tempoFora + '\'' +
+                ", descricao='" + descricao + '\'' +
                 '}';
     }
 }

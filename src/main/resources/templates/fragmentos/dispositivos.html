@@ -162,6 +162,26 @@
     }
   }
 
+  /* ================================================================
+     ENVIAR DISPOSITIVO
+  ================================================================ */
+  async function enviarDispositivo(disp) {
+    try {
+      const r = await fetch("/api/categorias/imprimir-nagios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(disp)
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const resposta = await r.json();
+      console.log("Resposta do servidor:", resposta);
+      mostrarToast("Dispositivo enviado: " + disp.ip, "sucesso");
+    } catch (e) {
+      console.error("Erro ao enviar dispositivo:", e);
+      mostrarToast("Erro ao enviar dispositivo", "erro");
+    }
+  }
+
   function autoSalvar() {
     clearTimeout(saveTimer);
     setSaveIndicator("saving");
@@ -548,17 +568,21 @@
 
       const totalNaCategoria = dispList.length;
       const limitados = dispList.slice(0, MAX_POR_CATEGORIA);
-      const rows = limitados.map(d => `
+      const rows = limitados.map(d => {
+        const dispJson = JSON.stringify(d).replace(/'/g, "&#39;");
+        return `
         <tr>
+            <td><span class="gear-icon" data-dispositivo='${dispJson}'>⚙️</span></td>
             <td><a target="_blank" href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
             <td><span class="ip-badge">${d.ip||"—"}</span></td>
             <td><span class="nome-disp">${d.nome||"—"}</span></td>
             <td><span class="desc-text" title="${(d.descricao||"").replace(/"/g,"&quot;")}">${d.descricao||"—"}</span></td>
             <td><span class="user-text">${d.usuario||"—"}</span></td>
             <td><span class="user-text">${d.ultimaVarredura||"—"}</span></td>
-        </tr>`).join("") +
+        </tr>`;
+      }).join("") +
         (totalNaCategoria > MAX_POR_CATEGORIA
-          ? `<tr class="tr-mais"><td colspan="6">Mostrando ${MAX_POR_CATEGORIA} de ${totalNaCategoria} dispositivos nesta categoria</td></tr>`
+          ? `<tr class="tr-mais"><td colspan="7">Mostrando ${MAX_POR_CATEGORIA} de ${totalNaCategoria} dispositivos nesta categoria</td></tr>`
           : "");
 
       const sec = document.createElement("div");
@@ -573,7 +597,7 @@
         <div class="tabela-wrap">
             <table class="tabela-categoria">
                 <thead><tr>
-                    <th>Cidade</th><th>IP</th><th>Dispositivo</th>
+                    <th></th><th>Cidade</th><th>IP</th><th>Dispositivo</th>
                     <th>Descrição</th><th>Usuário</th><th>Last Check</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
@@ -767,6 +791,17 @@
     document.getElementById("saveBtn").addEventListener("click", salvarConfiguracoes);
     document.getElementById("configModal").addEventListener("click", function(e) {
       if (e.target === this) fecharModal();
+    });
+    document.getElementById("categoriasContainer").addEventListener("click", function (e) {
+      const gear = e.target.closest(".gear-icon");
+      if (gear) {
+        try {
+          const disp = JSON.parse(gear.dataset.dispositivo);
+          enviarDispositivo(disp);
+        } catch (err) {
+          console.error("Erro ao parsear dispositivo do dataset", err);
+        }
+      }
     });
     document.getElementById("addCategoryBtn").addEventListener("click", () => {
       CATEGORIAS.push({ key:"cat_"+Date.now(), label:"Nova Categoria", icon:"📌", cor:"#00adb5", regexNome:"", regexDescricao:"", rangeIp:"" });

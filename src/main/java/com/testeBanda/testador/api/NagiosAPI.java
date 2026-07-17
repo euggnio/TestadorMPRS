@@ -28,35 +28,72 @@ public class NagiosAPI {
     }
 
     public List<Alerta> todosAlertasDoAno(){
-        String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&" +
+        String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&" +
                 "starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
         JsonNode alertListNode = sendRequest(url,"alertlist");
         return criaListaDeAlertas(alertListNode);
+
     }
 
     public List<Alerta> todosAlertasDesde2023(){
         Instant instant = Instant.parse("2023-01-01T00:01:00Z");
         long inicio = instant.getEpochSecond();
         long fim = Instant.now().getEpochSecond();
-        String url =  nagios + "archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&servicestates=critical&"
+        String url =  nagios + "archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&"
                 + "starttime=" + inicio + "&endtime=" + fim;
         JsonNode alertListNode = sendRequest(url,"alertlist");
         return criaListaDeAlertas(alertListNode);
     }
 
-    private List<Alerta> criaListaDeAlertas(JsonNode json) {
+    public List<Alerta> todosAlertasServiceDoAno(){
+        String url = nagios + "archivejson.cgi?query=alertlist&objecttypes=service&statetypes=hard&servicestates=ok+critical&hostgroup=roteadores" +
+                "&starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
+
+        JsonNode alertListNode = sendRequest(url,"alertlist");
+        return criarListaDeAlertasService(alertListNode);
+    }
+
+
+    public JsonNode pegarCidadeNagios(String cidade) {
+        String url = nagios + "objectjson.cgi?query=host&hostname=Alvorada";
+        JsonNode alertListNode = sendRequest(url,"host");
+        return  alertListNode;
+    }
+
+    private List<Alerta> criarListaDeAlertasService(JsonNode json){
         List<Alerta> alertas = new ArrayList<>();
         if (json.isArray()) {
             for (JsonNode alert : json) {
-                String name = alert.path("name").asText();
-                if(name.equals("1Teste")) continue;
+                String name = alert.path("host_name").asText();
+                String descricao = alert.path("description").asText();
                 String tipo = alert.path("plugin_output").asText();
                 long timestampMillis = alert.path("timestamp").asLong();
                 LocalDateTime data = LocalDateTime.ofInstant(
                         Instant.ofEpochMilli(timestampMillis),
                         TimeZone.getDefault().toZoneId()
                 );
-                alertas.add(new Alerta(name, data, tipo));
+                alertas.add(new Alerta(name,descricao, data, tipo));
+            }
+        }
+        return alertas;
+    }
+
+    private List<Alerta> criaListaDeAlertas(JsonNode json) {
+        List<Alerta> alertas = new ArrayList<>();
+        if (json.isArray()) {
+            for (JsonNode alert : json) {
+                String descricao = alert.path("description").asText();
+                String name = alert.path("name").asText();
+                if(alert.has("host_name")) {
+                    name = alert.path("host_name").asText();
+                }
+                String tipo = alert.path("plugin_output").asText();
+                long timestampMillis = alert.path("timestamp").asLong();
+                LocalDateTime data = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(timestampMillis),
+                        TimeZone.getDefault().toZoneId()
+                );
+                alertas.add(new Alerta(name,descricao, data, tipo));
             }
         }
         return alertas;

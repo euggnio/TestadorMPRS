@@ -4,7 +4,7 @@ import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.GlpiAPI;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.Alerta;
-import com.testeBanda.testador.models.CategoriaQueda;
+import com.testeBanda.testador.models.enums.CategoriaQueda;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.models.Queda;
 import com.testeBanda.testador.repository.QuedaRepository;
@@ -245,10 +245,11 @@ public class QuedaService {
             popularBancoVazio();
             return;
         }
-        LocalDateTime dataDeCorte = quedasNoBanco.getLast().getData().minusWeeks(1);
+        LocalDateTime dataDeCorte = quedasNoBanco.getLast().getData().minusWeeks(3);
 
         List<Queda> quedasRecentes = quedaUtils.filterQuedasAposData(getQuedas(), dataDeCorte);
         List<Queda> quedasDoBancoRecentes = quedaUtils.filterQuedasAposData(quedasNoBanco, dataDeCorte);
+
 
         sincronizarQuedasComCidade(quedasRecentes);
 
@@ -302,8 +303,17 @@ public class QuedaService {
     private List<Queda> getQuedas() {
         List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDoAno()));
         quedaUtils.sortQuedasPorData(todasQuedas);
-
         return todasQuedas;
+    }
+
+    public List<Queda> getQuedasFree() {
+        List<Queda> todasQuedas = listaDeQuedas(separaAlertasPorCidade(nagiosAPI.todosAlertasDoAno()));
+        quedaUtils.sortQuedasPorData(todasQuedas);
+        return todasQuedas;
+    }
+
+    public List<Alerta> getQuedasService(){
+        return nagiosAPI.todosAlertasServiceDoAno();
     }
 
     private List<Queda> getQuedasDesde2023() {
@@ -320,14 +330,12 @@ public class QuedaService {
             mapaAlerta.putIfAbsent(cidade, new ArrayList<>());
             mapaAlerta.get(cidade).add(item);
         }
-
         return mapaAlerta;
     }
 
     private List<Queda> listaDeQuedas(Map<String, ArrayList<Alerta>> alertasPorCidades) {
         List<Queda> todasQuedas = new ArrayList<>();
         Deque<Alerta> pilha = new ArrayDeque<>();
-
         for (ArrayList<Alerta> alertasDaCidade : alertasPorCidades.values()) {
             pilha.clear();
 
@@ -339,7 +347,16 @@ public class QuedaService {
                     if (!pilha.isEmpty()) {
                         Alerta down = pilha.pop();
                         Duration duration = Duration.between(down.getData(), alerta.getData());
-                        Queda queda = new Queda(alerta.getNome(), down.getData(), duration, alerta.getUptime());
+                        Queda queda = new Queda(
+                                alerta.getNome(),
+                                down.getData(),
+                                duration,
+                                alerta.getUptime(),
+                                alerta.getDescricao()
+                        );
+                        if (queda.getDescricao() != null && !queda.getDescricao().isBlank() ){
+                            queda.setCategoria(CategoriaQueda.REDUNDANCIA);
+                        }
                         todasQuedas.add(queda);
                     }
                 }
@@ -348,11 +365,15 @@ public class QuedaService {
             for (Alerta alerta : pilha) {
                 if (alerta.getTipo().contains("DOWN") && !alerta.getNome().isEmpty()) {
                     Duration duration = Duration.ZERO;
-                    Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L);
+                    Queda queda = new Queda(alerta.getNome(), alerta.getData(), duration, 0L,alerta.getDescricao());
+                    if (queda.getDescricao() != null && !queda.getDescricao().isBlank() ){
+                        queda.setCategoria(CategoriaQueda.REDUNDANCIA);
+                    }
                     todasQuedas.add(queda);
                 }
             }
         }
+
         return todasQuedas;
     }
 

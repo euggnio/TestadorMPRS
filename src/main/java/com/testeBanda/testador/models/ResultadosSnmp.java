@@ -1,5 +1,6 @@
 package com.testeBanda.testador.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
 import java.util.Stack;
@@ -15,11 +16,15 @@ public class ResultadosSnmp {
     private double tx;
     private double loss;
     private String smokeID;
+    private String interfaceWan;
+    private String interfaceLan;
 
-    public ResultadosSnmp(String ip, int velocidade, String smokeID) {
+    public ResultadosSnmp(String ip, int velocidade, String smokeID, String interfaceWan, String interfaceLan) {
         this.smokeID = smokeID;
         this.ip = ip;
         this.velocidade = velocidade;
+        this.interfaceWan = interfaceWan;
+        this.interfaceLan = interfaceLan;
     }
 
     public void adicionaDados(double[] valores) {
@@ -38,5 +43,10 @@ public class ResultadosSnmp {
 
     public void removerDados() {
         this.dados.removeFirst();
+    }
+
+    @JsonIgnore
+    public int getterInterfaceWanID(){
+        return Integer.parseInt(this.interfaceWan);
     }
 }

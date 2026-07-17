@@ -50,6 +50,11 @@ public class Dispositivos {
         return cidade != null ? cidade.getNome() : null;
     }
 
+    @JsonProperty("cidadeNagiosId")
+    public String getCidadeNagiosId() {
+        return cidade != null ? cidade.getNagiosID() : null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

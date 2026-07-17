@@ -4,6 +4,7 @@ import com.testeBanda.testador.DTO.DadosAlertaDTO;
 import com.testeBanda.testador.api.Microtik;
 import com.testeBanda.testador.api.NagiosAPI;
 import com.testeBanda.testador.models.*;
+import com.testeBanda.testador.repository.CidadesRepository;
 import com.testeBanda.testador.repository.DispositivosRepository;
 import com.testeBanda.testador.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 @Controller
 public class CidadeController {
 
+    private final ScanService scanService;
+    private final CidadesRepository cidadesRepository;
     @Value("${testador.versao}")
     private String versao;
     private final CidadeService cidadeService;
@@ -32,15 +35,19 @@ public class CidadeController {
     private final QuedaService quedaService;
     private final NagiosAPI nagiosAPI;
     private final DispositivosRepository dispositivosRepository;
+    private final NagiosSshService nagiosSshService;
 
     @Autowired
-    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI, DispositivosRepository dispositivosRepository) {
+    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI, DispositivosRepository dispositivosRepository, ScanService scanService, CidadesRepository cidadesRepository, NagiosSshService nagiosSshService) {
         this.cidadeService = cidadeService;
         this.microtik = microtik;
         this.graficoService = graficosService;
         this.quedaService = quedaService;
         this.nagiosAPI = nagiosAPI;
         this.dispositivosRepository = dispositivosRepository;
+        this.scanService = scanService;
+        this.cidadesRepository = cidadesRepository;
+        this.nagiosSshService = nagiosSshService;
     }
 
     @GetMapping("/versao")
@@ -99,10 +106,13 @@ public class CidadeController {
         cidadeModificar.setNagiosID(cidade.nagiosID);
         cidadeModificar.setSmokeID(cidade.smokeID);
         cidadeModificar.setCacti(cidade.cacti);
-        cidadeModificar.setBloquearTesteBanda(cidade.bloquearTesteBanda);
-        cidadeModificar.setLimitarTesteBanda(cidade.limitarTesteBanda);
-        cidadeModificar.setDuplaAbordagem(cidade.duplaAbordagem);
         cidadeModificar.setNagiosID(cidade.nagiosID);
+
+        cidadeModificar.getConfig().setBloquearTesteBanda(cidade.bloquearTesteBanda);
+        cidadeModificar.getConfig().setLimitarTesteBanda(cidade.limitarTesteBanda);
+        cidadeModificar.getConfig().setDuplaAbordagem(cidade.duplaAbordagem);
+        cidadeModificar.getConfig().setInterfaceLanID(cidade.getConfig().interfaceLanID);
+        cidadeModificar.getConfig().setInterfaceWanID(cidade.getConfig().interfaceWanID);
 
         cidadeService.salvarCidade(cidadeModificar);
         redirectAttrs.addFlashAttribute("status", "Cidade salva !");
@@ -121,6 +131,12 @@ public class CidadeController {
     public String teste() {
         quedaService.identificaitorDeFlaps();
         return "varreduraFlaps OK";
+    }
+
+    @GetMapping("/testarDebug")
+    @ResponseBody
+    public NagiosSshService.Resultado configurar() throws Exception {
+        return nagiosSshService.cadastrarLinkPrimario("Alvorada","TESTER13123","188.784.475.425");
     }
 
     @GetMapping("/pegarListaCidades")
@@ -204,6 +220,13 @@ public class CidadeController {
       
         model.addAttribute("quedas", quedaService.findQuedasNoBanco());
         return "old-graficos2";
+    }
+
+    @GetMapping("/testeOnline2")
+    @ResponseBody
+    public String testeOnline(){
+        scanService.varrerCidades();
+        return "ok2";
     }
 
 }

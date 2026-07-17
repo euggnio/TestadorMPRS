@@ -1,5 +1,10 @@
 package com.testeBanda.testador.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.testeBanda.testador.api.NagiosAPI;
+
+import com.testeBanda.testador.models.enums.CategoriaChilds;
+import com.testeBanda.testador.models.Child;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.repository.CidadesRepository;
 import com.testeBanda.testador.repository.ResultadosRepository;
@@ -20,9 +25,10 @@ public class CidadeService {
 
     @Autowired
     private CidadesRepository cidadesRepository;
-
     @Autowired
     private ResultadosRepository resultadosRepository;
+    @Autowired
+    private NagiosAPI nagiosAPI;
 
     @Transactional
     public void salvarDadosHost(Cidades host) {
@@ -39,6 +45,19 @@ public class CidadeService {
 
     public List<Cidades> findAll() {
         return cidadesRepository.findAll();
+    }
+
+    public void pegarChildsNagios(Cidades cidade) {
+        JsonNode data = nagiosAPI.pegarCidadeNagios("Alvorada");
+        JsonNode services = data.get("services");
+        for (JsonNode service : services) {
+            Child child = new Child();
+            child.setNome(service.asText());
+            child.setCidade(cidade);
+            child.setCategoria(CategoriaChilds.LINK);
+            cidade.childs.add(child);
+        }
+        cidadesRepository.save(cidade);
     }
 
     public Cidades findById(String id) {

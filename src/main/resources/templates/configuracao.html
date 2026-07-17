@@ -110,16 +110,24 @@
         </h2>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <label class="config-form-row">
-                <input type="checkbox" form="salvaHost" id="bloquearTesteBanda" name="bloquearTesteBanda">
+                <input type="checkbox" form="salvaHost" id="config.bloquearTesteBanda" name="config.bloquearTesteBanda">
                 <span>Bloquear teste de banda</span>
             </label>
             <label class="config-form-row">
-                <input type="checkbox" form="salvaHost" id="limitarTesteBanda" name="limitarTesteBanda">
+                <input type="checkbox" form="salvaHost"  id="config.limitarTesteBanda" name="config.limitarTesteBanda">
                 <span>Limitar teste de banda</span>
             </label>
             <label class="config-form-row">
-                <input type="checkbox" form="salvaHost" id="duplaAbordagem" name="duplaAbordagem">
+                <input type="checkbox" form="salvaHost" class="inputConfig2" id="config.duplaAbordagem" name="config.duplaAbordagem">
                 <span>Dupla abordagem</span>
+            </label>
+            <label class="config-form-row">
+                <input type="number" form="salvaHost" class="inputConfig2" id="config.interfaceWanID" name="config.interfaceWanID">
+                <span>Interface Wan ID</span>
+            </label>
+            <label class="config-form-row">
+                <input type="number" form="salvaHost" class="inputConfig2" id="config.interfaceLanID" name="config.interfaceLanID">
+                <span>Interface Lan ID</span>
             </label>
         </div>
     </div>
@@ -187,6 +195,8 @@
             <th>Intra</th>
             <th>IP</th>
             <th>/</th>
+            <th>LanID</th>
+            <th>WanID</th>
             <th>Configs</th>
             <th>Ações</th>
         </tr>
@@ -222,17 +232,24 @@
             <td>
                 <input th:class="'inputConfig ' + ${host.nome}" th:name="notacao" th:value="${host.notacao}" readonly>
             </td>
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="config.interfaceLanID" th:value="${host.config.getInterfaceLanID()}" readonly>
+            </td>
+
+            <td>
+                <input th:class="'inputConfig ' + ${host.nome}" th:name="config.interfaceWanID" th:value="${host.config.getInterfaceWanID()}" readonly>
+            </td>
             <td class="configs-cell">
                 <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="bloquearTesteBanda" th:checked="${host.bloquearTesteBanda}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.bloquearTesteBanda" th:checked="${host.getConfig().bloquearTesteBanda}">
                     <span class="config-text">Bloquear</span>
                 </div>
                 <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="limitarTesteBanda" th:checked="${host.limitarTesteBanda}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.limitarTesteBanda" th:checked="${host.config.limitarTesteBanda}">
                     <span class="config-text">Limitar</span>
                 </div>
                 <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="duplaAbordagem" th:checked="${host.duplaAbordagem}">
+                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.duplaAbordagem" th:checked="${host.config.DuplaAbordagem}">
                     <span class="config-text">Dupla</span>
                 </div>
             </td>

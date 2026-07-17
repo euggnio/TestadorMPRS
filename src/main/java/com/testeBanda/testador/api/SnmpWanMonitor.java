@@ -40,6 +40,9 @@ public class SnmpWanMonitor {
     private boolean notDoSnmp;
     @Value("${testador.endpointloss}")
     private String endpointloss;
+    @Value("#{'${snmp.interfaceWanID}'.split(',')}")
+    private List<String> nomesInterfaces;
+
     private Snmp snmp;
 
     private static final OID OID_IF_NAME = new OID("1.3.6.1.2.1.31.1.1.1.1");
@@ -61,10 +64,18 @@ public class SnmpWanMonitor {
     public List<ResultadosSnmp> resultados = new ArrayList<>();
     @Autowired
     public SnmpWanMonitor(CidadeService cidadeService, HttpClient httpClient) {
+
         this.httpClient = httpClient;
         List<Cidades> cidades = cidadeService.findAll();
+        if(notDoSnmp){
+            return;
+        }
         for (Cidades cidade : cidades) {
-            resultados.add(new ResultadosSnmp(cidade.getIp(), cidade.getVelocidadeInteger(),cidade.getSmokeID()));
+            resultados.add(new ResultadosSnmp(cidade.getIp(),
+                    cidade.getVelocidadeInteger(),
+                    cidade.getSmokeID(),
+                    cidade.getConfig().getInterfaceWanID(),
+                    cidade.getConfig().getInterfaceLanID()));
         }
         this.recheckCounter = this.recheckWanIndexCacheCicles;
         this.init();
@@ -92,28 +103,22 @@ public class SnmpWanMonitor {
         target.setTimeout(TIMEOUT);
         target.setRetries(3);
         target.setVersion(SnmpConstants.version2c);
-
         return target;
     }
 
     private Integer discoverWan(String ip) throws Exception {
-
         System.out.println("\nSNMP WALK em "+ip);
 
         long start = System.currentTimeMillis();
-
         OID root = OID_IF_NAME;
-
         PDU pdu = new PDU();
         pdu.add(new VariableBinding(root));
         pdu.setType(PDU.GETBULK);
         pdu.setMaxRepetitions(20);
         pdu.setNonRepeaters(0);
-        //criamos a requisição para a rb x que precisamos descobrir a interface wan
         CommunityTarget<Address> target = createTarget(ip);
 
         while(true){
-
             ResponseEvent<Address> event = snmp.send(pdu,target);
 
             if(event.getResponse()==null) {
@@ -129,17 +134,16 @@ public class SnmpWanMonitor {
                 break;
 
             String name = vb.getVariable().toString().toLowerCase();
-
             int index = vb.getOid().last();
 
             System.out.println("Interface "+index+" -> "+name);
 
-            if(name.contains("wan") || name.contains("gi0/2")){
-
-                long time = System.currentTimeMillis()-start;
-                System.out.println("WAN encontrada index "+index+" ("+time+" ms)");
-                return index;
-
+            for (String nome : nomesInterfaces) {
+                if(name.contains(nome.toLowerCase())){
+                    long time = System.currentTimeMillis()-start;
+                    System.out.println("WAN encontrada index "+index+" ("+time+" ms)");
+                    return index;
+                }
             }
             pdu.setRequestID(new Integer32(0));
             pdu.set(0,new VariableBinding(vb.getOid()));
@@ -214,13 +218,19 @@ public class SnmpWanMonitor {
         if(wanIndexCache.isEmpty() || recheckCounter <= 0){
             System.out.println("Descobrindo interfaces WAN...\n");
             for(ResultadosSnmp ip:resultados){
-                Integer index = null;
-                try {
-                    index = discoverWan(ip.getIp());
-                } catch (Exception e) {
-                    log.debug("ERRO ao gerar cache de WAN : " + e.getMessage());
+                if(!ip.getInterfaceWan().isBlank()){
+                    wanIndexCache.put(ip.getIp(), ip.getterInterfaceWanID());
+                    log.debug("Interface "+ip.getterInterfaceWanID()+" encontrado para ip "+ip.getIp());
                 }
-                wanIndexCache.put(ip.getIp(), Objects.requireNonNullElse(index, -1));
+                else {
+                    Integer index = null;
+                    try {
+                        index = discoverWan(ip.getIp());
+                    } catch (Exception e) {
+                        log.debug("ERRO ao gerar cache de WAN : " + e.getMessage());
+                    }
+                    wanIndexCache.put(ip.getIp(), Objects.requireNonNullElse(index, -1));
+                }
             }
 
             System.out.println("\nCache WAN:");
@@ -283,12 +293,12 @@ public class SnmpWanMonitor {
             log.error("ERRO ao pegar dados de LOSS: {}", e.getMessage());
             return;
         }
-        resultados.forEach(resultado->{
-            resultado.adicionarLoss(0);
-            if(hosts != null){
-                double loss = hosts.get(resultado.getSmokeID());
-                resultado.adicionarLoss(loss);
-            }
+        resultados.forEach(resultado -> {
+            double loss = hosts != null
+                    ? hosts.getOrDefault(resultado.getSmokeID(), 0.0)
+                    : 0.0;
+
+            resultado.adicionarLoss(loss);
         });
     }
 

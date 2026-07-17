@@ -1,6 +1,7 @@
 package com.testeBanda.testador.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.testeBanda.testador.models.enums.CategoriaQueda;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ public class Queda {
     private boolean naoFecharGlpi;
     @Enumerated(EnumType.STRING)
     private CategoriaQueda categoria = CategoriaQueda.NORMAL;
+    private String descricao;
     private Long flapGrupoId;
     private boolean flap;
     private long uptime;
@@ -36,7 +38,7 @@ public class Queda {
     private Cidades cidade;
     private String responsavel;
 
-    public Queda(String cidade, LocalDateTime data, Duration tempoFora, long uptime) {
+    public Queda(String cidade, LocalDateTime data, Duration tempoFora, long uptime, String descricao) {
         this.nomeCidade = cidade;
         this.data = data;
         this.tempoFora = tempoFora;
@@ -44,6 +46,7 @@ public class Queda {
         faltaDeLuz = false;
         this.protocolo = "";
         this.chamado = "";
+        this.descricao = descricao;
     }
 
     @JsonIgnore
@@ -58,6 +61,8 @@ public class Queda {
                 ", tempoFora='" + tempoFora + '\'' +
                 ", faltaDeLuz='" + faltaDeLuz + '\'' +
                 ", uptime='" + uptime + '\'' +
+                ", descrição='" + descricao + '\'' +
+                ", categoria='" + categoria + '\'' +
                 "}";
     }
 
