@@ -51,8 +51,6 @@
                     <div id="diaDaSemana"></div>
                 </div>
 
-                <div class="chq-divider"></div>
-
                 <div class="chq-group chq-month" id="chq-month-group">
                     <span class="chq-label">Período</span>
                     <div class="chq-month-inputs">
@@ -71,14 +69,14 @@
 
                 <div class="chq-divider"></div>
 
+                <button id="diaAntes" class="chq-arrow" onclick="setasData(-1)" title="Anterior">&lsaquo;</button>
                 <div class="chq-group chq-nav">
                     <div class="chq-nav-buttons">
-                        <button id="diaAntes" class="chq-arrow" onclick="setasData(-1)" title="Anterior">&lsaquo;</button>
                         <span th:text="${titulo}" id="titulo"></span>
-                        <button id="diaDepois" class="chq-arrow" onclick="setasData(1)" title="Próximo">&rsaquo;</button>
                     </div>
                     <div id="count"></div>
                 </div>
+                <button id="diaDepois" class="chq-arrow" onclick="setasData(1)" title="Próximo">&rsaquo;</button>
 
                 <div class="chq-divider"></div>
 

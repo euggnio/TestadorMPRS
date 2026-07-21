@@ -732,6 +732,10 @@ iframe{
     border: 1px solid var(--border-color-hover);
     border-radius: var(--radius-lg);
     background: var(--bg-card);
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+
     box-shadow: var(--shadow-lg), 0 0 0 1px rgba(56, 189, 248, 0.05);
     a{
         color: var(--botoes-fundo);

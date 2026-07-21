@@ -325,7 +325,8 @@
 .chart-box { width: 100%; height: 250px; }
 
 /* BUSCA */
-.busca-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.busca-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; flex-direction: column; }
+.filtro-btn-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center; }
 .busca-input {
     flex: 1; min-width: 220px;
     background: var(--cor-painel); border: 1px solid var(--cor-borda); border-radius: 8px;

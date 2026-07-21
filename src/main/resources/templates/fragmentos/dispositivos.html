@@ -58,14 +58,15 @@
   </div>
 
   <div class="busca-row" id="buscaRow">
-    <div class="ip-search-wrap" id="ipSearchWrap">
-      <input class="busca-input" type="text" id="buscaInput"
-             placeholder="🔍  IP, nome, descrição ou usuário... (Enter para buscar)"
-             autocomplete="off">
-      <div class="ip-dropdown" id="ipDropdown"></div>
+    <div id="filtro-btn-row" class="filtro-btn-row">
+        <button class="filtro-btn ativo" data-cat="todos" onclick="filtrarCategoria('todos',this)">Todos</button>
     </div>
-    <button class="filtro-btn ativo" data-cat="todos"
-            onclick="filtrarCategoria('todos',this)">Todos</button>
+     <div class="ip-search-wrap" id="ipSearchWrap">
+        <input class="busca-input" type="text" id="buscaInput"
+               placeholder="🔍  IP, nome, descrição ou usuário... (Enter para buscar)"
+               autocomplete="off">
+        <div class="ip-dropdown" id="ipDropdown"></div>
+     </div>
   </div>
 
   <div id="categoriasContainer"></div>
@@ -488,7 +489,7 @@
      FILTROS
   ================================================================ */
   function reconstruirFiltros() {
-    const row = document.getElementById("buscaRow");
+    const row = document.getElementById("filtro-btn-row");
     row.querySelectorAll(".filtro-btn:not([data-cat='todos'])").forEach(b => b.remove());
     for (const cat of CATEGORIAS) {
       const btn = document.createElement("button");

@@ -140,15 +140,9 @@
                                         <td th:text="${cidade.duplaAbordagem ? 'Dupla':'Simples'}"></td>
                                     </tr>
                                     <tr>
-                                        <td>Configurações</td>
-                                        <td> <span th:text="${cidade.bloquearTesteBanda ? 'Teste de banda bloqueado':'Teste de banda liberado'}"></span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>==</td>
-                                        <td> <span th:text="${cidade.limitarTesteBanda ? 'Teste de banda limitado':'Teste de bande livre'}"></span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Teste de Banda</td>
+                                        <td style="cursor: help;"
+                                            th:title="${(cidade.bloquearTesteBanda ? 'Teste diário bloqueado':'Teste diário habilitado') + '&#013;' +
+                                                        (cidade.limitarTesteBanda ? 'Teste de banda limitado':'Teste de banda não limitado')}">Teste de Banda ⓘ</td>
                                         <td>
                                             <button class="ligarTeste"
                                                     th:attr="data-cidade=${cidade.nome}"
