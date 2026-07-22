@@ -137,7 +137,11 @@
     </div>
 
 </form>
-<h3>Hosts cadastrados</h3>
+<h2>Hosts cadastrados</h2>
+
+<div class="searcher" style="background-color: #10182b; padding: 0;">
+    <input type="text" id="search" placeholder="Pesquisa cidade 🔎" onkeyup="filterTable()">
+</div>
 
 <script th:inline="javascript">
     let editAtualHost = '';

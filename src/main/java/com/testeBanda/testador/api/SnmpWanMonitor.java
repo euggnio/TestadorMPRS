@@ -74,8 +74,8 @@ public class SnmpWanMonitor {
             resultados.add(new ResultadosSnmp(cidade.getIp(),
                     cidade.getVelocidadeInteger(),
                     cidade.getSmokeID(),
-                    cidade.getConfig().getInterfaceWanID(),
-                    cidade.getConfig().getInterfaceLanID()));
+                    cidade.getConfig() != null ? cidade.getConfig().getInterfaceWanID() : "", // Sei la, não rodava no meu PC pq o getConfig() dava nulo
+                    cidade.getConfig() != null ? cidade.getConfig().getInterfaceLanID() : ""));
         }
         this.recheckCounter = this.recheckWanIndexCacheCicles;
         this.init();

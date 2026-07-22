@@ -203,8 +203,9 @@ function quedasIguais(q, e){
     const msmUptime     = (q.uptime == e.uptime) || (q.uptime <= 0 && e.uptime <= 0)
     const msmTempoFora  = q.tempoFora == isoToSeconds(e.tempoFora)
     const msmChamado    = q.chamado == e.chamado
+    const msmProtocolo  = q.protocolo == e.protocolo
 
-    return msmData && msmUptime && msmTempoFora && msmChamado
+    return msmData && msmUptime && msmTempoFora && msmChamado && msmProtocolo
 }
 
 function processaNovasQuedas(e){
@@ -222,7 +223,7 @@ function processaNovasQuedas(e){
         if(news) listaNovas.push(eventQ)
     }
 
-    if(listaNovas.length > 0 && isToday()){
+    if((listaNovas.length > 0 || quedas.length != data.length) && isToday()){
         window.location.reload()
     }
 }

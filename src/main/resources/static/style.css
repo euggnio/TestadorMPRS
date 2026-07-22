@@ -701,7 +701,7 @@ iframe{
     .flexItem100{
         width: 100%;
         transition: 1s;
-        height: 91vh;
+        height: 93vh;
     }
     .protocolo{
         text-decoration: underline;
@@ -732,7 +732,7 @@ iframe{
     border: 1px solid var(--border-color-hover);
     border-radius: var(--radius-lg);
     background: var(--bg-card);
-    overflow: hidden;
+    /*overflow: hidden;*/
     border-collapse: separate;
     border-spacing: 0;
 
@@ -924,6 +924,7 @@ iframe{
         border: 1px solid;
         max-width: 25em;
         font-weight: initial;
+        color: black;
     }
     table{
         text-align: left;

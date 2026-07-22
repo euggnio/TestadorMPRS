@@ -319,7 +319,7 @@
 
 .table-responsive {
     width: 100%;
-    overflow-x: auto;
+    /*overflow-x: auto;*/
     -webkit-overflow-scrolling: touch;
     margin-top: 14px;
 }
@@ -328,4 +328,5 @@
     width: 100%;
     min-width: 700px;
     margin: 0 auto;
+    border-radius: var(--radius-lg);
 }
