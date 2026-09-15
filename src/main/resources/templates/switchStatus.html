@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Testador - Switch</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+    <script th:src="@{/javascript.js}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/imagens/favicon.ico">
+
+<!--    <link href="https://cdn.jsdelivr.net/npm/@xterm/xterm/" >-->
+<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm/css/xterm.css">-->
+
+    <style>
+        body{
+            background: var(--painel-fundo);
+        }
+
+        #conteudoStatus{
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .title{
+            margin-bottom: 10px;
+        }
+
+        .subtitle{
+            margin-top: 0;
+        }
+
+        .portsDisplay{
+
+            border: 1px solid var(--botoes-fundo);
+            margin: auto;
+            width: max-content;
+            padding: 0.5em;
+
+            display: inline-grid;
+
+            grid-auto-flow: column;
+            grid-auto-columns: max-content;
+
+            align-content: flex-start;
+        }
+
+        .switch48{
+            grid-template-rows: repeat(2, auto);
+        }
+
+        .port{
+            width: 1.5em;
+            height: 1.5em;
+            border: 1px solid var(--botoes-fundo);
+            margin: 0.3em;
+            cursor: pointer;
+            position: relative;
+        }
+        .port-card{
+            visibility: hidden;
+            position: absolute;
+            z-index: 99;
+
+            left: 50%;
+
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .port:hover .port-card{
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .card-table{
+            background: var(--painel-fundo) !important;
+            border: 1px solid var(--botoes-fundo-hover) !important;
+        }
+
+        .info-table{
+            width: 65%;
+        }
+
+        .port-up{
+            background: var(--botoes-fundo);
+            color: black;
+        }
+
+        .table-key{
+            min-width: 30%;
+        }
+
+        .table-value{
+
+        }
+
+        #terminal {
+            box-sizing: border-box;
+            width: 50%;
+            height: 5em;
+            padding: 2em;
+            margin: auto;
+
+            text-align: left;
+        }
+        #terminal * {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragmentos/header :: header}"></div>
+<main>
+
+    <div class="searcher">
+        <input type="text" id="switchIP" placeholder="IP do Switch">
+        <button id="BUTTON" onclick="pegarStatusPorGet()">STATUS</button>
+    </div>
+
+<!--    <div id="terminal"></div>-->
+
+    <div id="conteudoStatus">
+
+    </div>
+
+
+    <script type="module">
+            import { Terminal } from
+                "https://cdn.jsdelivr.net/npm/@xterm/xterm/+esm";
+
+            //import 'https://cdn.jsdelivr.net/npm/@xterm/xterm/css/xterm.css';
+
+            import { FitAddon } from
+                "https://cdn.jsdelivr.net/npm/@xterm/addon-fit/+esm";
+
+            const terminal = new Terminal({
+                cursorBlink: true,
+                fontFamily: '"Cascadia Mono", Consolas, monospace',
+                fontSize: 14,
+                theme: {
+                    background: '#101010',
+                    foreground: '#f5f5f5',
+                    cursor: '#f5f5f5'
+                }
+            });
+
+            const fitAddon = new FitAddon();
+
+            terminal.loadAddon(fitAddon);
+            terminal.open(document.getElementById("terminal"));
+            fitAddon.fit();
+
+            //terminal.write("xterm.js loaded successfully.\r\n");
+            terminal.write(" Conexão SSH com o switch (AINDA NÃO FUNCIONAL)\r\n\n");
+            terminal.write(" SW000000$ ");
+
+            window.addEventListener("resize", () => {
+                fitAddon.fit();
+            });
+
+            let inputBuffer = '';
+            terminal.onData((data) => {
+                const code = data.charCodeAt(0);
+
+                if (code === 13) { // Enter key
+                    terminal.write('\r\n SW000000$ ');
+                    //terminal.write(`You executed: ${inputBuffer}\r\n$ `);
+                    inputBuffer = '';
+                } else if (code === 127) { // Backspace key
+                    if (inputBuffer.length > 0) {
+                        inputBuffer = inputBuffer.slice(0, -1);
+                        terminal.write('\b \b'); // Move back, overwrite with space, move back again
+                    }
+                } else { // Normal text characters
+                    inputBuffer += data;
+                    terminal.write(data); // Echo character back to the screen
+                }
+            });
+        </script>
+
+
+    <script>
+        let info = {};
+
+        function pegarStatusPorGet() {
+            let ip = document.getElementById("switchIP").value;
+            const url = "/snmpSwitch/" + ip;
+            //url = url + '/' + ip;
+            fetch(url)
+                .then(res => res.json())
+                .then(status => {
+                    console.log(status)
+
+                    montaPagina(status, ip)
+
+                    info =  status; // acessar dados fora
+
+                    //TODO função de montar a página
+
+                })
+                .catch(err => console.error('Erro ao buscar status:', err));
+        }
+
+        function montaPagina(statusSwitch, ip){
+            const conteudo = document.getElementById("conteudoStatus")
+            conteudo.replaceChildren()
+
+            const portsDisplay = document.createElement('div');
+            portsDisplay.classList.add("portsDisplay")
+
+            const portsInfo = document.createElement('div');
+            portsInfo.id = "portsInfo"
+
+            const title = document.createElement('h1');
+            const subtitle = document.createElement('h3');
+            title.classList.add("title")
+            subtitle.classList.add("subtitle")
+
+            title.innerText = statusSwitch.name
+            subtitle.innerText = "(" + ip + ")"
+
+
+            if(statusSwitch.interfaces.length > 30){
+                portsDisplay.classList.add("switch48")
+            }
+
+            statusSwitch.interfaces.forEach(i => {
+                let port = document.createElement('div');
+		        port.classList.add("port")
+  	            i.status == 1 ? port.classList.add("port-up") : true
+
+  	            let portCard = document.createElement('div');
+  	            portCard.classList.add("port-card")
+  	            //portCard.innerText = JSON.stringify(i)
+  	            portCard.append(makeTable(i, "card-table"))
+
+  	            port.innerText = i.index
+
+  	            portsDisplay.append(port)
+  	            port.append(portCard)
+            })
+
+            conteudo.append(title)
+            conteudo.append(subtitle)
+            conteudo.append(portsDisplay)
+            conteudo.append(portsInfo)
+
+            conteudo.append(makeTable(statusSwitch, "info-table"))
+
+        }
+
+        function makeTable(vals, classe){
+            let table = document.createElement('table');
+            table.id = "dataTable"
+            table.classList.add(classe)
+
+            let tbody = document.createElement('tbody');
+
+            Object.entries(vals).forEach(i => {
+                if(i[0] == "interfaces") return;
+
+                let tr = document.createElement('tr');
+                let td1 = document.createElement('td');
+                let td2 = document.createElement('td');
+
+                td1.classList.add("table-key")
+                td2.classList.add("table-value")
+
+                td1.innerText = i[0].charAt(0).toUpperCase() + i[0].slice(1)
+                td2.innerText = i[1]
+
+                if(i[0] == "status"){
+                    td2.innerText = i[1] == 1 ? "UP" : "DOWN"
+                    td2.style.color = i[1] == 1 ? "green" : "red"
+                    td2.style.fontWeight = "bold"
+                }
+
+                tr.append(td1)
+                tr.append(td2)
+                tbody.append(tr)
+            })
+
+            table.append(tbody)
+
+            return table
+        }
+
+        function setasTeclado(e) {
+            /*if( e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA" ) return;
+            if( e.target.isContentEditable ) return;*/
+
+            if(e.code === 'Enter' || e.code === 'NumpadEnter'){
+                pegarStatusPorGet();
+            }
+        }
+        document.addEventListener('keyup', setasTeclado);
+
+    </script>
+
+
+</main>
+</body>
+</html>
