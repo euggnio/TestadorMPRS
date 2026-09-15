@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
@@ -30,6 +31,10 @@ public class GlpiAPI {
     private String user_token;
     @Value("${glpi.appToken}")
     private String appToken;
+
+    @Value("${glpi.groupId}")
+    private String groupID;
+
     private String tokenInUse = "";
 
     @Autowired
@@ -55,12 +60,35 @@ public class GlpiAPI {
         try{
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             JsonNode json = new ObjectMapper().readTree(response.body());
-            log.info("novo token {}", json.get("session_token").asText());
+            log.info("Token GLPI obtido com sucesso");
             this.tokenInUse = json.get("session_token").asText();
         } catch (IOException | InterruptedException e) {
             log.error("ERRO ao pedir token "+ e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    public String logar(String username, String password) {
+        if(username == null || password == null) {
+            throw new BadCredentialsException("Usuário e senha são obrigatórios");
+        }
+
+        URI uri = URI.create(startSessionUrl);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("App-Token", appToken)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(loginJson(username, password)))
+                .build();
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            log.error("ERRO ao pedir token via login user e senha"+ e.getMessage());
+            throw new RuntimeException(e);
+        }
+        log.debug("Login GLPI status: {}", response.statusCode());
+        return response.statusCode() + "";
     }
 
     private boolean isTokenValido() {
@@ -258,16 +286,17 @@ public class GlpiAPI {
                         "name": "Unidade sem conexão - %s",
                         "content": "Unidade de %s está sem conexão de internet",
                         "itilcategories_id": 472,
+                        "requesttypes_id": 9,
                         "type": 1,
                         "urgency": 3,
                         "impact": 3,
                         "priority": 3,
-                        "_groups_id_assign": 843,
+                        "_groups_id_assign": %s,
                         "entities_id": 0
                     }
                 }
                 """;
-        return String.format(json, nomeDoHost, nomeDoHost);
+        return String.format(json, nomeDoHost, nomeDoHost, this.groupID);
     }
 
     public String addFollowUpJson(String ticket, String content) {
@@ -282,5 +311,16 @@ public class GlpiAPI {
                 """;
         return String.format(json, ticket, content);
     }
+
+    public String loginJson(String login, String senha) {
+        String json = """
+                {
+                  "login": "%s",
+                  "password": "%s"
+                }
+                """;
+        return String.format(json, login, senha);
+    }
+
 
 }

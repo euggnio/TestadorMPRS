@@ -20,10 +20,17 @@ public class ConfigCidades {
     public boolean duplaAbordagem = false;
     public boolean bloquearTesteBanda = false;
     public boolean limitarTesteBanda = false;
+    public boolean testarUDP = false;
 
     @Size(max = 2)
     public String interfaceWanID = "";
     @Size(max = 2)
     public String interfaceLanID = "";
 
+    public String getInterfaceLanID() {
+        return interfaceLanID == null ? "" : interfaceLanID;
+    }
+    public String getInterfaceWanID() {
+        return interfaceWanID == null ? "" : interfaceWanID;
+    }
 }

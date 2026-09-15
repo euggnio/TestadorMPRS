@@ -57,6 +57,10 @@ body {
     }
 }
 
+.count {
+    color: var(--success);
+}
+
 small{
     font-size: 60%;
 }
@@ -148,6 +152,23 @@ header #versao {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.menu-centralizado{
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.menu-esquerda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 
 .backgroundLogin {
@@ -732,7 +753,6 @@ iframe{
     border: 1px solid var(--border-color-hover);
     border-radius: var(--radius-lg);
     background: var(--bg-card);
-    /*overflow: hidden;*/
     border-collapse: separate;
     border-spacing: 0;
 
@@ -757,6 +777,19 @@ iframe{
         border-bottom-right-radius: var(--radius-lg);
     }
 }
+
+.config-table th, .config-table td {
+    padding: 8px 6px;
+    white-space: nowrap;
+}
+.config-table th:nth-child(1), .config-table td:nth-child(1) { min-width: 120px; }
+.config-table th:nth-child(2), .config-table td:nth-child(2) { width: 50px; }
+.config-table th:nth-child(3), .config-table td:nth-child(3) { width: 80px; }
+.config-table th:nth-child(8), .config-table td:nth-child(8) { min-width: 130px; }
+.config-table th:nth-child(9), .config-table td:nth-child(9) { width: 40px; }
+.config-table th:nth-child(10), .config-table td:nth-child(10) { width: 50px; }
+.config-table th:nth-child(11), .config-table td:nth-child(11) { width: 50px; }
+.config-table th:nth-child(13), .config-table td:nth-child(13) { width: 90px; }
 
 .inputConfig{
     width: 100%;
@@ -1184,6 +1217,24 @@ iframe{
     background: var(--border-color);
 }
 
+.conteudo{
+    background: linear-gradient(160deg, var(--painel-fundo), var(--painel-fundo2));
+    border: 1px solid var(--bg-dark);
+    border-radius: 15px;
+    max-width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 auto;
+    padding-left: 2em;
+    padding-right: 2em;
+    table{
+        width: 100%;
+    }
+}
+
 /* Info column (cidades.html) */
 .conteudo-container {
     text-align: left;
@@ -1279,9 +1330,9 @@ iframe{
 .configs-cell {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px 12px !important;
-    min-width: 140px;
+    gap: 3px;
+    padding: 6px 8px !important;
+    min-width: 100px;
 }
 
 .config-row {
@@ -1413,6 +1464,10 @@ iframe{
 
 .btn-edit:hover {
     background: var(--botoes-fundo-hover);
+}
+
+.coluna-sigla{
+    width: 1.5em !important;
 }
 
 .btn-cancel {

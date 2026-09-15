@@ -29,7 +29,7 @@ public class NagiosAPI {
 
     public List<Alerta> todosAlertasDoAno(){
         String url =  nagios +"archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&" +
-                "starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
+                "hostgroup=roteadores&starttime="+getDateLimits()[0]+"&endtime="+ getDateLimits()[1];
         JsonNode alertListNode = sendRequest(url,"alertlist");
         return criaListaDeAlertas(alertListNode);
 
@@ -40,7 +40,7 @@ public class NagiosAPI {
         long inicio = instant.getEpochSecond();
         long fim = Instant.now().getEpochSecond();
         String url =  nagios + "archivejson.cgi?query=alertlist&statetypes=hard&hoststates=up+down&"
-                + "starttime=" + inicio + "&endtime=" + fim;
+                + "hostgroup=roteadores&starttime=" + inicio + "&endtime=" + fim;
         JsonNode alertListNode = sendRequest(url,"alertlist");
         return criaListaDeAlertas(alertListNode);
     }
@@ -55,7 +55,7 @@ public class NagiosAPI {
 
 
     public JsonNode pegarCidadeNagios(String cidade) {
-        String url = nagios + "objectjson.cgi?query=host&hostname=Alvorada";
+        String url = nagios + "objectjson.cgi?query=host&hostname="+cidade;
         JsonNode alertListNode = sendRequest(url,"host");
         return  alertListNode;
     }
@@ -110,14 +110,14 @@ public class NagiosAPI {
             long inicioTimestamp = inicoData.atZone(zone).toEpochSecond();
             long fimTimestamp = fimData.atZone(zone).toEpochSecond();
             String url = nagios +
-                    "archivejson.cgi?query=availability&availabilityobjecttype=" +
-                    "hosts&starttime=" + inicioTimestamp + "&" +
+                    "archivejson.cgi?query=availability&availabilityobjecttype=hostgroups&hostgroup=roteadores&starttime=" + inicioTimestamp + "&" +
                     "endtime=" + fimTimestamp;
-            JsonNode alertListNode = sendRequest(url,"hosts");
+            JsonNode hostsgroup = sendRequest(url,"hostgroup");
+            JsonNode hosts = hostsgroup.get("hosts");
 
             ArrayList<Disponibilidade> cidade = new ArrayList<>();
-            if ( alertListNode.isArray() ) {
-                for (JsonNode alert : alertListNode) {
+            if ( hosts.isArray() ) {
+                for (JsonNode alert : hosts) {
                     String name = alert.path("name").asText();
                     long upTime = alert.path("time_up").asLong();
                     long downTime = alert.path("time_down").asLong();

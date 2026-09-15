@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +25,8 @@ public class Cidades {
     @Column(name = "notacao", length = 2)
     @Size(min = 2, max = 2)
     public String notacao;
+    @Size(max = 500)
+    public String vlans;
     //Ids dos hosts em todos os programas são o nome do host...
     public String smokeID;
     public String cacti;
@@ -38,11 +39,6 @@ public class Cidades {
     public String dataUltimoTeste;
     //checks
     public boolean checkTesteBanda = false;
-    //checks de configs
-    public boolean duplaAbordagem = false;
-    public boolean bloquearTesteBanda = false;
-    public boolean limitarTesteBanda = false;
-
 
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -80,5 +76,7 @@ public class Cidades {
     public void addResultado(LocalDateTime data, String resultado){
         this.resultados.add(new Resultados(data,resultado,this));
     }
+
+
 
 }

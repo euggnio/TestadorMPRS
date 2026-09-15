@@ -3,6 +3,7 @@ package com.testeBanda.testador.controlers;
 import com.testeBanda.testador.DTO.TesteBandaDTO;
 import com.testeBanda.testador.models.Cidades;
 import com.testeBanda.testador.service.CidadeService;
+import com.testeBanda.testador.service.ScanService;
 import com.testeBanda.testador.service.TesterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,14 @@ public class TesterController {
         dto.dataUltimoTeste = c.dataUltimoTeste;
         dto.check = c.checkTesteBanda;
         return ResponseEntity.ok(dto);
+    }
+
+    @Autowired
+    ScanService scan;
+    @GetMapping("/testarScan")
+    public String testarScan(@RequestParam(defaultValue = "") String idCidade) {
+        scan.varrerCidades();
+        return "ok";
     }
 
 }

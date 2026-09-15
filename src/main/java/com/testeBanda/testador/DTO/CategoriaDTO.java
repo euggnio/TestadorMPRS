@@ -1,5 +1,8 @@
 package com.testeBanda.testador.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record CategoriaDTO(
         String key,
         String label,
@@ -7,5 +10,10 @@ public record CategoriaDTO(
         String cor,
         String regexNome,
         String regexDescricao,
-        String rangeIp
-) {}
+        String rangeIp,
+        String nomeExcluir,
+        String descExcluir,
+        String ipExcluir,
+        String filtroUsuario
+) {
+}

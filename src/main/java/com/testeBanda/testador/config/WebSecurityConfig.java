@@ -1,34 +1,38 @@
 package com.testeBanda.testador.config;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+    private final AutenticacaoConfig autenticacaoConfig;
+
+    public WebSecurityConfig(AutenticacaoConfig autenticacaoConfig) {
+        this.autenticacaoConfig = autenticacaoConfig;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-                .authorizeHttpRequests((requests) -> requests
+               .authenticationProvider(autenticacaoConfig)
+               .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(
                                 "/",
                                 "/grafico",
                                 "/grafico/**",
                                 "/error",
                                 "/snmpWan",
-                                "/versao"
+                                "/versao",
+                                "/pegarGraficoSmoke/*"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/configuracao").permitAll()
                         .anyRequest().authenticated()
@@ -42,21 +46,9 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .logout((logout) ->
                         logout.permitAll()
-                                .deleteCookies("JSESSIONID"));
+                                .deleteCookies("JSESSIONID")
+                                .logoutSuccessUrl("/login?logout"));
         return http.build();
-    }
-
-
-    //funcional apenas em ambiente de testes
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder() // apenas para testes
-                        .username("testador")
-                        .password("adm123")
-                        .roles("USER")
-                        .build();
-        return new InMemoryUserDetailsManager(user);
     }
 
     @Bean
@@ -64,6 +56,7 @@ public class WebSecurityConfig {
         return (web -> web.ignoring()
                 .requestMatchers(
                         "/style.css"
+                        ,"/pegarGraficoSmoke/*"
                         ,"/static/**"
                         ,"/imagens/**"
                         ,"/img.png"

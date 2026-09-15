@@ -48,7 +48,7 @@ public class CidadeService {
     }
 
     public void pegarChildsNagios(Cidades cidade) {
-        JsonNode data = nagiosAPI.pegarCidadeNagios("Alvorada");
+        JsonNode data = nagiosAPI.pegarCidadeNagios(cidade.getNagiosID());
         JsonNode services = data.get("services");
         for (JsonNode service : services) {
             Child child = new Child();

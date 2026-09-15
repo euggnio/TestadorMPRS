@@ -137,12 +137,12 @@
                                     </tr>
                                     <tr>
                                         <td> Abordagem </td>
-                                        <td th:text="${cidade.duplaAbordagem ? 'Dupla':'Simples'}"></td>
+                                        <td th:text="${cidade.getConfig().duplaAbordagem ? 'Dupla':'Simples'}"></td>
                                     </tr>
                                     <tr>
                                         <td style="cursor: help;"
-                                            th:title="${(cidade.bloquearTesteBanda ? 'Teste diário bloqueado':'Teste diário habilitado') + '&#013;' +
-                                                        (cidade.limitarTesteBanda ? 'Teste de banda limitado':'Teste de banda não limitado')}">Teste de Banda ⓘ</td>
+                                            th:title="${(cidade.getConfig().bloquearTesteBanda ? 'Teste diário bloqueado':'Teste diário habilitado') + '&#013;' +
+                                                        (cidade.getConfig().limitarTesteBanda ? 'Teste de banda limitado':'Teste de banda não limitado')}">Teste de Banda ⓘ</td>
                                         <td>
                                             <button class="ligarTeste"
                                                     th:attr="data-cidade=${cidade.nome}"

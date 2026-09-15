@@ -52,7 +52,7 @@ function getDataAtualizada(id){
             console.log(obj);
             document.getElementById(id).getElementsByTagName('span')[2].innerHTML = obj.ultimoTesteBanda;
             document.getElementById(id).getElementsByTagName('span')[3].innerHTML = obj.dataUltimoTeste;
-            document.getElementById(id).getElementsByTagName('span')[4].innerHTML = obj.check ? "OK" : "RUIM";
+            document.getElementById(id).querySelector('#resultadoTeste').innerHTML = obj.check ? "TESTE OK" : "RUIM";
             document.getElementById(id).getElementsByTagName('span')[4].style.color = obj.check ? "GREEN" : "RED";
 
         });

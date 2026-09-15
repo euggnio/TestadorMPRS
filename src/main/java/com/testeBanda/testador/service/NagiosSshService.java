@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -28,7 +29,7 @@ public class NagiosSshService {
     public Resultado cadastrarLinkPrimario(String hostPai,
                                            String nomeLink,
                                            String ip)
-            throws Exception {
+           {
 
         ProcessBuilder pb = new ProcessBuilder(
                 "ssh",
@@ -45,19 +46,31 @@ public class NagiosSshService {
 
         pb.redirectErrorStream(true);
 
-        Process process = pb.start();
+               Process process = null;
+               try {
+                   process = pb.start();
+               } catch (IOException e) {
+                   throw new RuntimeException(e);
+               }
 
-        String saida;
+               String saida;
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
 
             saida = br.lines().collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        boolean terminou = process.waitFor(60, TimeUnit.SECONDS);
+               boolean terminou = false;
+               try {
+                   terminou = process.waitFor(60, TimeUnit.SECONDS);
+               } catch (InterruptedException e) {
+                   throw new RuntimeException(e);
+               }
 
-        if (!terminou) {
+               if (!terminou) {
             process.destroyForcibly();
             return new Resultado(false, -1, "Timeout aguardando resposta do Nagios.");
         }

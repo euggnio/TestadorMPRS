@@ -74,8 +74,8 @@ public class SnmpWanMonitor {
             resultados.add(new ResultadosSnmp(cidade.getIp(),
                     cidade.getVelocidadeInteger(),
                     cidade.getSmokeID(),
-                    cidade.getConfig() != null ? cidade.getConfig().getInterfaceWanID() : "", // Sei la, não rodava no meu PC pq o getConfig() dava nulo
-                    cidade.getConfig() != null ? cidade.getConfig().getInterfaceLanID() : ""));
+                    cidade.getConfig().getInterfaceWanID(),
+                    cidade.getConfig().getInterfaceLanID()));
         }
         this.recheckCounter = this.recheckWanIndexCacheCicles;
         this.init();
@@ -139,8 +139,9 @@ public class SnmpWanMonitor {
             System.out.println("Interface "+index+" -> "+name);
 
             for (String nome : nomesInterfaces) {
-                if(name.contains(nome.toLowerCase())){
+                if(name.contains(nome.toLowerCase()) && !name.contains("secundario")) {
                     long time = System.currentTimeMillis()-start;
+
                     System.out.println("WAN encontrada index "+index+" ("+time+" ms)");
                     return index;
                 }
@@ -218,7 +219,7 @@ public class SnmpWanMonitor {
         if(wanIndexCache.isEmpty() || recheckCounter <= 0){
             System.out.println("Descobrindo interfaces WAN...\n");
             for(ResultadosSnmp ip:resultados){
-                if(!ip.getInterfaceWan().isBlank()){
+                if(ip.getInterfaceWan() == null){
                     wanIndexCache.put(ip.getIp(), ip.getterInterfaceWanID());
                     log.debug("Interface "+ip.getterInterfaceWanID()+" encontrado para ip "+ip.getIp());
                 }

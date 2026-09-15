@@ -1,6 +1,7 @@
 let nomeFiltro = "";
 let mes = 'todos';
 let quedas;
+let eventos;
 let dados;
 // variaveis fixas
 let quedasProcessadas = [];
@@ -15,7 +16,7 @@ let cidadesOrdenadasObj = [];
 
 // ===================== HELPERS DE FLAP / SERVIÇO =====================
 const SERVICO_INICIO = 12; // 12:00
-const SERVICO_FIM    = 19; // 19:00  -> janela [12:00, 19:00)
+const SERVICO_FIM    = 19; // 19:00
 
 function isFlap(q){ return q.flap === true; }
 function semFlap(q){ return q.flap !== true; }
@@ -28,6 +29,53 @@ function dentroDoServico(q){
     const h = d.getHours();
     return h >= SERVICO_INICIO && h < SERVICO_FIM;
 }
+
+// true se a queda ocorreu no dia de início de algum evento (manutenção)
+function temEventoNoDia(q){
+    if (!q || !q.data) return false;
+    if (!Array.isArray(eventos) || eventos.length === 0) return false;
+    const diaQueda = String(q.data).substring(0, 10);      // "AAAA-MM-DD"
+    return eventos.some(e => {
+        if (!e || !e.dataInicio) return false;
+        return diaQueda === String(e.dataInicio).substring(0, 10);
+    });
+}
+
+// ---- Datas de eventos (mês + ano) p/ marcar o escopo no gráfico mensal ----
+let anoDados = new Date().getFullYear();
+const MES_NUM = {JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
+
+// dias (número) do mês selecionado que têm evento naquele ano
+function diasEventoDoMes(mesAbv){
+    if (!Array.isArray(eventos) || eventos.length === 0) return [];
+    const mesNum = MES_NUM[String(mesAbv).toUpperCase()];
+    if (!mesNum) return [];
+    const anoStr = String(anoDados);
+    return eventos
+        .filter(e => {
+            const s = String(e.dataInicio);
+            return s && s.length >= 10 &&
+                   s.substring(0,4) === anoStr &&
+                   parseInt(s.substring(5,7)) === mesNum;
+        })
+        .map(e => parseInt(String(e.dataInicio).substring(8,10)));
+}
+
+// eventos que caem no dia `d` (considerando o mês global `mes` e o ano de dados)
+function eventosDoDiaMes(d){
+    const mesNum = MES_NUM[String(mes).substring(0,3).toUpperCase()];
+    const anoStr = String(anoDados);
+    return (Array.isArray(eventos) ? eventos : []).filter(e => {
+        const s = String(e.dataInicio);
+        return s && s.length >= 10 &&
+               s.substring(0,4) === anoStr &&
+               parseInt(s.substring(5,7)) === mesNum &&
+               parseInt(s.substring(8,10)) === d;
+    });
+}
+
+// escapa HTML no tooltip
+function escEvento(t){ return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // reaproveita instância echarts já criada no mesmo DOM
 function _echart(dom){ return echarts.getInstanceByDom(dom) || echarts.init(dom); }
@@ -43,14 +91,20 @@ window.onload = () => {
     graficoAlertasCidades();
     graficoRelacaoQuedasEnergia();
     graficoDeQuedasMesDia();
-    graficoImpacto();           // <-- NOVO
+    graficoImpacto();
     fazDropCidades();
     console.log(cidades);
 }
 
 function processarQuedas(){
     console.log("\n\n======Processando quedas ======");
-    quedasProcessadas = quedas.map(a => {
+    console.log(eventos);
+    console.log(quedas);
+    if (quedas && quedas.length) anoDados = parseInt(String(quedas[0].data).substring(0, 4)) || new Date().getFullYear();
+    quedasProcessadas = quedas
+        //Adição de eventos
+        .filter(a => !temEventoNoDia(a))
+        .map(a => {
         const data = new Date(a.data);
         const mes = data.toLocaleString('en-US', {month: 'short'}).toUpperCase();
 
@@ -82,6 +136,11 @@ function filtrarQuedas(){
         const mesReduzido = mes.slice(0, 3);
         const quedasDoMes = filtradasNome.filter(a => a.mes === mesReduzido);
         diasUnicos = [...new Set(quedasDoMes.map(a => a.dia))].sort((a, b) => a - b);
+        // garante que o dia do evento apareça no eixo X mesmo sem quedas (não infla)
+        const diasEvento = diasEventoDoMes(mesReduzido);
+        if (diasEvento.length) {
+            diasUnicos = [...new Set([...diasUnicos, ...diasEvento])].sort((a, b) => a - b);
+        }
         meses = diasUnicos;
         totaisDeQuedasPorMes = diasUnicos.map(dia =>
             quedasDoMes.filter(a => a.dia === dia).length
@@ -447,6 +506,45 @@ function graficoDeQuedasMesDia() {
             }
         ]
     };
+
+    // Escopo do evento: pino vermelho no dia do evento (somente visão mensal por dia)
+    const diasEvento = (mes !== "todos") ? diasEventoDoMes(mes.slice(0, 3)) : [];
+    if (diasEvento.length) {
+        const markEventos = diasEvento.map(d => {
+            const i = meses.indexOf(d);
+            const topo = i >= 0 ? (dataTotalComFlap[i] || 0) + 2 : 2;
+            return {
+                name: 'Evento dia ' + d,
+                coord: [i >= 0 ? i : d, topo],
+                value: topo,
+                dia: d,
+                itemStyle: { color: '#fd0000', borderColor: '#fff', borderWidth: 1 }
+            };
+        });
+        option.series[0].markPoint = {
+            symbol: 'pin',
+            symbolSize: 46,
+            symbolOffset: [0, -14],
+            itemStyle: { color: '#fd0000', borderColor: '#fff', borderWidth: 1 },
+            label: { show: true, formatter: '⚠', color: '#fff', fontSize: 16, fontWeight: 'bold' },
+            tooltip: {
+                show: true,
+                enterable: true,
+                formatter: function (p) {
+                    const evs = eventosDoDiaMes(p.data.dia);
+                    let txt = '<b>📌 Dia ' + p.data.dia + '</b>';
+                    if (!evs.length) return txt;
+                    evs.forEach(ev => {
+                        txt += '<br>• ' + escEvento(ev.nome);
+                        if (ev.descricao) txt += ' — ' + escEvento(ev.descricao);
+                    });
+                    return txt;
+                }
+            },
+            data: markEventos
+        };
+    }
+
     option && myChart.setOption(option);
 }
 

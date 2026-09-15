@@ -16,6 +16,8 @@ public class ResultadosSnmp {
     private double tx;
     private double loss;
     private String smokeID;
+    public String interfaceAtualDebug;
+    public String interfaceIndexDebug;
     private String interfaceWan;
     private String interfaceLan;
 

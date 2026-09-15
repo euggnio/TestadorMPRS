@@ -4,6 +4,223 @@
     <meta charset="UTF-8">
     <title>Configuração - Testador</title>
     <link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+<style>
+    :root {
+        --ngr-bg: #0b0f1a;
+        --ngr-panel: #141a2b;
+        --ngr-panel2: #1b2335;
+        --ngr-border: #2a3450;
+        --ngr-text: #e8eaf2;
+        --ngr-muted: #9aa3b8;
+        --ngr-accent: #12c47f;
+        --ngr-danger: #e5484d;
+        --ngr-radius: 12px;
+    }
+
+    .ngr-app {
+        max-width: 92%;
+        margin: 0 auto;
+        padding: 22px 18px 70px;
+        font-family: 'Nunito', sans-serif;
+        color: var(--ngr-text);
+    }
+
+    .ngr-topbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .ngr-title h1 { margin: 0; font-size: 1.8rem; font-weight: 800; }
+    .ngr-title h1 span { color: var(--ngr-accent); }
+    .ngr-title p { margin: 2px 0 0; color: var(--ngr-muted); }
+
+    .ngr-status {
+        display: inline-block;
+        background: rgba(240, 165, 0, .14);
+        color: #f0a500;
+        border: 1px solid rgba(240, 165, 0, .45);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+    .ngr-status.erro {
+        background: rgba(229, 72, 77, .14);
+        color: var(--ngr-danger);
+        border-color: rgba(229, 72, 77, .45);
+    }
+
+    .ngr-tabs {
+        display: flex; gap: 6px;
+        background: var(--ngr-panel); padding: 6px;
+        border: 1px solid var(--ngr-border); border-radius: 14px;
+    }
+    .ngr-tab {
+        font-family: inherit; background: transparent; border: none;
+        color: var(--ngr-muted); font-weight: 700; font-size: .9rem;
+        padding: 9px 24px; border-radius: 10px; cursor: pointer;
+        transition: background .2s ease, color .2s ease;
+    }
+    .ngr-tab:hover { color: var(--ngr-text); }
+    .ngr-tab.active { background: var(--ngr-accent); color: #06120c; }
+
+    .tabpane { display: none; }
+    .tabpane.active { display: block; }
+
+    .ngr-card {
+        background: linear-gradient(160deg, var(--ngr-panel), var(--ngr-panel2));
+        border: 1px solid var(--ngr-border);
+        border-radius: var(--ngr-radius); padding: 22px; margin-bottom: 18px;
+    }
+    .ngr-card > h2 { margin: 0 0 6px; font-size: 1.15rem; }
+
+    .ngr-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; }
+    .ngr-stat { display: flex; flex-direction: column; }
+    .ngr-stat-num { font-size: 1.7rem; font-weight: 800; color: var(--ngr-accent); }
+    .ngr-stat-lbl { font-size: .8rem; color: var(--ngr-muted); }
+    .ngr-divider { width: 1px; height: 44px; background: var(--ngr-border); }
+    .ngr-hostinfo { display: flex; flex-wrap: wrap; gap: 16px 28px; }
+    .field-inline label { display: block; font-size: .72rem; color: var(--ngr-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+    .field-inline span { font-weight: 700; }
+
+    .form-card { display: none; }
+    .form-card.open {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px 28px;
+    }
+    .form-card h2 { grid-column: 1 / -1; margin: 0 0 6px; font-size: 1.15rem; }
+    .form-col h3 { margin: 0 0 12px; font-size: .9rem; color: var(--ngr-muted); text-transform: uppercase; letter-spacing: .4px; }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: .8rem; color: var(--ngr-muted); font-weight: 600; margin-bottom: 6px; }
+    .field input, .field textarea {
+        width: 100%; box-sizing: border-box;
+        background: rgba(255,255,255,.04); border: 1px solid var(--ngr-border);
+        color: var(--ngr-text); font-family: inherit;
+        padding: 10px 12px; border-radius: 8px; transition: border-color .2s ease;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--ngr-accent); }
+    .field input.erro-campo { border-color: var(--ngr-danger); }
+    .field textarea { resize: vertical; }
+    .field-hint { font-size: .72rem; color: var(--ngr-muted); margin-top: 4px; font-style: italic; }
+
+    .check-field {
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 12px; cursor: pointer; color: var(--ngr-text);
+    }
+    .check-field input { accent-color: var(--ngr-accent); width: 16px; height: 16px; }
+
+    .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+
+    .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: inherit; font-size: .85rem; font-weight: 700;
+        border: none; border-radius: 9px; padding: 10px 16px;
+        cursor: pointer; transition: filter .2s ease, transform .1s ease;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:active { transform: translateY(1px); }
+    .btn-sm { padding: 6px 12px; font-size: .78rem; }
+    .btn-primary { background: var(--ngr-accent); color: #06120c; }
+    .btn-danger { background: var(--ngr-danger); color: #fff; }
+    .btn-ghost { background: rgba(255,255,255,.07); color: var(--ngr-text); }
+    .btn-save { background: var(--ngr-accent); color: #06120c; }
+    .btn-cancel-edit { background: rgba(255,255,255,.07); color: var(--ngr-muted); }
+
+    .listbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .listbar h2 { margin: 0; font-size: 1.05rem; }
+    .listbar .count { color: var(--ngr-accent); }
+    .listbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .listbar input[type="text"] {
+        background: rgba(255,255,255,.05); border: 1px solid var(--ngr-border);
+        color: var(--ngr-text); font-family: inherit;
+        padding: 9px 12px; border-radius: 8px; min-width: 220px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    .ngr-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+    .ngr-table th {
+        background: rgba(255,255,255,.03); color: var(--ngr-muted);
+        text-align: left; padding: 11px 12px; font-size: .74rem;
+        text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+    }
+    .ngr-table td { padding: 9px 12px; border-top: 1px solid rgba(255,255,255,.06); vertical-align: middle; }
+    .ngr-table tbody tr { transition: background .15s; }
+    .ngr-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+    .ngr-table a { color: var(--ngr-accent); text-decoration: none; font-weight: 700; }
+    .ngr-table a:hover { text-decoration: underline; }
+
+    .rede-cell { font-family: 'Courier New', monospace; font-size: .82rem; color: var(--ngr-accent); }
+    .vlan-badge {
+        display: inline-block; background: rgba(240,165,0,.12); color: #f0a500;
+        border: 1px solid rgba(240,165,0,.3); border-radius: 50px;
+        padding: 2px 10px; font-size: .78rem; font-weight: 700;
+        cursor: default; position: relative;
+    }
+    .vlan-badge[data-vlans]:hover::after {
+        content: attr(data-vlans); position: absolute; bottom: 100%; left: 50%;
+        transform: translateX(-50%); background: var(--ngr-panel);
+        border: 1px solid var(--ngr-border); border-radius: 6px;
+        padding: 6px 10px; font-size: .75rem; color: var(--ngr-text);
+        white-space: nowrap; z-index: 10; margin-bottom: 6px;
+        box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    }
+    .vlan-badge.sem-vlans { background: rgba(255,255,255,.04); color: var(--ngr-muted); border-color: var(--ngr-border); }
+
+    .cfg-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+    .cfg-badge {
+        display: inline-block; padding: 2px 8px; border-radius: 4px;
+        font-size: .7rem; font-weight: 700; white-space: nowrap;
+    }
+    .cfg-badge.ativo { background: rgba(18,196,127,.12); color: var(--ngr-accent); border: 1px solid rgba(18,196,127,.3); }
+    .cfg-badge.inativo { display: none; }
+
+    .actions-cell { white-space: nowrap; }
+    .row-actions { display: flex; gap: 6px; }
+
+    .ngr-empty { text-align: center; color: var(--ngr-muted); padding: 20px 0; }
+
+    /* Linha expandida */
+    .expand-row { display: none; }
+    .expand-row.aberto { display: table-row; }
+    .expand-row td {
+        padding: 0 !important; border-top: 1px solid var(--ngr-border) !important;
+        background: rgba(255,255,255,.015);
+    }
+    .expand-content {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px 24px; padding: 18px 16px;
+    }
+    .expand-section h4 {
+        margin: 0 0 10px; font-size: .75rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: .5px; color: var(--ngr-accent);
+        padding-bottom: 6px; border-bottom: 1px solid var(--ngr-border);
+    }
+    .expand-section .field { margin-bottom: 10px; }
+    .expand-section .field label { font-size: .72rem; margin-bottom: 4px; }
+    .expand-section .field input {
+        padding: 8px 10px; font-size: .82rem;
+        background: rgba(255,255,255,.04); border: 1px solid var(--ngr-border);
+        border-radius: 6px; color: var(--ngr-text); width: 100%; box-sizing: border-box;
+    }
+    .expand-section .field input:focus { border-color: var(--ngr-accent); outline: none; }
+    .expand-section .field input.erro-campo { border-color: var(--ngr-danger); }
+    .expand-section .check-field { margin-bottom: 8px; font-size: .82rem; }
+    .expand-actions {
+        grid-column: 1 / -1; display: flex; gap: 10px;
+        padding-top: 8px; border-top: 1px solid var(--ngr-border);
+    }
+
+    .host-link-cell { display: flex; align-items: center; gap: 6px; }
+    .host-link-cell .nome-text { font-weight: 700; color: #fff; }
+</style>
     <script th:src="@{/javascript.js}"></script>
     <script th:src="@{/fragmentosjs/info.js}"></script>
     <link rel="icon" type="image/x-icon" href="/imagens/favicon.ico">
@@ -15,271 +232,506 @@
 <div th:replace="~{fragmentos/header :: header}"></div>
 <img th:src="@{\info.png}" alt="info" class="infoBtn" onclick="showInfo('config')">
 
-<div class="searcher">
-    <div>
-        <h1>
-            Configuração
-            <span style="color: orange; font-weight: bold"
-                  th:if="${status != null}"
-                  th:text="'| ' + ${status}">
-        </span>
-        </h1>
-        <h5>Cadastro de novos hosts, atualmente temos 179 hosts no contrato</h5>
-        <h5>Total de hosts cadastrados: <span th:text=" ${hosts.size()}"></span></h5>
+<div class="ngr-app">
+
+    <div class="ngr-topbar">
+        <div class="ngr-title">
+            <h1>Configuração <span>de Hosts</span></h1>
+            <p>Gerencie hosts e eventos do monitoramento.</p>
+        </div>
+        <div class="ngr-tabs">
+            <button type="button" class="ngr-tab active" data-tab="hosts" onclick="trocarAba('hosts')">Hosts</button>
+            <button type="button" class="ngr-tab" data-tab="eventos" onclick="trocarAba('eventos')">Eventos</button>
+        </div>
     </div>
-    <div>
-        <h3>Host de teste</h3>
-        <table class="host-info" style="width: 35%">
-            <tr class="linha">
-                <td><label>IP Testador</label></td>
-                <td><input th:value="${ip}" readonly></td>
-            </tr>
-            <tr class="linha">
-                <td><label>Usuário</label></td>
-                <td><input th:value="${usuario}" readonly></td>
-            </tr>
-            <tr class="linha">
-                <td><label>Senha</label></td>
-                <td><input th:value="'Boa tentativa homoerectus'" type="password" readonly></td>
-            </tr>
-        </table>
-    </div>
+
+    <span th:if="${status != null}" class="ngr-status" th:text="${status}"></span>
+
+    <!-- ============================ ABA HOSTS ============================ -->
+    <section id="tab-hosts" class="tabpane active">
+
+        <div class="ngr-card">
+            <div class="ngr-summary">
+                <div class="ngr-stat">
+                    <span class="ngr-stat-num" th:text="${hosts.size()}">0</span>
+                    <span class="ngr-stat-lbl">hosts cadastrados</span>
+                </div>
+                <div class="ngr-stat">
+                    <span class="ngr-stat-num">179</span>
+                    <span class="ngr-stat-lbl">hosts no contrato</span>
+                </div>
+                <div class="ngr-divider"></div>
+                <div class="ngr-hostinfo">
+                    <div class="field-inline"><label>IP Testador</label><span th:text="${ip}">-</span></div>
+                    <div class="field-inline"><label>Usuário</label><span th:text="${usuario}">-</span></div>
+                    <div class="field-inline"><label>Senha</label><span>********</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulário: novo host -->
+        <form id="salvaHost" class="ngr-card form-card" action="/atualizar" method="POST" novalidate>
+            <h2>Novo Host</h2>
+
+            <div class="form-col">
+                <h3>Identificação</h3>
+                <div class="field">
+                    <label for="nome">Nome *</label>
+                    <input type="text" id="nome" name="nome" placeholder="Ex: Alvorada" required>
+                </div>
+                <div class="field">
+                    <label for="codigo">Sigla</label>
+                    <input type="text" id="codigo" name="codigo" placeholder="Ex: ALV" maxlength="4">
+                </div>
+            </div>
+
+            <div class="form-col">
+                <h3>Rede</h3>
+                <div class="field">
+                    <label for="ip">IP *</label>
+                    <input type="text" id="ip" name="ip" placeholder="Ex: 172.17.1.40" required>
+                    <div class="field-hint">Não use IP de roteador (terminado em .1)</div>
+                </div>
+                <div class="field">
+                    <label for="notacao">Notação</label>
+                    <input type="text" id="notacao" name="notacao" placeholder="/25" maxlength="2">
+                    <div class="field-hint">CIDR: /23, /24, /25, /26, /27, /28, /29, /30</div>
+                </div>
+                <div class="field">
+                    <label for="vlans">VLANs</label>
+                    <input type="text" id="vlans" name="vlans" placeholder="172.17.1.224/29, 172.17.1.128/26">
+                    <div class="field-hint">Separado por vírgula. Formato: IP/CIDR</div>
+                </div>
+                <div class="field">
+                    <label for="velocidade">Velocidade</label>
+                    <input type="number" id="velocidade" name="velocidade" placeholder="Mbps">
+                </div>
+            </div>
+
+            <div class="form-col">
+                <h3>APIs e Monitoramento</h3>
+                <div class="field">
+                    <label for="smokeID">Smokeping ID</label>
+                    <input type="text" id="smokeID" name="smokeID" placeholder="ID no Smokeping">
+                </div>
+                <div class="field">
+                    <label for="cacti">Cacti Graph ID</label>
+                    <input type="text" id="cacti" name="cacti" placeholder="ID do gráfico">
+                </div>
+                <div class="field">
+                    <label for="nagios">Nagios ID</label>
+                    <input type="text" id="nagios" name="nagios" placeholder="ID no Nagios">
+                </div>
+                <div class="field">
+                    <label for="intra">Intra</label>
+                    <input type="text" id="intra" name="intra" placeholder="Código intranet">
+                </div>
+            </div>
+
+            <div class="form-col">
+                <h3>Configurações</h3>
+                <label class="check-field">
+                    <input type="checkbox" name="config.bloquearTesteBanda">
+                    <span>Bloquear teste de banda</span>
+                </label>
+                <label class="check-field">
+                    <input type="checkbox" name="config.limitarTesteBanda">
+                    <span>Limitar teste de banda</span>
+                </label>
+                <label class="check-field">
+                    <input type="checkbox" name="config.duplaAbordagem">
+                    <span>Dupla abordagem</span>
+                </label>
+                <div class="field" style="margin-top:8px">
+                    <label for="config.interfaceWanID">Interface WAN ID</label>
+                    <input type="number" id="config.interfaceWanID" name="config.interfaceWanID">
+                </div>
+                <div class="field">
+                    <label for="config.interfaceLanID">Interface LAN ID</label>
+                    <input type="number" id="config.interfaceLanID" name="config.interfaceLanID">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" form="salvaHost">Salvar Host</button>
+                <button type="reset" class="btn btn-danger" onclick="salvarHostLiberar()" form="salvaHost">Cancelar</button>
+            </div>
+        </form>
+
+        <!-- Lista de hosts -->
+        <div class="ngr-card">
+            <div class="listbar">
+                <h2>Hosts cadastrados <span class="count" th:text="${hosts.size()}">0</span></h2>
+                <div class="listbar-actions">
+                    <button type="button" class="btn btn-primary" id="abrirCadastroBtn" onclick="salvarHostLiberar()">+ Novo host</button>
+                    <input type="text" id="search" placeholder="Pesquisar host..." onkeyup="filtrar('search', 'dataTable')">
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="dataTable" class="ngr-table">
+                    <thead>
+                        <tr>
+                            <th>Host</th>
+                            <th>Rede</th>
+                            <th>VLANs</th>
+                            <th>Veloc.</th>
+                            <th>Config</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="host : ${hosts}">
+                        <!-- Linha compacta -->
+                        <tr class="host-row" th:id="'row-' + ${host.nome}">
+                            <td>
+                                <div class="host-link-cell">
+                                    <a target="_blank" th:href="@{/unidade/{nome}(nome=${host.nome})}" class="nome-text" th:text="${host.nome}">Host</a>
+                                </div>
+                            </td>
+                            <td class="rede-cell">
+                                <span th:text="${host.ip}">IP</span><span th:text="'/' + ${host.notacao}">/25</span>
+                            </td>
+                            <td>
+                                <th:block th:if="${host.vlans != null and !host.vlans.isEmpty()}">
+                                    <span class="vlan-badge" th:attr="data-vlans=${host.vlans}">VLANs</span>
+                                </th:block>
+                                <th:block th:unless="${host.vlans != null and !host.vlans.isEmpty()}">
+                                    <span class="vlan-badge sem-vlans">&mdash;</span>
+                                </th:block>
+                            </td>
+                            <td th:text="${host.velocidade}">Veloc</td>
+                            <td>
+                                <div class="cfg-badges">
+                                    <span class="cfg-badge" th:classappend="${host.config.bloquearTesteBanda} ? 'ativo' : 'inativo'">Bloquear</span>
+                                    <span class="cfg-badge" th:classappend="${host.config.limitarTesteBanda} ? 'ativo' : 'inativo'">Limitar</span>
+                                    <span class="cfg-badge" th:classappend="${host.config.DuplaAbordagem} ? 'ativo' : 'inativo'">Dupla</span>
+                                    <span class="cfg-badge" th:classappend="${host.config.testarUDP} ? 'ativo' : 'inativo'">UDP</span>
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="row-actions">
+                                    <button type="button" class="btn btn-ghost btn-sm" th:attr="data-nome=${host.nome}" onclick="toggleExpand(this)">Editar</button>
+                                    <button type="button" class="btn btn-danger btn-sm" th:attr="data-nome=${host.nome}" onclick="apagarHost(this.dataset.nome)">Apagar</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Linha expandida (edição) -->
+                        <tr class="expand-row" th:id="'expand-' + ${host.nome}">
+                            <td colspan="6">
+                                <form th:action="@{/atualizar}" th:method="POST" class="expand-content" th:id="'form-' + ${host.nome}">
+                                    <input type="hidden" name="nome" th:value="${host.nome}">
+
+                                    <div class="expand-section">
+                                        <h4>Identificação</h4>
+                                        <div class="field">
+                                            <label>Nome</label>
+                                            <input type="text" th:value="${host.nome}" readonly style="opacity:.6;cursor:not-allowed">
+                                        </div>
+                                        <div class="field">
+                                            <label>Sigla</label>
+                                            <input type="text" name="codigo" th:value="${host.codigo}" maxlength="4">
+                                        </div>
+                                    </div>
+
+                                    <div class="expand-section">
+                                        <h4>Rede</h4>
+                                        <div class="field">
+                                            <label>IP</label>
+                                            <input type="text" name="ip" th:value="${host.ip}" th:attr="data-original=${host.ip}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Notação</label>
+                                            <input type="text" name="notacao" th:value="${host.notacao}" maxlength="2">
+                                        </div>
+                                        <div class="field">
+                                            <label>VLANs</label>
+                                            <input type="text" name="vlans" th:value="${host.vlans}" placeholder="IP/CIDR, IP/CIDR">
+                                        </div>
+                                        <div class="field">
+                                            <label>Velocidade</label>
+                                            <input type="text" name="velocidade" th:value="${host.velocidade}">
+                                        </div>
+                                    </div>
+
+                                    <div class="expand-section">
+                                        <h4>APIs</h4>
+                                        <div class="field">
+                                            <label>Smokeping</label>
+                                            <input type="text" name="smokeID" th:value="${host.smokeID}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Cacti</label>
+                                            <input type="text" name="cacti" th:value="${host.cacti}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Nagios</label>
+                                            <input type="text" name="nagiosID" th:value="${host.nagiosID}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Intra</label>
+                                            <input type="text" name="intra" th:value="${host.intra}">
+                                        </div>
+                                    </div>
+
+                                    <div class="expand-section">
+                                        <h4>Configurações</h4>
+                                        <label class="check-field"><input type="checkbox" name="config.bloquearTesteBanda" th:checked="${host.config.bloquearTesteBanda}"><span>Bloquear</span></label>
+                                        <label class="check-field"><input type="checkbox" name="config.limitarTesteBanda" th:checked="${host.config.limitarTesteBanda}"><span>Limitar</span></label>
+                                        <label class="check-field"><input type="checkbox" name="config.duplaAbordagem" th:checked="${host.config.DuplaAbordagem}"><span>Dupla</span></label>
+                                        <label class="check-field"><input type="checkbox" name="config.testarUDP" th:checked="${host.config.testarUDP}"><span>UDP</span></label>
+                                        <div class="field">
+                                            <label>WAN ID</label>
+                                            <input type="number" name="config.interfaceWanID" th:value="${host.config.getInterfaceWanID()}">
+                                        </div>
+                                        <div class="field">
+                                            <label>LAN ID</label>
+                                            <input type="number" name="config.interfaceLanID" th:value="${host.config.getInterfaceLanID()}">
+                                        </div>
+                                    </div>
+
+                                    <div class="expand-actions">
+                                        <button type="submit" class="btn btn-save btn-sm">Salvar</button>
+                                        <button type="button" class="btn btn-cancel-edit btn-sm" th:attr="data-nome=${host.nome}" onclick="fecharExpand(this)">Cancelar</button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    </th:block>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================ ABA EVENTOS ============================ -->
+    <section id="tab-eventos" class="tabpane">
+
+        <form id="salvarEvento" class="ngr-card form-card" action="/evento/criar" method="POST">
+            <h2>Novo Evento</h2>
+
+            <div class="form-col">
+                <div class="field">
+                    <label for="evento.nome">Nome</label>
+                    <input type="text" id="evento.nome" name="nome" placeholder="Ex.: Manutenção programada..." required maxlength="30">
+                </div>
+                <div class="field">
+                    <label for="evento.dataInicio">Data de início</label>
+                    <input type="date" id="evento.dataInicio" name="dataInicio" required>
+                </div>
+                <div class="field">
+                    <label for="evento.dataFim">Data de fim</label>
+                    <input type="date" id="evento.dataFim" name="dataFim" required>
+                </div>
+            </div>
+
+            <div class="form-col">
+                <div class="field">
+                    <label for="evento.descricao">Descrição</label>
+                    <textarea id="evento.descricao" name="descricao" rows="5" placeholder="Detalhes do evento..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Salvar Evento</button>
+                <button type="reset" class="btn btn-danger" onclick="liberarElemento('salvarEvento')">Cancelar</button>
+            </div>
+        </form>
+
+        <div class="ngr-card">
+            <div class="listbar">
+                <h2>Eventos cadastrados <span class="count" th:text="${eventos.size()}">0</span></h2>
+                <div class="listbar-actions">
+                    <button type="button" class="btn btn-primary" onclick="liberarElemento('salvarEvento')">+ Cadastrar evento</button>
+                    <input type="text" id="searchEventos" placeholder="Pesquisar evento..." onkeyup="filtrar('searchEventos', 'dataTableEventos')">
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="dataTableEventos" class="ngr-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Descrição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(eventos)}">
+                            <td colspan="5" class="ngr-empty">Nenhum evento cadastrado.</td>
+                        </tr>
+                        <tr th:each="evento : ${eventos}">
+                            <td th:text="${evento.nome}"></td>
+                            <td th:text="${evento.dataInicio}"></td>
+                            <td th:text="${evento.dataFim}"></td>
+                            <td th:text="${evento.descricao}"></td>
+                            <td class="actions-cell">
+                                <button type="button" class="btn btn-danger btn-sm" th:attr="data-id=${evento.id}" onclick="apagarEvento(this.dataset.id)">Apagar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
 </div>
+<script>
+    var editAtualHost = '';
 
-<h1><button onclick="salvarHostLiberar()" id="abrirCadastroBtn">
-    Cadastrar novo host
-</button></h1>
-
-<form action="/atualizar" method="POST" id="salvaHost" class="cadastroDeDispositivos">
-
-    <div style="min-width: 320px;flex: 1;">
-        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #11bb79; padding-bottom: 8px;">
-            Dados do HOST
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:14px;">
-            <div>
-                <label for="nome" class="form-label">Nome</label>
-                <input form="salvaHost" type="text" id="nome" name="nome" placeholder="Nome..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="codigo" class="form-label">Código</label>
-                <input form="salvaHost" type="text" id="codigo" name="codigo" placeholder="Sigla..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="ip" class="form-label">IP</label>
-                <input form="salvaHost" type="text" id="ip" name="ip" placeholder="IP..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="velocidade" class="form-label">Velocidade</label>
-                <input form="salvaHost" type="number" id="velocidade" name="velocidade" placeholder="Mbps..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="notacao" class="form-label">Notação</label>
-                <input form="salvaHost" type="text" id="notacao" name="notacao" placeholder="/24" class="inputConfig2">
-            </div>
-        </div>
-    </div>
-
-    <div style="min-width: 320px;flex: 1;">
-        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #fd0000; padding-bottom: 8px;">
-            APIs e Terceiros
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:14px;">
-            <div>
-                <label for="smokeID" class="form-label">SmokeID</label>
-                <input form="salvaHost" type="text" id="smokeID" name="smokeID" placeholder="ID do smoke..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="cacti" class="form-label">Cacti</label>
-                <input form="salvaHost" type="text" id="cacti" name="cacti" placeholder="ID do gráfico..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="nagios" class="form-label">Nagios</label>
-                <input form="salvaHost" type="text" id="nagios" name="nagios" placeholder="ID no Nagios..." class="inputConfig2">
-            </div>
-            <div>
-                <label for="intra" class="form-label">Intra</label>
-                <input form="salvaHost" type="text" id="intra" name="intra" placeholder="Código intranet..." class="inputConfig2">
-            </div>
-        </div>
-    </div>
-
-    <div>
-        <h2 style="color: #ffffff; margin-bottom: 20px; border-bottom: 2px solid #11bb79; padding-bottom: 8px;">
-            Verificações
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <label class="config-form-row">
-                <input type="checkbox" form="salvaHost" id="config.bloquearTesteBanda" name="config.bloquearTesteBanda">
-                <span>Bloquear teste de banda</span>
-            </label>
-            <label class="config-form-row">
-                <input type="checkbox" form="salvaHost"  id="config.limitarTesteBanda" name="config.limitarTesteBanda">
-                <span>Limitar teste de banda</span>
-            </label>
-            <label class="config-form-row">
-                <input type="checkbox" form="salvaHost" class="inputConfig2" id="config.duplaAbordagem" name="config.duplaAbordagem">
-                <span>Dupla abordagem</span>
-            </label>
-            <label class="config-form-row">
-                <input type="number" form="salvaHost" class="inputConfig2" id="config.interfaceWanID" name="config.interfaceWanID">
-                <span>Interface Wan ID</span>
-            </label>
-            <label class="config-form-row">
-                <input type="number" form="salvaHost" class="inputConfig2" id="config.interfaceLanID" name="config.interfaceLanID">
-                <span>Interface Lan ID</span>
-            </label>
-        </div>
-    </div>
-    <div>
-        <button form="salvaHost" type="submit">💾 Salvar Host</button>
-        <button form="salvaHost" type="reset" onclick="salvarHostLiberar()" style="background-color: red">✖ Cancelar</button>
-    </div>
-
-</form>
-<h2>Hosts cadastrados</h2>
-
-<div class="searcher" style="background-color: #10182b; padding: 0;">
-    <input type="text" id="search" placeholder="Pesquisa cidade 🔎" onkeyup="filterTable()">
-</div>
-
-<script th:inline="javascript">
-    let editAtualHost = '';
-    function liberarEdicaoHost(host){
-        hostClass = host.dataset.id;
-        form = document.getElementById(hostClass);
-        cancelar = document.getElementById(hostClass + 'cancelar');
-        if(editAtualHost.length <= 0){
-            cancelar.style.display = '';
-            host.innerHTML = 'Salvar';
-            editAtualHost = hostClass;
-            var inputs = document.getElementsByClassName(hostClass)
-            console.log("" + editAtualHost)
-            for (var i = 0; i < inputs.length; i++) {
-                if (inputs[i].type === 'checkbox') {
-                    inputs[i].classList.remove('check-travado');
-                } else {
-                    inputs[i].readOnly = false;
-                }
-                inputs[i].className += " inputConfig2";
-            }
-        }else if (editAtualHost == hostClass){
-            form.submit();
-        }
+    function trocarAba(aba) {
+        document.querySelectorAll('.ngr-tab').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.tab === aba);
+        });
+        document.getElementById('tab-hosts').classList.toggle('active', aba === 'hosts');
+        document.getElementById('tab-eventos').classList.toggle('active', aba === 'eventos');
     }
 
     function salvarHostLiberar() {
-        let tabela = document.getElementById("salvaHost");
-        let botao = document.getElementById("abrirCadastroBtn");
-        const visivel = window.getComputedStyle(tabela).display !== "none";
-        tabela.style.display = visivel ? "none" : "flex";
-        botao.style.display = visivel ? "" : "none";
+        var form = document.getElementById('salvaHost');
+        var botao = document.getElementById('abrirCadastroBtn');
+        var aberto = form.classList.toggle('open');
+        botao.textContent = aberto ? 'Fechar' : '+ Novo host';
+    }
+
+    function liberarElemento(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function toggleExpand(btn) {
+        var nome = btn.dataset.nome;
+        var row = document.getElementById('row-' + nome);
+        var expand = document.getElementById('expand-' + nome);
+        var aberto = expand.classList.contains('aberto');
+
+        document.querySelectorAll('.expand-row.aberto').forEach(function(r) {
+            r.classList.remove('aberto');
+        });
+        document.querySelectorAll('.host-row.editando').forEach(function(r) {
+            r.classList.remove('editando');
+        });
+
+        if (!aberto) {
+            expand.classList.add('aberto');
+            row.classList.add('editando');
+            btn.textContent = '▼ Fechar';
+        } else {
+            btn.textContent = 'Editar';
+        }
+    }
+
+    function fecharExpand(btn) {
+        var nome = btn.dataset.nome;
+        var expand = document.getElementById('expand-' + nome);
+        var row = document.getElementById('row-' + nome);
+        expand.classList.remove('aberto');
+        row.classList.remove('editando');
+        var editBtn = row.querySelector('.btn-ghost');
+        if (editBtn) editBtn.textContent = 'Editar';
     }
 
     function apagarHost(nome) {
         if (confirm('Tem certeza que quer deletar o host ' + nome + '?')) {
             fetch('/apagarCidade', {
                 method: 'POST',
+                redirect: 'manual',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'nome=' + encodeURIComponent(nome)
-            }).then(() => location.reload());
+            }).then(function (r) {
+                window.location.href = r.headers.get('Location') || '/configuracao';
+            });
         }
     }
-</script>
 
-<table class="city" id="dataTable">
-    <thead>
-        <tr class="linha">
-            <th>Host</th>
-            <th>Sigla</th>
-            <th>Velocidade</th>
-            <th>Smoke</th>
-            <th>Cacti</th>
-            <th>Nagios</th>
-            <th>Intra</th>
-            <th>IP</th>
-            <th>/</th>
-            <th>LanID</th>
-            <th>WanID</th>
-            <th>Configs</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-    <tr th:each="host : ${hosts}" class="linha">
-        <form th:action="@{/atualizar}" th:method="POST" th:id="${host.nome}">
-            <td>
-                <a target="_blank" th:href="@{/unidade/{nome}(nome=${host.nome})}" th:text="${host.nome}">Nome</a>
-                <input th:class="inputConfig" type="hidden" th:name="nome" th:value="${host.nome}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="codigo" th:value="${host.codigo}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="velocidade" th:value="${host.velocidade}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="smokeID" th:value="${host.smokeID}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="cacti" th:value="${host.cacti}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="nagiosID" th:value="${host.nagiosID}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="intra" th:value="${host.intra}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="ip" th:value="${host.ip}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="notacao" th:value="${host.notacao}" readonly>
-            </td>
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="config.interfaceLanID" th:value="${host.config.getInterfaceLanID()}" readonly>
-            </td>
-
-            <td>
-                <input th:class="'inputConfig ' + ${host.nome}" th:name="config.interfaceWanID" th:value="${host.config.getInterfaceWanID()}" readonly>
-            </td>
-            <td class="configs-cell">
-                <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.bloquearTesteBanda" th:checked="${host.getConfig().bloquearTesteBanda}">
-                    <span class="config-text">Bloquear</span>
-                </div>
-                <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.limitarTesteBanda" th:checked="${host.config.limitarTesteBanda}">
-                    <span class="config-text">Limitar</span>
-                </div>
-                <div class="config-row" th:classappend="${host.nome}">
-                    <input type="checkbox" th:class="'config-check check-travado ' + ${host.nome}" th:name="config.duplaAbordagem" th:checked="${host.config.DuplaAbordagem}">
-                    <span class="config-text">Dupla</span>
-                </div>
-            </td>
-            <td class="actions-cell">
-                <button type="button" class="btn-edit" th:attr="data-id=${host.nome}" onclick="liberarEdicaoHost(this)">🖊</button>
-                <button type="button" th:id="${host.nome} + 'cancelar'" class="btn-cancel" style="display:none" onclick="location.reload()">Cancelar</button>
-            </td>
-        </form>
-    </tr>
-    </tbody>
-</table>
-
-<script>
-    document.querySelectorAll('#dataTable tbody tr').forEach(row => {
-        const deleteBtn = row.querySelector('td:last-of-type');
-        deleteBtn.className = 'actions-cell';
-        const nome = row.querySelector('a')?.textContent.trim();
-        if (nome) {
-            const btn = document.createElement('button');
-            btn.textContent = 'Apagar';
-            btn.className = 'btn-delete';
-            btn.onclick = () => apagarHost(nome);
-            deleteBtn.appendChild(btn);
-            row.appendChild(deleteBtn);
+    function apagarEvento(id) {
+        if (id == null || id === '') return;
+        if (confirm('Tem certeza que quer deletar o evento de id ' + id + '?')) {
+            fetch('/evento/apagar', {
+                method: 'POST',
+                redirect: 'manual',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + encodeURIComponent(id)
+            }).then(function (r) {
+                window.location.href = r.headers.get('Location') || '/configuracao';
+            });
         }
-    });
+    }
+
+    function limpaAcentos(str) {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filtrar(inputId, tableId) {
+        var input = document.getElementById(inputId);
+        var table = document.getElementById(tableId);
+        if (!input || !table) return;
+        var filtro = limpaAcentos(input.value.toLowerCase());
+        var linhas = table.querySelectorAll('tbody tr');
+        for (var i = 0; i < linhas.length; i++) {
+            if (linhas[i].classList.contains('expand-row')) continue;
+            var tds = linhas[i].querySelectorAll('td');
+            var match = false;
+            for (var j = 0; j < tds.length; j++) {
+                var texto = limpaAcentos((tds[j].innerText || tds[j].textContent).toLowerCase());
+                if (texto.indexOf(filtro) > -1) { match = true; break; }
+            }
+            linhas[i].style.display = match ? '' : 'none';
+            var expand = linhas[i].nextElementSibling;
+            if (expand && expand.classList.contains('expand-row')) {
+                expand.style.display = match ? '' : 'none';
+            }
+        }
+    }
+
+    /* Validação de IP duplicado via AJAX */
+    (function() {
+        var ipInput = document.getElementById('ip');
+        var debounceTimer;
+        if (!ipInput) return;
+
+        ipInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var ip = this.value.trim();
+            if (!ip || !ip.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+                removerErroIp();
+                return;
+            }
+            debounceTimer = setTimeout(function() {
+                fetch('/verificarIp?ip=' + encodeURIComponent(ip))
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.existe) {
+                            mostrarErroIp('IP já pertence a: ' + d.cidade);
+                        } else {
+                            removerErroIp();
+                        }
+                    });
+            }, 400);
+        });
+
+        function mostrarErroIp(msg) {
+            removerErroIp();
+            ipInput.classList.add('erro-campo');
+            var hint = document.createElement('div');
+            hint.className = 'field-hint';
+            hint.style.color = '#e5484d';
+            hint.style.fontStyle = 'normal';
+            hint.style.fontWeight = '700';
+            hint.textContent = msg;
+            hint.id = 'ip-erro-hint';
+            ipInput.parentNode.appendChild(hint);
+        }
+
+        function removerErroIp() {
+            ipInput.classList.remove('erro-campo');
+            var old = document.getElementById('ip-erro-hint');
+            if (old) old.remove();
+        }
+    })();
 </script>
+
 </body>
 </html>

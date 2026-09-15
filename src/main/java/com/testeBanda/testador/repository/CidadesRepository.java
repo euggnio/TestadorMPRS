@@ -13,6 +13,8 @@ public interface CidadesRepository extends JpaRepository<Cidades,String>  {
 
     Optional<Cidades> findByNagiosIDEqualsIgnoreCase(String nagiosID);
 
+    Optional<Cidades> findByIp(String ip);
+
     @Query("SELECT c FROM Cidades c LEFT JOIN FETCH c.dispositivos WHERE c.nome = :nome")
     Optional<Cidades> findByIdComDispositivos(@Param("nome") String nome);
 

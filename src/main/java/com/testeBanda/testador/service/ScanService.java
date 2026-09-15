@@ -38,34 +38,90 @@ public class ScanService {
     private boolean desligar;
 
 
-    //Responsável por pegar os IPS sem cidades cadastrados
-    public List<String> ipsSemCidade(List<Cidades> cidades) {
-        List<String> ipsLimpos = new ArrayList<>();
-        List<String> ips = new ArrayList<>(cidades.stream().map(Cidades::getIp).toList());
-        for (int i = 1; i < 255; i++) {
-            String ip = "172.17." + i + ".1";
-            if (!ips.contains(ip)) {
-                ipsLimpos.add(ip);
+    /**
+     * Calcula o range de IPs (network, broadcast) de uma sub-rede dado um IP e CIDR.
+     */
+    private static String[] calcularRangeRede(String ip, int cidr) {
+        String[] partes = ip.split("\\.");
+        int ipNum = ((Integer.parseInt(partes[0]) & 0xFF) << 24)
+                  | ((Integer.parseInt(partes[1]) & 0xFF) << 16)
+                  | ((Integer.parseInt(partes[2]) & 0xFF) << 8)
+                  |  (Integer.parseInt(partes[3]) & 0xFF);
+        int mascara = cidr == 0 ? 0 : (0xFFFFFFFF << (32 - cidr));
+        int network   = ipNum & mascara;
+        int broadcast = network | ~mascara;
+        String n = ((network >> 24) & 0xFF) + "." + ((network >> 16) & 0xFF) + "."
+                 + ((network >> 8)  & 0xFF) + "." + ((network)       & 0xFF);
+        String b = ((broadcast >> 24) & 0xFF) + "." + ((broadcast >> 16) & 0xFF) + "."
+                 + ((broadcast >> 8)  & 0xFF) + "." + ((broadcast)       & 0xFF);
+        return new String[]{ n, b };
+    }
+
+    /**
+     * Retorna todas as redes de uma cidade: rede principal + VLANs.
+     * Cada entrada é String[]{ networkAddress, broadcastAddress }.
+     */
+    private static List<String[]> listarRedes(Cidades c) {
+        List<String[]> redes = new ArrayList<>();
+        int notacao = Integer.parseInt(c.getNotacao());
+        redes.add(calcularRangeRede(c.getIp(), notacao));
+        String vlans = c.getVlans();
+        if (vlans != null && !vlans.isBlank()) {
+            for (String vlan : vlans.split(",")) {
+                String trimmed = vlan.trim();
+                if (trimmed.isEmpty()) continue;
+                String[] partes = trimmed.split("/");
+                if (partes.length != 2) {
+                    log.warn("VLAN formato inválido '{}', ignorando", trimmed);
+                    continue;
+                }
+                String ipVlan = partes[0].trim();
+                String cidrStr = partes[1].trim();
+                try {
+                    int cidrVlan = Integer.parseInt(cidrStr);
+                    if (cidrVlan < 1 || cidrVlan > 30) {
+                        log.warn("VLAN CIDR inválido {}/{}", ipVlan, cidrVlan);
+                        continue;
+                    }
+                    redes.add(calcularRangeRede(ipVlan, cidrVlan));
+                } catch (NumberFormatException e) {
+                    log.warn("VLAN CIDR não numérico '{}', ignorando", cidrStr);
+                }
             }
         }
+        return redes;
+    }
+
+    //Responsável por pegar os IPS sem cidades cadastrados
+    public List<String> ipsSemCidade(List<Cidades> cidades) {
+        Set<String> todosIpsCidades = new HashSet<>();
         for (Cidades c : cidades) {
-            int notacao = Integer.parseInt(c.getNotacao());
-            int loops = 1 << (24 - notacao);
-            String[] partesIp = c.getIp().split("\\.");
-            String baseIp = partesIp[0] + "." + partesIp[1] + ".";
-            int terceiroOcteto = Integer.parseInt(partesIp[2]);
-            for (int i = 0; i < loops; i++) {
-                String ipDaNotacao = baseIp + (terceiroOcteto + i) + ".1";
-                ipsLimpos.remove(ipDaNotacao);
+            for (String[] rede : listarRedes(c)) {
+                String[] netParts  = rede[0].split("\\.");
+                String[] bcastParts = rede[1].split("\\.");
+                int netNum  = ((Integer.parseInt(netParts[0])  & 0xFF) << 24) | ((Integer.parseInt(netParts[1])  & 0xFF) << 16) | ((Integer.parseInt(netParts[2])  & 0xFF) << 8) | (Integer.parseInt(netParts[3])  & 0xFF);
+                int bcastNum = ((Integer.parseInt(bcastParts[0]) & 0xFF) << 24) | ((Integer.parseInt(bcastParts[1]) & 0xFF) << 16) | ((Integer.parseInt(bcastParts[2]) & 0xFF) << 8) | (Integer.parseInt(bcastParts[3]) & 0xFF);
+                for (int i = netNum + 1; i < bcastNum; i++) {
+                    todosIpsCidades.add(((i >> 24) & 0xFF) + "." + ((i >> 16) & 0xFF) + "."
+                            + ((i >> 8)  & 0xFF) + "." + ((i)       & 0xFF));
+                }
+            }
+        }
+        List<String> ipsLimpos = new ArrayList<>();
+        for (int i = 1; i < 255; i++) {
+            String ip = "172.17." + i + ".1";
+            if (!todosIpsCidades.contains(ip)) {
+                ipsLimpos.add(ip);
             }
         }
         return ipsLimpos;
     }
 
     public void varrerCidades() {
-//        if ( desligar ) return;
+        if ( desligar ) return;
 
         List<Cidades> cidades = cidadesRepository.findAll();
+
         if ( cidades.isEmpty() ) return;
         List<String> ipsLimpos = ipsSemCidade(cidades);
         LocalDate hoje = LocalDate.now();
@@ -80,6 +136,7 @@ public class ScanService {
             transport.listen();
             glpiAPI.getSessionToken();
             for (String ip : ipsLimpos) {
+
                 routerExecutor.submit(() -> {
                     try {
                         semaforoPjs.acquire();
@@ -99,17 +156,19 @@ public class ScanService {
             }
 
             for (Cidades cidade : cidades) {
-                if ( hoje.equals(cidade.getUltimaVarredura()) ) {
+                if ( cidade.getUltimaVarredura() != null && hoje.equals(cidade.getUltimaVarredura().toLocalDate()) ) {
                     log.info("Varredura já efetuada em {}", cidade.getNome());
                     continue;
                 }
                 routerExecutor.submit(() -> {
                     try {
                         semaforoPjs.acquire();
-                        log.info(">>>> Iniciando varredura em: {}", cidade.getNome());
+                        String threadName = Thread.currentThread().getName();
+                        log.info("[{}] >>>> Iniciando varredura em: {}", threadName, cidade.getNome());
                         List<Dispositivos> encontrados = scanearHost(snmp, cidade, vThreadExecutor, semaforoScans);
+                        log.info("[{}] Dispositivos de {} encontrados: {}", threadName, cidade.getNome(), encontrados.size());
                         dispositivosService.salvarResultadosCidade(cidade, encontrados, hoje);
-                        log.info("Varredura salva para cidade: {}", cidade.getNome());
+                        log.info("[{}] Varredura salva para cidade: {}", threadName, cidade.getNome());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         log.error("Thread interrompida para {}", cidade.getNome());
@@ -183,25 +242,23 @@ public class ScanService {
 
 
     private List<Dispositivos> scanearHost(Snmp snmp, Cidades cidade, ExecutorService executor, Semaphore semaphore) {
-        String[] partesIp = cidade.getIp().split("\\.");
-        int terceiroOctetoBase = Integer.parseInt(partesIp[2]);
-        String prefixoRede = partesIp[0] + "." + partesIp[1] + ".";
+        List<String[]> redes = listarRedes(cidade);
         List<Future<?>> futures = new ArrayList<>();
         List<Dispositivos> dispositivos = Collections.synchronizedList(new ArrayList<>());
 
-        Map<String, String> arpCache = carregarArpDoMikrotik(snmp, prefixoRede + terceiroOctetoBase + ".1", "public");
-        int notacao = Integer.parseInt(cidade.getNotacao());
-        int loops = 1 << (24 - notacao);
-        int inicioDosIps = Integer.parseInt(partesIp[3]);
-        int limiteDosIps = 254;
-        if ( inicioDosIps == 1 && cidade.getNotacao().equals("25") ) {
-            limiteDosIps = 128;
-        }
-        for (int i = 0; i < loops; i++) {
-            int terceiroOctetoAtual = terceiroOctetoBase + i;
-            String baseIpAtual = prefixoRede + terceiroOctetoAtual;
-            for (int atual = inicioDosIps; atual <= limiteDosIps; atual++) {
-                final String ip = baseIpAtual + "." + atual;
+        String[] partesIp = cidade.getIp().split("\\.");
+        String routerIp = partesIp[0] + "." + partesIp[1] + "." + partesIp[2] + ".1";
+        Map<String, String> arpCache = carregarArpDoMikrotik(snmp, routerIp, "public");
+
+        for (String[] rede : redes) {
+            String[] netParts = rede[0].split("\\.");
+            String[] bcastParts = rede[1].split("\\.");
+            int netNum  = ((Integer.parseInt(netParts[0])  & 0xFF) << 24) | ((Integer.parseInt(netParts[1])  & 0xFF) << 16) | ((Integer.parseInt(netParts[2])  & 0xFF) << 8) | (Integer.parseInt(netParts[3])  & 0xFF);
+            int bcastNum = ((Integer.parseInt(bcastParts[0]) & 0xFF) << 24) | ((Integer.parseInt(bcastParts[1]) & 0xFF) << 16) | ((Integer.parseInt(bcastParts[2]) & 0xFF) << 8) | (Integer.parseInt(bcastParts[3]) & 0xFF);
+
+            for (int ipNum = netNum + 1; ipNum < bcastNum; ipNum++) {
+                final String ip = ((ipNum >> 24) & 0xFF) + "." + ((ipNum >> 16) & 0xFF) + "."
+                        + ((ipNum >> 8)  & 0xFF) + "." + ((ipNum)       & 0xFF);
 
                 Future<?> future = executor.submit(() -> {
                     try {

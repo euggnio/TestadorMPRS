@@ -131,7 +131,7 @@
         </thead>
         <tbody>
         <th:block th:each="cidade : ${cidades}" >
-            <tr th:id="${cidade.nome}" th:class="${cidade.bloquearTesteBanda} ? 'linha bloqueado' : 'linha'">
+            <tr th:id="${cidade.nome}" th:class="${cidade.getConfig().bloquearTesteBanda} ? 'linha bloqueado' : 'linha'">
 
                 <td>
                     <div class="background">
@@ -144,20 +144,22 @@
                         </div>
                     </div>
                     <span class="dado"><a target="_blank" th:href="@{/unidade/{nome}(nome=${cidade.nome})}" th:text="${cidade.nome}">Nome da cidade</a></span>
+                    <span th:if="${cidade.getConfig().testarUDP}" class="limited-badge">
+                        UDP
+                    </span>
                 </td>
                 <td><span class="dado" th:text="${cidade.velocidade}"></span>
                 </td>
                 <td class="td-banda">
-    <span class="dado banda-texto"
-          th:text="${cidade.bloquearTesteBanda ? 'TESTE BLOQUEADO' : cidade.ultimoTesteBanda}">
-    </span>
-
-                    <span th:if="${cidade.limitarTesteBanda}" class="limited-badge">
-        Limitado à velocidade
-    </span>
+                <span class="dado banda-texto"
+                      th:text="${cidade.getConfig().bloquearTesteBanda ? 'TESTE BLOQUEADO' : cidade.ultimoTesteBanda}">
+                </span>
+                <span th:if="${cidade.getConfig().limitarTesteBanda}" class="limited-badge">
+                    Limitado à velocidade
+                </span>
 
                     <div class="barra-banda-fundo"
-                         th:if="${!cidade.bloquearTesteBanda}"
+                         th:if="${!cidade.getConfig().bloquearTesteBanda}"
                          th:data-banda="${cidade.ultimoTesteBanda}"
                          th:data-limite="${cidade.velocidade}">
                         <div class="barra-banda-progresso"></div>
@@ -166,14 +168,14 @@
 
                 <td><span class="dado" th:text="${cidade.dataUltimoTeste}"></span>
                 </td>
-                <td><span th:if="${!cidade.bloquearTesteBanda}" class="dado" th:text="${(cidade.checkTesteBanda) ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"
+                <td><span id="resultadoTeste" th:if="${!cidade.getConfig().bloquearTesteBanda}" class="dado" th:text="${(cidade.checkTesteBanda) ? 'ULTIMO TESTE OK' : 'ULTIMO TESTE NÃO OK'}"
                           th:style="'color: ' + ${cidade.checkTesteBanda ? 'GREEN' : 'RED'}"></span>
                 </td>
                 <td>
                     <button class="ligarTeste "
                             th:attr="data-cidade=${cidade.nome}"
                             onclick="iniciarTeste(this.getAttribute('data-cidade'))"
-                    th:disabled="${cidade.bloquearTesteBanda}"
+                    th:disabled="${cidade.getConfig().bloquearTesteBanda}"
                     >
                         ▶
                     </button>

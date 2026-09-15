@@ -55,13 +55,4 @@ public class SchedulerService {
         monitor.run();
     }
 
-    @Scheduled(cron = "${schedule.varreduraRede}")
-    public void rodarScan() {
-        log.info("Iniciando scan de rede diário");
-        scan.varrerCidades();
-    }
-
-
-
-
 }

@@ -124,6 +124,8 @@
 <script type="text/javascript" th:inline="javascript">
     quedas = [[${alertas.getQuedas()}]];
     dados = [[${alertas.mesDisponibilidades}]]
+    eventos = [[${eventos}]];
+    quedas = quedas.filter(q => !temEventoNoDia(q));
     dropAno.addEventListener('change', () => {
         window.location.pathname = "/grafico/" + dropAno.value
     })

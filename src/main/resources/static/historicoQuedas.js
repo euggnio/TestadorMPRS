@@ -9,42 +9,38 @@ let switcher = document.getElementById("toggle-switch");
 function dadosSalvos() {
     const hoje = new Date();
 
-    // pagina padrao vai tudo para o mais recente
-    if (window.location.href.indexOf("mes") <= -1 &&
-        window.location.href.indexOf("dia") <= -1){
-        localStorage.clear();
-    }
+    // mudamos para testar_x devido ao xerifeito...
 
     if(window.location.href.indexOf("dia") > -1){
         calendario.value = window.location.pathname.slice(-10)
-        localStorage.setItem('dia', calendario.value);
+        localStorage.setItem('testador_dia', calendario.value);
     }
 
-    if(localStorage.getItem('ano') == null){
-        localStorage.setItem('ano', hoje.getFullYear());
+    if(localStorage.getItem('testador_ano') == null){
+        localStorage.setItem('testador_ano', hoje.getFullYear());
         dropAno.value = hoje.getFullYear();
     }else{
-        dropAno.value = parseInt(localStorage.getItem('ano'));
+        dropAno.value = parseInt(localStorage.getItem('testador_ano'));
     }
 
-    if(localStorage.getItem('mes') == null){
-        localStorage.setItem('mes', hoje.getMonth()+1);
+    if(localStorage.getItem('testador_mes') == null){
+        localStorage.setItem('testador_mes', hoje.getMonth()+1);
         dropMes.value = hoje.getMonth()+1;
     }else{
-        dropMes.value = parseInt(localStorage.getItem('mes'));
+        dropMes.value = parseInt(localStorage.getItem('testador_mes'));
     }
 
-    if(localStorage.getItem('dia') == null){
-        localStorage.setItem('dia', calendario.value);
+    if(localStorage.getItem('testador_dia') == null){
+        localStorage.setItem('testador_dia', calendario.value);
     }else{
-        calendario.value = localStorage.getItem('dia');
+        calendario.value = localStorage.getItem('testador_dia');
     }
 
-    if(localStorage.getItem('switcher') == null){
-        localStorage.setItem('switcher', false);
+    if(localStorage.getItem('testador_switcher') == null){
+        localStorage.setItem('testador_switcher', false);
         switcher.checked = false;
     }else{
-        switcher.checked = (localStorage.getItem('switcher') == "true");
+        switcher.checked = (localStorage.getItem('testador_switcher') == "true");
     }
 
     // entra por link para dia enquanto switcher esta em mes
@@ -52,8 +48,8 @@ function dadosSalvos() {
     if(url.includes("dia") && switcher.checked){
         let dia = url.split('/').at(-1)
 
-        localStorage.setItem('switcher', false)
-        localStorage.setItem('dia', dia);
+        localStorage.setItem('testador_switcher', false)
+        localStorage.setItem('testador_dia', dia);
 
         switcher.checked = false;
         calendario.value = dia;
@@ -74,7 +70,7 @@ function checksFaltaDeLuz(){
 }
 
 function atualizaSwitcher() {
-    localStorage.setItem('switcher', switcher.checked);
+    localStorage.setItem('testador_switcher', switcher.checked);
 
     if(switcher.checked){
         outroMes()
@@ -88,13 +84,13 @@ function diaHoje(){
     let data = new Date();
     let hoje = data.toISOString().substring(0,10);
 
-    localStorage.setItem('dia', hoje);
+    localStorage.setItem('testador_dia', hoje);
     window.location = '/historicoQuedas';
 }
 
 function outraData(){
     const hoje = new Date();
-    localStorage.setItem('dia', calendario.value);
+    localStorage.setItem('testador_dia', calendario.value);
 
     if(calendario.value == hoje.toISOString().substring(0, 10)){
         window.location = '/historicoQuedas'
@@ -108,8 +104,8 @@ function outroMes() {
     let inputMes = document.getElementById("dropMes");
     let inputAno = document.getElementById("dropAno");
 
-    localStorage.setItem('mes', inputMes.value);
-    localStorage.setItem('ano', inputAno.value);
+    localStorage.setItem('testador_mes', inputMes.value);
+    localStorage.setItem('testador_ano', inputAno.value);
     window.location = '/historicoQuedas/mes/' + inputAno.value + '/' + inputMes.value;
 }
 dropAno.addEventListener('change', outroMes)
@@ -119,8 +115,8 @@ function setasData(valor){
     const hoje = new Date();
 
     if(switcher.checked){
-        let mes = parseInt(localStorage.getItem('mes')) + valor;
-        let ano = parseInt(localStorage.getItem('ano'));
+        let mes = parseInt(localStorage.getItem('testador_mes')) + valor;
+        let ano = parseInt(localStorage.getItem('testador_ano'));
         if(mes == 0){
             mes = 12;
             ano = ano - 1;
@@ -135,8 +131,8 @@ function setasData(valor){
         if( (ano < hoje.getFullYear()  && anos.includes(ano)) ||
             (ano == hoje.getFullYear() && mes <= hoje.getMonth()+1) )
         {
-            localStorage.setItem('mes', mes);
-            localStorage.setItem('ano', ano);
+            localStorage.setItem('testador_mes', mes);
+            localStorage.setItem('testador_ano', ano);
             window.location = '/historicoQuedas/mes/' + ano + '/' + mes;
         }
     }else{
@@ -145,7 +141,7 @@ function setasData(valor){
         date.setDate(date.getDate() + valor);
         let novaData = date.toISOString().substring(0, 10)
 
-        localStorage.setItem('dia', novaData);
+        localStorage.setItem('testador_dia', novaData);
 
         if(date.toDateString() == hoje.toDateString()){
             window.location = '/historicoQuedas'

@@ -4,11 +4,10 @@ import com.testeBanda.testador.DTO.CategoriaDTO;
 import com.testeBanda.testador.models.Dispositivos;
 import com.testeBanda.testador.repository.DispositivosRepository;
 import com.testeBanda.testador.service.CategoriaService;
-import com.testeBanda.testador.service.DispositivosService;
 import com.testeBanda.testador.service.NagiosSshService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -56,22 +55,27 @@ public class DispositivosController {
 //    }
 
     @PostMapping("/imprimir-nagios")
-    public Dispositivos salvarNagios(@RequestBody Dispositivos dispositivoFront) {
+    public ResponseEntity<String> salvarNagios(@RequestBody Dispositivos dispositivoFront) {
         Dispositivos dispositivo = dispositivosRepository.findById(dispositivoFront.getId())
                 .orElse(dispositivoFront);
-        System.out.println(dispositivo.toString());
-        System.out.println("cidadeNagiosId: " + dispositivo.getCidadeNagiosId());
-        try {
-            if(dispositivo.getCidadeNagiosId() == null){
-                throw new Exception();
-            }
-            nagiosSshService.cadastrarLinkPrimario(dispositivo.getCidadeNagiosId(), dispositivo.getNome(), dispositivo.getIp());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+        if(dispositivo.getIp().endsWith(".1")) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Roteadores não podem ser modificados");
         }
-        return dispositivo;
+            if(dispositivo.getCidadeNagiosId() == null){
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Dispositivo sem cidade cadastrada");
+            }
+            NagiosSshService.Resultado res = nagiosSshService.cadastrarLinkPrimario(dispositivo.getCidadeNagiosId(), dispositivo.getNome(), dispositivo.getIp());
+            if(res.sucesso()){
+                //isso aqui é o cumulo, mas funcionou... o OK generico do spring n retorna JSON só plain text.
+                throw new ResponseStatusException(HttpStatus.OK, "Dispositivo cadastrado com sucesso");
+            }
+            else{
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,res.mensagem());
+            }
+        }
     }
-    }
+
 
 
 

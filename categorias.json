@@ -1,11 +1,27 @@
 [ {
+  "key" : "cat_1785277061122",
+  "label" : "Roteadores",
+  "icon" : "\uD83D\uDEDC",
+  "cor" : "#00adb5",
+  "regexNome" : "CPE",
+  "regexDescricao" : "RouterOS",
+  "rangeIp" : "*.1",
+  "nomeExcluir" : "",
+  "descExcluir" : "",
+  "ipExcluir" : "",
+  "filtroUsuario" : ""
+}, {
   "key" : "switch",
   "label" : "Switches / Roteadores",
   "icon" : "\uD83D\uDD00",
   "cor" : "#00adb5",
-  "regexNome" : "sw-|switch|router",
-  "regexDescricao" : "Cisco|DES-3552|RouterOS|Summit200|Switch|3552|RouterOS RB2011iL",
-  "rangeIp" : "0-15"
+  "regexNome" : "",
+  "regexDescricao" : "",
+  "rangeIp" : "*.2-10",
+  "nomeExcluir" : "Microsoft",
+  "descExcluir" : "Microsoft|Servidor|N/A|null|Windows",
+  "ipExcluir" : "172.17.17.*",
+  "filtroUsuario" : ""
 }, {
   "key" : "pc",
   "label" : "Computadores / Notebooks",
@@ -13,53 +29,33 @@
   "cor" : "#4e9af1",
   "regexNome" : "pc-|nb-|desktop|workstation|^t\\d{4,8}$|^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$",
   "regexDescricao" : "windows|microsoft",
-  "rangeIp" : "60-255"
-}, {
-  "key" : "impressora",
-  "label" : "Impressoras",
-  "icon" : "\uD83D\uDDA8️",
-  "cor" : "#f1914e",
-  "regexNome" : "imp-|print|impressora|Xerox",
-  "regexDescricao" : "zebra|hp|laser|epson|mfp|lexmark|EPS|xeroxON|KYOCERA",
-  "rangeIp" : ""
-}, {
-  "key" : "telefone",
-  "label" : "Telefonia / VoIP",
-  "icon" : "\uD83D\uDCDE",
-  "cor" : "#a56ef1",
-  "regexNome" : "tel-|voip|fone|alcatel|ALCATEL|00:17|XIP:3E",
-  "regexDescricao" : "ALCATEL|VOIP|XIP",
-  "rangeIp" : ""
-}, {
-  "key" : "camera",
-  "label" : "Câmeras / Segurança",
-  "icon" : "\uD83D\uDCF7",
-  "cor" : "#f14e6e",
-  "regexNome" : "cam-|camera",
-  "regexDescricao" : "nvr|dvr|cftv|hikvision",
-  "rangeIp" : ""
-}, {
-  "key" : "wifi",
-  "label" : "Access Points / WiFi",
-  "icon" : "\uD83D\uDCF6",
-  "cor" : "#6ef1c3",
-  "regexNome" : "D8:B3:70",
-  "regexDescricao" : "ubiquiti|mikrotik",
-  "rangeIp" : ""
-}, {
-  "key" : "servidor",
-  "label" : "Servidores / NAS",
-  "icon" : "\uD83D\uDDC4️",
-  "cor" : "#f1e24e",
-  "regexNome" : "serv-|server|nas-|srv-|bekapeitordesat|bekapeitor",
-  "regexDescricao" : "",
-  "rangeIp" : ""
+  "rangeIp" : "60-255",
+  "nomeExcluir" : "",
+  "descExcluir" : "",
+  "ipExcluir" : "",
+  "filtroUsuario" : "com"
 }, {
   "key" : "outros",
   "label" : "Outros",
   "icon" : "\uD83D\uDCE6",
   "cor" : "#8899aa",
-  "regexNome" : "N/A",
-  "regexDescricao" : "",
-  "rangeIp" : ""
+  "regexNome" : "udsaplic",
+  "regexDescricao" : "Servidor/Dispositivo|",
+  "rangeIp" : "",
+  "nomeExcluir" : "",
+  "descExcluir" : "",
+  "ipExcluir" : "",
+  "filtroUsuario" : ""
+}, {
+  "key" : "cat_1785327829122",
+  "label" : "Servidores",
+  "icon" : "\uD83D\uDCCC",
+  "cor" : "#ff0000",
+  "regexNome" : "",
+  "regexDescricao" : "Servidor/Dispositivo",
+  "rangeIp" : "",
+  "nomeExcluir" : "",
+  "descExcluir" : "",
+  "ipExcluir" : "",
+  "filtroUsuario" : ""
 } ]

@@ -27,8 +27,7 @@ public class CidadeController {
 
     private final ScanService scanService;
     private final CidadesRepository cidadesRepository;
-    @Value("${testador.versao}")
-    private String versao;
+    private final EventosService eventosService;
     private final CidadeService cidadeService;
     private final Microtik microtik;
     private final GraficosService graficoService;
@@ -38,7 +37,7 @@ public class CidadeController {
     private final NagiosSshService nagiosSshService;
 
     @Autowired
-    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI, DispositivosRepository dispositivosRepository, ScanService scanService, CidadesRepository cidadesRepository, NagiosSshService nagiosSshService) {
+    public CidadeController(CidadeService cidadeService, Microtik microtik, GraficosService graficosService, QuedaService quedaService, NagiosAPI nagiosAPI, DispositivosRepository dispositivosRepository, ScanService scanService, CidadesRepository cidadesRepository, NagiosSshService nagiosSshService, EventosService eventosService) {
         this.cidadeService = cidadeService;
         this.microtik = microtik;
         this.graficoService = graficosService;
@@ -48,13 +47,10 @@ public class CidadeController {
         this.scanService = scanService;
         this.cidadesRepository = cidadesRepository;
         this.nagiosSshService = nagiosSshService;
+        this.eventosService = eventosService;
     }
 
-    @GetMapping("/versao")
-    @ResponseBody
-    public String versao() {
-        return versao;
-    }
+
 
     @GetMapping("/unidade/{city}")
     public String unidade(@PathVariable String city, Model model) {
@@ -82,6 +78,7 @@ public class CidadeController {
         return "historicoQuedas";
     }
 
+    @CrossOrigin(origins = "https://nagiosmpls.mp.rs.gov.br")
     @GetMapping("/pegarGraficoSmoke/{id}")
     public ResponseEntity<String> pegarGraficoSmoke(@PathVariable String id) {
         return ResponseEntity.ok(graficoService.pegarUnidadeSmoke(id));
@@ -89,33 +86,90 @@ public class CidadeController {
 
     @PostMapping("/atualizar")
     public String atualizarCidade(Cidades cidade, RedirectAttributes redirectAttrs) {
-        if ( cidade.nome.isEmpty() || cidade.ip.isEmpty()) {
-            redirectAttrs.addFlashAttribute("status", "Falta de dados! (Obgt. nome e IP)");
+        if ( cidade.nome == null || cidade.nome.isEmpty() || cidade.ip == null || cidade.ip.isEmpty()) {
+            redirectAttrs.addFlashAttribute("status", "Erro: Nome e IP são obrigatórios.");
             return "redirect:configuracao";
         }
+
+        String ip = cidade.getIp().trim();
+        if (!ip.matches("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$")) {
+            redirectAttrs.addFlashAttribute("status", "Erro: Formato de IP inválido.");
+            return "redirect:configuracao";
+        }
+//        if (ip.endsWith(".1")) {
+//            redirectAttrs.addFlashAttribute("status", "Erro: IP não pode ser de roteador (termina em .1).");
+//            return "redirect:configuracao";
+//        }
+
+        Optional<Cidades> existentePorIp = cidadesRepository.findByIp(ip);
+        if (existentePorIp.isPresent()) {
+            String nomeExistente = existentePorIp.get().getNome();
+            String nomeAtual = cidade.getNome() != null ? cidade.getNome().trim() : "";
+            if (!nomeExistente.equalsIgnoreCase(nomeAtual)) {
+                redirectAttrs.addFlashAttribute("status", "Erro: Já existe uma cidade com o IP " + ip + ".");
+                return "redirect:configuracao";
+            }
+        }
+
+        if (cidade.getNotacao() != null && !cidade.getNotacao().isEmpty()) {
+            try {
+                int notacao = Integer.parseInt(cidade.getNotacao());
+                if (notacao < 23 || notacao > 30) {
+                    redirectAttrs.addFlashAttribute("status", "Erro: Notação deve ser entre /23 e /30.");
+                    return "redirect:configuracao";
+                }
+            } catch (NumberFormatException e) {
+                redirectAttrs.addFlashAttribute("status", "Erro: Notação deve ser um número.");
+                return "redirect:configuracao";
+            }
+        }
+
+        if (cidade.getVlans() != null && !cidade.getVlans().isBlank()) {
+            for (String vlan : cidade.getVlans().split(",")) {
+                String trimmed = vlan.trim();
+                if (trimmed.isEmpty()) continue;
+                String[] partes = trimmed.split("/");
+                if (partes.length != 2) {
+                    redirectAttrs.addFlashAttribute("status", "Erro: VLAN '" + trimmed + "' inválida. Formato: IP/CIDR (ex: 172.17.1.224/29)");
+                    return "redirect:configuracao";
+                }
+                try {
+                    int cidr = Integer.parseInt(partes[1].trim());
+                    if (cidr < 1 || cidr > 30) {
+                        redirectAttrs.addFlashAttribute("status", "Erro: VLAN '" + trimmed + "' com CIDR inválido.");
+                        return "redirect:configuracao";
+                    }
+                } catch (NumberFormatException e) {
+                    redirectAttrs.addFlashAttribute("status", "Erro: VLAN '" + trimmed + "' com CIDR não numérico.");
+                    return "redirect:configuracao";
+                }
+            }
+        }
+
         Cidades cidadeModificar;
         Optional<Cidades> cidadeExiste = cidadeService.findByIdOptional(cidade.getNome());
         cidadeModificar = cidadeExiste.orElseGet(Cidades::new);
-
-        cidadeModificar.setNome(cidade.getNome());
-        cidadeModificar.setIp(cidade.ip);
+        cidadeModificar.setNome(cidade.getNome().trim());
+        cidadeModificar.setIp(ip);
         cidadeModificar.setCodigo(cidade.codigo);
         cidadeModificar.setVelocidade(cidade.velocidade);
         cidadeModificar.setIntra(cidade.intra);
         cidadeModificar.setNotacao(cidade.notacao);
+        cidadeModificar.setVlans(cidade.getVlans());
         cidadeModificar.setNagiosID(cidade.nagiosID);
         cidadeModificar.setSmokeID(cidade.smokeID);
         cidadeModificar.setCacti(cidade.cacti);
-        cidadeModificar.setNagiosID(cidade.nagiosID);
 
-        cidadeModificar.getConfig().setBloquearTesteBanda(cidade.bloquearTesteBanda);
-        cidadeModificar.getConfig().setLimitarTesteBanda(cidade.limitarTesteBanda);
-        cidadeModificar.getConfig().setDuplaAbordagem(cidade.duplaAbordagem);
+        cidadeModificar.checkTesteBanda = false;
+        cidadeModificar.getConfig().setBloquearTesteBanda(cidade.getConfig().bloquearTesteBanda);
+        cidadeModificar.getConfig().setLimitarTesteBanda(cidade.getConfig().limitarTesteBanda);
+        cidadeModificar.getConfig().setDuplaAbordagem(cidade.getConfig().duplaAbordagem);
+        cidadeModificar.getConfig().setTestarUDP(cidade.getConfig().testarUDP);
         cidadeModificar.getConfig().setInterfaceLanID(cidade.getConfig().interfaceLanID);
         cidadeModificar.getConfig().setInterfaceWanID(cidade.getConfig().interfaceWanID);
 
         cidadeService.salvarCidade(cidadeModificar);
-        redirectAttrs.addFlashAttribute("status", "Cidade salva !");
+        redirectAttrs.addFlashAttribute("status", "Cidade salva com sucesso!");
         return "redirect:configuracao";
     }
 
@@ -124,6 +178,20 @@ public class CidadeController {
         cidadeService.apagarCidade(cidade.nome);
         redirectAttrs.addFlashAttribute("status", "Cidade apagada !");
         return "redirect:configuracao";
+    }
+
+    @GetMapping("/verificarIp")
+    @ResponseBody
+    public Map<String, Object> verificarIp(@RequestParam String ip, @RequestParam(required = false) String nomeAtual) {
+        Map<String, Object> resultado = new HashMap<>();
+        Optional<Cidades> existente = cidadesRepository.findByIp(ip);
+        if (existente.isPresent() && !existente.get().getNome().equals(nomeAtual)) {
+            resultado.put("existe", true);
+            resultado.put("cidade", existente.get().getNome());
+        } else {
+            resultado.put("existe", false);
+        }
+        return resultado;
     }
 
     @GetMapping("/varreduraFlaps")
@@ -173,6 +241,7 @@ public class CidadeController {
     public String grafico(Model model){
         DadosAlertaDTO dados = new DadosAlertaDTO();
         model.addAttribute("alertas", quedaService.PreencherDTO(dados, Year.now().getValue()));
+        model.addAttribute("eventos", eventosService.pegarTodos());
         return "grafico";
     }
 
@@ -180,6 +249,7 @@ public class CidadeController {
     public String graficoAno(Model model, @PathVariable String ano){
         DadosAlertaDTO dados = new DadosAlertaDTO();
         model.addAttribute("alertas", quedaService.PreencherDTO(dados, Integer.parseInt(ano)));
+        model.addAttribute("eventos", eventosService.pegarTodos());
         return "grafico";
     }
 
@@ -194,39 +264,14 @@ public class CidadeController {
             hostName = "Erro ao resolver hostname";
         }
         System.out.println(hostName);
+
         model.addAttribute("ip", microtik.ip);
         model.addAttribute("usuario", microtik.usuario);
-        model.addAttribute("senha", microtik.senha);
         model.addAttribute("hosts", cidadeService.findAll());
+        model.addAttribute("eventos", eventosService.pegarTodos());
         return "configuracao";
     }
 
-    @GetMapping("/error")
-    public String error() {
-        return "error";
-    }
 
-    @GetMapping("/login")
-    public String login(@RequestParam(value = "error", required = false) String error,Model model) {
-        if(error != null) {
-            model.addAttribute("erro", "Login ou senha incorretos!");
-        }
-        model.addAttribute("versao", this.versao);
-        return "login";
-    }
-
-    @GetMapping("/graficos2")
-    public String graficos2(Model model){
-      
-        model.addAttribute("quedas", quedaService.findQuedasNoBanco());
-        return "old-graficos2";
-    }
-
-    @GetMapping("/testeOnline2")
-    @ResponseBody
-    public String testeOnline(){
-        scanService.varrerCidades();
-        return "ok2";
-    }
 
 }

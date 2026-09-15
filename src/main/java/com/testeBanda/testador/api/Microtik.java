@@ -56,7 +56,7 @@ public class Microtik {
                     desligar = false;
                     break;
                 }
-                else if(hostEmTeste.bloquearTesteBanda){
+                else if(hostEmTeste.getConfig().bloquearTesteBanda){
                     log.info(" == Host {} bloqueado para teste == " , hostEmTeste.nome);
                 }
                 //inicia processo de teste
@@ -94,19 +94,6 @@ public class Microtik {
         dataAboutTest.setCidadeEmTeste("@END");
     }
 
-    public List<Map<String, String>> testarAmbosLados(Cidades host, ApiConnection api) throws MikrotikApiException {
-        String cmd = "/tool/bandwidth-test address=" + host.ip +
-                " connection-count=5 " +
-                " duration=10s " +
-                "direction=both " +
-                "protocol=tcp " +
-                "user=mprs " +
-                "password=" + senha + " " +
-                " local-tx-speed=" + (host.getVelocidadeInteger() +1) +"M " +
-                "remote-tx-speed="+ (host.getVelocidadeInteger() +1)+"M";
-        return api.execute(cmd);
-    }
-
     public List<Map<String, String>> testarTransmit(Cidades host, ApiConnection api) throws MikrotikApiException {
         return executarBandwidthTest(host, api, "transmit");
     }
@@ -119,10 +106,10 @@ public class Microtik {
         String cmd = "/tool/bandwidth-test address=" + host.ip +
                 " duration=10s " +
                 "direction=" + direction +
-                " protocol=tcp " +
+                " protocol=" + (host.getConfig().testarUDP ? "udp":"tcp") + " " +
                 "user=mprs " +
                 "password=" + senha;
-        if(host.limitarTesteBanda){
+        if(host.getConfig().limitarTesteBanda ){
             cmd +=  " local-tx-speed=" + (host.getVelocidadeInteger() +1) +"M " +
                     "remote-tx-speed="+ (host.getVelocidadeInteger() +1)+"M";
         }

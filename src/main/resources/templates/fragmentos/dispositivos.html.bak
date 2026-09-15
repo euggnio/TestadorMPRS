@@ -30,72 +30,12 @@
   <div class="modal-overlay" id="configModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modalTitle">⚙️ Gerenciar Categorias</h2>
-        <div style="display:flex;gap:6px">
-          <button class="modal-close" id="modalInfoBtn" title="Ajuda sobre as regras de classificação">❓</button>
-          <button class="modal-close" id="modalClose">×</button>
-        </div>
+        <h2>⚙️ Gerenciar Categorias</h2>
+        <button class="modal-close" id="modalClose">×</button>
       </div>
       <button class="btn-add-cat" id="addCategoryBtn">+ Adicionar Categoria</button>
       <div id="categoriasConfig"></div>
-      <div id="regexHelp" style="display:none">
-        <div class="help-content">
-          <h3>📖 Como funciona a classificação?</h3>
-          <p>Cada categoria tem regras de <strong>inclusão</strong> (Nome, Descrição e IP) e regras de <strong>exclusão</strong>. Para um dispositivo ser classificado em uma categoria, ele deve:</p>
-          <ol>
-            <li><strong>Não</strong> corresponder a <em>nenhuma</em> regra de exclusão da categoria</li>
-            <li>Corresponder a <strong>qualquer uma</strong> das regras de inclusão preenchidas (OR)</li>
-          </ol>
-          <p>A ordem das categorias define a prioridade — a primeira que match vence.</p>
-
-          <h4>🔤 Regex — Expressões Regulares</h4>
-          <p>Regex são padrões de busca. Você pode usar <code>|</code> para separar alternativas (OR).</p>
-          <table class="help-table">
-            <tr><th>Campo</th><th>Formato</th><th>Exemplos</th></tr>
-            <tr>
-              <td>Regex Nome</td>
-              <td>padrões com <code>|</code></td>
-              <td><code>sw-|switch</code> → match "sw-01" ou "switch-core"<br>
-                  <code>\bAP\b</code> → match "AP-01" mas NÃO "COMAP-13"</td>
-            </tr>
-            <tr>
-              <td>Regex Descrição</td>
-              <td>padrões com <code>|</code></td>
-              <td><code>cisco|des-3</code> → match descrições com "cisco" ou "des-3"</td>
-            </tr>
-            <tr>
-              <td>Pool / Range IP</td>
-              <td>CIDR, wildcard, range</td>
-              <td><code>172.17.1.0/24</code> — toda sub-rede<br>
-                  <code>*.1</code> — IPs terminados em .1<br>
-                  <code>172.17.*</code> — IPs começando com 172.17.<br>
-                  <code>172.17.1.1-254</code> — range simples<br>
-                  <code>*.1-*.10</code> — wildcard com range</td>
-            </tr>
-            <tr>
-              <td>Excluir Nome</td>
-              <td>regex</td>
-              <td><code>comap|teste</code> → exclui dispositivos com "COMAP" ou "teste" no nome</td>
-            </tr>
-            <tr>
-              <td>Excluir IP</td>
-              <td>CIDR, wildcard, range</td>
-              <td><code>172.17.73.0/24</code> → ignora IPs dessa faixa</td>
-            </tr>
-          </table>
-
-          <h4>💡 Dicas</h4>
-          <ul>
-            <li><code>\b</code> antes e depois de uma palavra cria <strong>borda</strong>: <code>\bAP\b</code> match "AP" mas não "COMAP" nem "APENAS"</li>
-            <li><code>|</code> funciona como <strong>"ou"</strong>: <code>ap-|wifi</code> match "ap-01" <strong>ou</strong> "wifi-rede"</li>
-            <li>Campos vazios são ignorados — basta <strong>um</strong> campo preenchido dar match para classificar</li>
-          </ul>
-        </div>
-        <div class="modal-actions" style="border:none;padding-top:16px">
-          <button class="btn-secondary" id="helpVoltarBtn">← Voltar</button>
-        </div>
-      </div>
-      <div class="modal-actions" id="configActions">
+      <div class="modal-actions">
         <button class="btn-secondary" id="cancelBtn">Cancelar</button>
         <button class="btn-primary"   id="saveBtn">💾 Salvar no Servidor</button>
       </div>
@@ -120,7 +60,6 @@
   <div class="busca-row" id="buscaRow">
     <div id="filtro-btn-row" class="filtro-btn-row">
         <button class="filtro-btn ativo" data-cat="todos" onclick="filtrarCategoria('todos',this)">Todos</button>
-        <button class="filtro-btn antigos-btn" data-cat="antigos" onclick="toggleAntigos(this)">🕐 Antigos</button>
     </div>
      <div class="ip-search-wrap" id="ipSearchWrap">
         <input class="busca-input" type="text" id="buscaInput"
@@ -131,12 +70,6 @@
   </div>
 
   <div id="categoriasContainer"></div>
-  <div id="barraEnvio" style="display:none">
-    <span id="barraEnvioTexto">Nenhum selecionado</span>
-    <span id="barraCounters" style="font-weight:700;font-size:.9rem"></span>
-    <button id="btnEnviarSelecionados">📤 Enviar (<span id="barraEnvioCount">0</span>)</button>
-    <button id="btnCancelarSelecao">✕ Cancelar</button>
-  </div>
 </main>
 
 <!-- DADOS THYMELEAF -->
@@ -157,10 +90,6 @@
   let saveTimer      = null;
   let classificados  = false;
   let limitesExibicao = {};
-  let modoSelecao    = false;
-  let selecionados   = new Set();
-  let ultimoClicado  = null;
-  let mostrarAntigos = false;
   function debounce(fn, ms) {
       let timer;
       return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
@@ -173,33 +102,33 @@
     { key:"switch",     label:"Switches / Roteadores",    icon:"🔀", cor:"#00adb5",
       regexNome:"sw-|switch|router|summit|xip",
       regexDescricao:"cisco|des-3|fast ethernet switch|internetwork operating",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"pc",         label:"Computadores / Notebooks", icon:"🖥️", cor:"#4e9af1",
       regexNome:"", regexDescricao:"windows|microsoft windows",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"impressora", label:"Impressoras",              icon:"🖨️", cor:"#f1914e",
       regexNome:"hp[0-9]|tag[0-9]|et788",
       regexDescricao:"lexmark|hp laser|hp ethernet multi|kyocera|epson built|printing system|print server|mfp",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"telefone",   label:"Telefonia / VoIP",         icon:"📞", cor:"#a56ef1",
       regexNome:"alcatel|voip",
       regexDescricao:"alcatel|avaya|voip",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"camera",     label:"Câmeras / Segurança",      icon:"📷", cor:"#f14e6e",
       regexNome:"cam-|nvr|dvr",
       regexDescricao:"nvr|dvr|cftv|hikvision|intelbras",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"wifi",       label:"Access Points / WiFi",     icon:"📶", cor:"#6ef1c3",
       regexNome:"ap-|wifi|wireless",
       regexDescricao:"ubiquiti|mikrotik|access point",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"servidor",   label:"Servidores / NAS",         icon:"🗄️", cor:"#f1e24e",
       regexNome:"serv-|server|nas-|srv-",
       regexDescricao:"linux|proxmox|esxi|vmware",
-      rangeIp:"", nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" },
+      rangeIp:"", pesoPool:100, pesoDescricao:40, pesoNome:20 },
     { key:"outros",     label:"Outros",                   icon:"📦", cor:"#8899aa",
       regexNome:"", regexDescricao:"", rangeIp:"",
-      nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" }
+      pesoPool:0, pesoDescricao:0, pesoNome:0 }
   ];
 
   /* ================================================================
@@ -322,126 +251,64 @@
   }
 
   /* ================================================================
-     CLASSIFICAÇÃO (REGEX + EXCLUSÃO)
+     CLASSIFICAÇÃO (SCORING)
   ================================================================ */
-  function tryRegex(pattern, value) {
-    try { return new RegExp(pattern, "i").test(value); } catch { return false; }
-  }
-
-  function testaInclusao(cat, nome, desc, ip) {
-    if (nome !== "" && cat.regexNome        && tryRegex(cat.regexNome,    nome)) return true;
-    if (desc !== "" && cat.regexDescricao   && tryRegex(cat.regexDescricao, desc)) return true;
-    if (ip   !== "" && cat.rangeIp          && ipPertencePool(ip, cat.rangeIp)) return true;
-    return false;
-  }
-
-  function testaExclusao(cat, nome, desc, ip) {
-    if (cat.nomeExcluir    && tryRegex(cat.nomeExcluir,    nome)) return true;
-    if (cat.descExcluir    && tryRegex(cat.descExcluir,    desc)) return true;
-    if (cat.ipExcluir      && ipPertencePool(ip, cat.ipExcluir)) return true;
-    return false;
-  }
-
   function classificar(d) {
     const nome = (d.nome      || "").toLowerCase().trim();
     const desc = (d.descricao || "").toLowerCase().trim();
     const ip   =  d.ip        || "";
 
+    // Pré-check: MAC ou dados inválidos → outros (score 0)
+    if (/^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$/i.test(nome) ||
+        (["n/a","null","","erro"].includes(nome) && ["n/a","null","","erro"].includes(desc))) {
+      d._score = 0; d._confianca = 0; return "outros";
+    }
+
+    const score = {};
+    for (const cat of CATEGORIAS) score[cat.key] = 0;
+
     for (const cat of CATEGORIAS) {
-      if (cat.key === "outros") continue;
-      if (testaExclusao(cat, nome, desc, ip)) continue;
-      if (cat.filtroUsuario) {
-        const user = (d.usuario || "").toLowerCase().trim();
-        const temUser = user && user !== "n/a" && user !== "null";
-        if (cat.filtroUsuario === "com" && !temUser) continue;
-        if (cat.filtroUsuario === "sem" && temUser) continue;
+      if (cat.pesoPool === 0 && cat.pesoDescricao === 0 && cat.pesoNome === 0) continue;
+
+      const pesoPool = cat.pesoPool ?? 100;
+      const pesoDesc = cat.pesoDescricao ?? 40;
+      const pesoNome = cat.pesoNome ?? 20;
+
+      // 1. Pool IP (CIDR / range) — +pesoPool
+      if (ip && cat.rangeIp && ipPertencePool(ip, cat.rangeIp))
+        score[cat.key] += pesoPool;
+
+      // 2. Descrição — +pesoDesc
+      if (desc && cat.regexDescricao) {
+        try { if (new RegExp(cat.regexDescricao, "i").test(desc)) score[cat.key] += pesoDesc; } catch {}
       }
-      if (testaInclusao(cat, nome, desc, ip)) return cat.key;
-    }
-    return "outros";
-  }
 
-  /* ================================================================
-     SELEÇÃO EM LOTE
-  ================================================================ */
-  function toggleModoSelecao(catKey) {
-    modoSelecao = !modoSelecao;
-    if (!modoSelecao) {
-      selecionados.clear();
-      ultimoClicado = null;
-      document.getElementById("barraEnvio").style.display = "none";
-    } else {
-      document.getElementById("barraEnvio").style.display = "flex";
-    }
-    aplicarFiltros();
-    atualizarBarraEnvio();
-  }
-
-  function atualizarBarraEnvio() {
-    const count = selecionados.size;
-    document.getElementById("barraEnvioCount").textContent = count;
-    document.getElementById("barraEnvioTexto").textContent = count > 0
-      ? `${count} dispositivo${count !== 1 ? "s" : ""} selecionado${count !== 1 ? "s" : ""}`
-      : "Nenhum selecionado";
-  }
-
-  async function enviarSelecionados() {
-    const ips = Array.from(selecionados);
-    if (!ips.length) return;
-    const lista = dispositivos.filter(d => ips.includes(d.ip));
-    const btn = document.getElementById("btnEnviarSelecionados");
-    btn.disabled = true;
-    const total = lista.length;
-    let enviados = 0, erros = 0;
-    const barraTexto = document.getElementById("barraEnvioTexto");
-    const barra = document.getElementById("barraEnvio");
-    const barraCounters = document.getElementById("barraCounters");
-    barra.style.borderTopColor = "";
-
-    for (let i = 0; i < total; i++) {
-      const disp = lista[i];
-      const nome = disp.nome || disp.ip;
-      try {
-        const r = await fetch("/api/categorias/imprimir-nagios", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(disp)
-        });
-        if (r.ok) {
-          enviados++;
-          barraTexto.textContent = `⏳ ${i + 1}/${total} — ${nome} → ✅ OK`;
-        } else {
-          erros++;
-          barraTexto.textContent = `⏳ ${i + 1}/${total} — ${nome} → ❌ Falha`;
-        }
-      } catch {
-        erros++;
-        barraTexto.textContent = `⏳ ${i + 1}/${total} — ${nome} → ❌ Erro`;
+      // 3. Nome — +pesoNome
+      if (nome && cat.regexNome) {
+        try { if (new RegExp(cat.regexNome, "i").test(nome)) score[cat.key] += pesoNome; } catch {}
       }
-      barraCounters.textContent = `✅ ${enviados}  ❌ ${erros}`;
-      if (i < total - 1) await new Promise(r => setTimeout(r, 150));
     }
 
-    if (erros === 0) {
-      barraTexto.textContent = `✅ Todos os ${total} dispositivos enviados com sucesso!`;
-      barra.style.borderTopColor = "#6ef1a5";
-    } else if (enviados === 0) {
-      barraTexto.textContent = `❌ Nenhum enviado — ${erros} erro(s)`;
-      barra.style.borderTopColor = "#f14e6e";
-    } else {
-      barraTexto.textContent = `⚠️ ${enviados} enviado${enviados > 1 ? "s" : ""}, ${erros} falha${erros > 1 ? "s" : ""}`;
-      barra.style.borderTopColor = "#f0a500";
+    // Categoria com maior pontuação (empate → mantém ordem do array)
+    let melhorCat = "outros";
+    let melhorScore = 0;
+    for (const cat of CATEGORIAS) {
+      if (score[cat.key] > melhorScore) {
+        melhorScore = score[cat.key];
+        melhorCat = cat.key;
+      }
     }
-    barraCounters.textContent = "";
 
-    btn.disabled = false;
-    modoSelecao = false;
-    selecionados.clear();
-    ultimoClicado = null;
-    setTimeout(() => {
-      barra.style.display = "none";
-      aplicarFiltros();
-    }, 3000);
+    // Confiança
+    let confianca;
+    if      (melhorScore >= 100)  confianca = 95;   // Alta
+    else if (melhorScore >= 50)   confianca = 70;   // Média
+    else if (melhorScore > 0)     confianca = 40;   // Baixa
+    else                          confianca = 0;    // Sem match
+
+    d._score     = melhorScore;
+    d._confianca = confianca;
+    return melhorCat;
   }
 
   /* ================================================================
@@ -538,7 +405,7 @@
       const panel = document.createElement("div");
       panel.className = "ctx-cat-panel";
       panel.style.setProperty("--ctx-cor", cat.cor);
-      panel.innerHTML = `<div class="ctx-panel-hint">"${escaped}" — adicionar em:</div>`;
+      panel.innerHTML = `<div class="ctx-panel-hint">Adicionar "${escaped}" em:</div>`;
 
       const btnsDiv = document.createElement("div");
       btnsDiv.className = "ctx-panel-btns";
@@ -565,29 +432,8 @@
         fecharCtx();
       });
 
-      // Botão EXCLUIR NOME
-      const btnNomeEx = document.createElement("button");
-      btnNomeEx.className = "ctx-campo-btn";
-      btnNomeEx.style.setProperty("--ctx-cor", cat.cor);
-      btnNomeEx.innerHTML = `🚫 Excluir Nome<span class="campo-sub">nomeExcluir</span>`;
-      btnNomeEx.addEventListener("click", e2 => {
-        e2.stopPropagation();
-        adicionarRegex(cat, "nomeExcluir", escaped);
-        fecharCtx();
-      });
-
-      // Botão EXCLUIR DESCRIÇÃO
-      const btnDescEx = document.createElement("button");
-      btnDescEx.className = "ctx-campo-btn";
-      btnDescEx.style.setProperty("--ctx-cor", cat.cor);
-      btnDescEx.innerHTML = `🚫 Excluir Desc.<span class="campo-sub">descExcluir</span>`;
-      btnDescEx.addEventListener("click", e2 => {
-        e2.stopPropagation();
-        adicionarRegex(cat, "descExcluir", escaped);
-        fecharCtx();
-      });
-
-      btnsDiv.append(btnNome, btnDesc, btnNomeEx, btnDescEx);
+      btnsDiv.appendChild(btnNome);
+      btnsDiv.appendChild(btnDesc);
       panel.appendChild(btnsDiv);
 
       // Toggle ao clicar na linha
@@ -617,19 +463,11 @@
     ctxEl.style.left = e.clientX + "px";
     ctxEl.style.top  = e.clientY + "px";
 
-    // Ajuste de borda da tela + scroll dinâmico
+    // Ajuste de borda da tela
     requestAnimationFrame(() => {
       const r = ctxEl.getBoundingClientRect();
       if (r.right  > window.innerWidth  - 10) ctxEl.style.left = (e.clientX - r.width)  + "px";
       if (r.bottom > window.innerHeight - 10) ctxEl.style.top  = (e.clientY - r.height) + "px";
-
-      const topPx = parseInt(ctxEl.style.top) || 0;
-      const headerH = (ctxEl.querySelector(".ctx-preview")?.offsetHeight || 0)
-                    + (ctxEl.querySelector(".ctx-quick")?.offsetHeight || 0)
-                    + (ctxEl.querySelector(".ctx-cats-label")?.offsetHeight || 0);
-      const scroll = ctxEl.querySelector(".ctx-cats-scroll");
-      const maxH = window.innerHeight - topPx - headerH - 25;
-      scroll.style.maxHeight = Math.max(100, maxH) + "px";
     });
   }
 
@@ -644,9 +482,7 @@
     autoSalvar();
     classificados = false;
     aplicarFiltros();
-    const nomeCampo = campo === "regexNome"     ? "Nome" :
-                      campo === "regexDescricao" ? "Descrição" :
-                      campo === "nomeExcluir"    ? "Excluir Nome" : "Excluir Desc.";
+    const nomeCampo = campo === "regexNome" ? "Nome" : "Descrição";
     mostrarToast(`"${escaped}" → ${nomeCampo} → ${cat.label.split("/")[0]}`, "sucesso");
   }
 
@@ -689,29 +525,18 @@
         </div>
         <div class="form-row" style="margin-top:10px">
             <div class="form-group">
-                <label>Excluir — Nome (regex)</label>
-                <input type="text" class="cat-nome-excluir" value="${cat.nomeExcluir||""}" placeholder="ap-|wifi|switch">
-                <span class="form-hint">Dispositivos com nome que correspondem a este regex serão ignorados</span>
+                <label>Peso Pool IP</label>
+                <input type="number" class="cat-peso-pool" value="${cat.pesoPool ?? 100}" min="0" max="999">
             </div>
             <div class="form-group">
-                <label>Excluir — Descrição (regex)</label>
-                <input type="text" class="cat-desc-excluir" value="${cat.descExcluir||""}" placeholder="mikrotik|access point">
-                <span class="form-hint">Dispositivos com descrição correspondente serão ignorados</span>
+                <label>Peso Descrição</label>
+                <input type="number" class="cat-peso-desc" value="${cat.pesoDescricao ?? 40}" min="0" max="999">
             </div>
-        </div>
-        <div class="form-group" style="margin-top:8px">
-            <label>Excluir — Pool / Range IP</label>
-            <input type="text" class="cat-ip-excluir" value="${cat.ipExcluir||""}" placeholder="172.17.1.0/24, *.1-10, 172.17.1.1-172.17.1.254">
-            <span class="form-hint">CIDR, range ou wildcard — IPs nesta faixa serão ignorados</span>
-        </div>
-        <label class="cat-user-req" style="display:flex;align-items:center;gap:7px;margin-top:10px;font-size:.84rem;font-weight:700;color:var(--cor-texto)">
-            <span>🧑‍💼 Usuário:</span>
-            <select class="cat-filtro-usuario" style="background:var(--cor-painel2);border:1px solid var(--cor-borda);border-radius:5px;padding:4px 8px;color:var(--cor-texto);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:600">
-                <option value="" ${cat.filtroUsuario === "" ? "selected" : ""}>Qualquer um</option>
-                <option value="com" ${cat.filtroUsuario === "com" ? "selected" : ""}>Com usuário</option>
-                <option value="sem" ${cat.filtroUsuario === "sem" ? "selected" : ""}>Sem usuário</option>
-            </select>
-        </label>`;
+            <div class="form-group">
+                <label>Peso Nome</label>
+                <input type="number" class="cat-peso-nome" value="${cat.pesoNome ?? 20}" min="0" max="999">
+            </div>
+        </div>`;
       const del = item.querySelector(".cat-delete-btn");
       if (del) del.addEventListener("click", () => {
         if (confirm(`Excluir "${cat.label}"?`)) item.remove();
@@ -767,15 +592,14 @@
         regexNome:      item.querySelector(".cat-regex-nome").value.trim(),
         regexDescricao: item.querySelector(".cat-regex-desc").value.trim(),
         rangeIp:        item.querySelector(".cat-range-ip").value.trim(),
-        nomeExcluir:    item.querySelector(".cat-nome-excluir").value.trim(),
-        descExcluir:    item.querySelector(".cat-desc-excluir").value.trim(),
-        ipExcluir:      item.querySelector(".cat-ip-excluir").value.trim(),
-        filtroUsuario:  item.querySelector(".cat-filtro-usuario").value
+        pesoPool:       parseInt(item.querySelector(".cat-peso-pool").value) || 0,
+        pesoDescricao:  parseInt(item.querySelector(".cat-peso-desc").value) || 0,
+        pesoNome:       parseInt(item.querySelector(".cat-peso-nome").value) || 0
       });
     });
     if (!novas.find(c => c.key === "outros"))
       novas.push({ key:"outros", label:"Outros", icon:"📦", cor:"#8899aa", regexNome:"", regexDescricao:"", rangeIp:"",
-        nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" });
+        pesoPool:0, pesoDescricao:0, pesoNome:0 });
 
     const ok = await salvarCategorias(novas);
     if (ok) {
@@ -789,32 +613,11 @@
   }
 
   /* ================================================================
-     FILTROS DE DATA
-  ================================================================ */
-  const DIAS_RECENTES = 3;
-
-  function ehRecente(d) {
-    if (!d.ultimaVarredura) return false;
-    const partes = d.ultimaVarredura.split("-");
-    if (partes.length !== 3) return false;
-    const dataDisp = new Date(+partes[0], +partes[1] - 1, +partes[2]);
-    const agora = new Date();
-    const corte = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() - DIAS_RECENTES);
-    return dataDisp >= corte;
-  }
-
-  function toggleAntigos(btn) {
-    mostrarAntigos = !mostrarAntigos;
-    btn.classList.toggle("ativo", mostrarAntigos);
-    aplicarFiltros();
-  }
-
-  /* ================================================================
      FILTROS
   ================================================================ */
   function reconstruirFiltros() {
     const row = document.getElementById("filtro-btn-row");
-    row.querySelectorAll(".filtro-btn:not([data-cat='todos']):not([data-cat='antigos'])").forEach(b => b.remove());
+    row.querySelectorAll(".filtro-btn:not([data-cat='todos'])").forEach(b => b.remove());
     for (const cat of CATEGORIAS) {
       const btn = document.createElement("button");
       btn.className = "filtro-btn";
@@ -827,7 +630,6 @@
 
   function filtrarCategoria(cat, btn) {
     categoriaAtiva = cat;
-    mostrarAntigos = false;
     document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("ativo"));
     if (btn) btn.classList.add("ativo");
     aplicarFiltros();
@@ -841,9 +643,6 @@
   function aplicarFiltros() {
     if (!classificados) classificarTodos();
     let lista = dispositivos;
-    if (!mostrarAntigos) {
-      lista = lista.filter(d => ehRecente(d));
-    }
     if (termoBusca) {
       const t = termoBusca.toLowerCase();
       lista = lista.filter(d =>
@@ -905,10 +704,13 @@
       const limitados = dispList.slice(0, limite);
       const rows = limitados.map(d => {
         const dispJson = JSON.stringify(d).replace(/'/g, "&#39;");
-        const sel = modoSelecao ? `<input type="checkbox" class="row-cb" data-ip="${d.ip}" ${selecionados.has(d.ip)?"checked":""}>` : "";
+        const confTitulo = d._confianca >= 95 ? "✅ Alta confiança"
+                        : d._confianca >= 70 ? "⚠️ Média confiança"
+                        : d._confianca >= 40 ? "❌ Baixa confiança"
+                        : "⛔ Sem classificação";
         return `
         <tr>
-            <td>${sel}<span class="gear-icon" data-dispositivo='${dispJson}' title="Adicionar no Nagios">⚙️</span></td>
+            <td><span class="gear-icon" data-dispositivo='${dispJson}' title="${confTitulo} (score: ${d._score})">⚙️</span></td>
             <td><a target="_blank" href="unidade/${d.cidadeNome}"><span class="nome-disp">${d.cidadeNome||"—"}</span></a></td>
             <td><span class="ip-badge">${d.ip||"—"}</span></td>
             <td><span class="nome-disp">${d.nome||"—"}</span></td>
@@ -929,7 +731,6 @@
             <span style="font-size:1.1rem">${cat.icon}</span>
             <h2>${cat.label}</h2>
             <span class="cat-count" style="color:${cat.cor};background:color-mix(in srgb,${cat.cor} 14%,transparent)">${dispList.length}</span>
-            <button class="btn-selecionar" data-cat="${cat.key}" title="Selecionar dispositivos">☐</button>
         </div>
         <div class="tabela-wrap">
             <table class="tabela-categoria">
@@ -1137,34 +938,6 @@
         aplicarFiltros();
         return;
       }
-      const selBtn = e.target.closest(".btn-selecionar");
-      if (selBtn) {
-        e.stopPropagation();
-        toggleModoSelecao(selBtn.dataset.cat);
-        return;
-      }
-      const cb = e.target.closest(".row-cb");
-      if (cb) {
-        if (e.shiftKey && ultimoClicado) {
-          const cbs = Array.from(document.querySelectorAll(".row-cb"));
-          const start = cbs.indexOf(ultimoClicado);
-          const end = cbs.indexOf(cb);
-          if (start >= 0 && end >= 0) {
-            const [from, to] = start < end ? [start, end] : [end, start];
-            for (let i = from; i <= to; i++) {
-              cbs[i].checked = cb.checked;
-              if (cb.checked) selecionados.add(cbs[i].dataset.ip);
-              else selecionados.delete(cbs[i].dataset.ip);
-            }
-          }
-        } else {
-          if (cb.checked) selecionados.add(cb.dataset.ip);
-          else selecionados.delete(cb.dataset.ip);
-        }
-        ultimoClicado = cb;
-        atualizarBarraEnvio();
-        return;
-      }
       const gear = e.target.closest(".gear-icon");
       if (gear) {
         try {
@@ -1180,30 +953,8 @@
     });
     document.getElementById("addCategoryBtn").addEventListener("click", () => {
       CATEGORIAS.push({ key:"cat_"+Date.now(), label:"Nova Categoria", icon:"📌", cor:"#00adb5", regexNome:"", regexDescricao:"", rangeIp:"",
-        nomeExcluir:"", descExcluir:"", ipExcluir:"", filtroUsuario:"" });
+        pesoPool:100, pesoDescricao:40, pesoNome:20 });
       renderConfigModal();
-    });
-    document.getElementById("btnEnviarSelecionados").addEventListener("click", enviarSelecionados);
-    document.getElementById("btnCancelarSelecao").addEventListener("click", () => {
-      modoSelecao = false;
-      selecionados.clear();
-      ultimoClicado = null;
-      aplicarFiltros();
-      document.getElementById("barraEnvio").style.display = "none";
-    });
-    document.getElementById("modalInfoBtn").addEventListener("click", () => {
-      document.getElementById("categoriasConfig").style.display = "none";
-      document.getElementById("addCategoryBtn").style.display = "none";
-      document.getElementById("configActions").style.display = "none";
-      document.getElementById("regexHelp").style.display = "block";
-      document.getElementById("modalTitle").textContent = "❓ Ajuda — Regras de Classificação";
-    });
-    document.getElementById("helpVoltarBtn").addEventListener("click", () => {
-      document.getElementById("categoriasConfig").style.display = "";
-      document.getElementById("addCategoryBtn").style.display = "";
-      document.getElementById("configActions").style.display = "";
-      document.getElementById("regexHelp").style.display = "none";
-      document.getElementById("modalTitle").textContent = "⚙️ Gerenciar Categorias";
     });
     window.addEventListener("resize", () => {
       ["chartPizza","chartBarras"].forEach(id => {

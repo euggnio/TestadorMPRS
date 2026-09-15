@@ -29,7 +29,7 @@ public class GlpiService {
         Queda queda = quedaRepository.findById(id).get();
         queda.setProtocolo(protocolo);
         quedaRepository.save(queda);
-        if (queda.getChamado().isBlank()){
+        if ((queda.getChamado() == null || queda.getChamado().isBlank()) && !(queda.getTempoFora().getSeconds() > 0) ){
             this.abrirChamado(id);
         }
         glpiAPI.insertFollowUpTicket(queda.getChamado(), "<p>Protocolo da ávato : " + protocolo + "</p>");
@@ -92,9 +92,21 @@ public class GlpiService {
             log.info("Erro ao abrir chamado - Queda não foi encontrada");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
         }
-        String ticket = glpiAPI.createGlpiTicket(queda.get().getCidade().getNome());
+        if(!queda.get().getChamado().isBlank()){
+            log.info("Erro ao abrir chamado - Queda já possui um chamado");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Falha");
+        }
+        String tipo = "";
+        String nome = queda.get().getId() + "";
+        if(queda.get().getDescricao() != null){
+            tipo = queda.get().getDescricao();
+        }
+        if(queda.get().getCidade().getNome() != null){
+            nome = queda.get().getCidade().getNome();
+        }
+        String ticket = glpiAPI.createGlpiTicket(nome + " " + tipo);
         queda.get().setChamado(ticket);
-        log.info("Abrir chamado {} referente a queda: {}", ticket, queda);
+        log.info("Abrindo chamado {} referente a queda: {}", ticket, queda);
         quedaRepository.save(queda.get());
     }
 
